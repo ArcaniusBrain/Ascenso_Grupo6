@@ -1,0 +1,70 @@
+classDiagram
+  direction TB
+  class CAT["Catálogo Institucional"] {
+    <<Bounded Context · Soporte>>
+  }
+  class FON["Programas y Fondos"] {
+    <<Bounded Context · Core>>
+  }
+  class POS["Postulación"] {
+    <<Bounded Context · Soporte>>
+  }
+  class EVA["Evaluación y Selección"] {
+    <<Bounded Context · Core>>
+  }
+  class BEC["Gestión de Becas"] {
+    <<Bounded Context · Soporte>>
+  }
+  class SEG["Seguimiento Académico"] {
+    <<Bounded Context · Soporte>>
+  }
+  class TRZ["Trazabilidad"] {
+    <<Bounded Context · Soporte>>
+  }
+  class COM["Comunicaciones"] {
+    <<Bounded Context · Soporte>>
+  }
+  class REP["Reportería e Impacto"] {
+    <<Bounded Context · Soporte>>
+  }
+  class SK["Shared Kernel"] {
+    <<Shared Kernel>>
+    Dinero
+    Cedula
+    Contacto
+    VentanaFechas
+    FechaLimite
+    Promedio
+    Justificacion
+    ReferenciaArchivo
+    CodigoPeriodo
+  }
+  CAT "U" --> "D" FON : OHS / PL
+  CAT "U" --> "D" POS : OHS / PL
+  CAT "U" --> "D" BEC : OHS / PL
+  CAT "U" --> "D" SEG : OHS / PL
+  FON "U" --> "D" POS : Customer / Supplier
+  FON "U" --> "D" EVA : Customer / Supplier
+  POS -- EVA : Partnership
+  EVA "U" --> "D" BEC : Customer / Supplier
+  FON -- BEC : Partnership
+  BEC "U" --> "D" SEG : Customer / Supplier
+  SEG "U" --> "D" BEC : Customer / Supplier
+  BEC "U" --> "D" TRZ : PL eventos
+  POS "U" --> "D" TRZ : PL eventos
+  EVA "U" --> "D" TRZ : PL eventos
+  SEG "U" --> "D" TRZ : PL eventos
+  TRZ "U" --> "D" COM : PL eventos
+  TRZ "U" --> "D" REP : PL eventos
+  SK .. FON : Shared Kernel
+  note for SK "Lo comparten todos los contextos internos (lámina 17: Dinero entre Pedidos y Facturación)."
+  style CAT fill:#bbdefb,stroke:#1565c0,color:#000000
+  style FON fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style POS fill:#bbdefb,stroke:#1565c0,color:#000000
+  style EVA fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style BEC fill:#bbdefb,stroke:#1565c0,color:#000000
+  style SEG fill:#bbdefb,stroke:#1565c0,color:#000000
+  style TRZ fill:#bbdefb,stroke:#1565c0,color:#000000
+  style COM fill:#bbdefb,stroke:#1565c0,color:#000000
+  style REP fill:#bbdefb,stroke:#1565c0,color:#000000
+  style SK fill:#c8e6c9,stroke:#2e7d32,color:#000000

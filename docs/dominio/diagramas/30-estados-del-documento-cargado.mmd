@@ -1,0 +1,5 @@
+stateDiagram-v2
+  [*] --> Faltante : PostulacionFactory.Crear()
+  Faltante --> Cargado : CargarDocumento()
+  Cargado --> Rechazado : RechazarDocumento()
+  Rechazado --> Cargado : CargarDocumento() [antes del límite]

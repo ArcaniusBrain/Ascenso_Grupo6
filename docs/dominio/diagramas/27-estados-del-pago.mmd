@@ -1,0 +1,8 @@
+stateDiagram-v2
+  [*] --> Registrado : RegistrarPago()
+  Registrado --> Confirmado : ConfirmarPago() [OTP válido]
+  Confirmado --> Fallido : MarcarPagoFallido()
+  Confirmado --> Devuelto : MarcarPagoDevuelto()
+  Confirmado --> [*]
+  Fallido --> [*]
+  Devuelto --> [*]

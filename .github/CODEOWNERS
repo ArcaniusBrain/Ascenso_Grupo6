@@ -1,0 +1,32 @@
+# Responsables de revisión por carpeta.
+# GitHub pide revisión automáticamente a estas personas cuando un pull request toca sus carpetas.
+#
+# Cómo completarlo: reemplaza cada @usuario-N por el usuario de GitHub del integrante
+# y quita el "#" del inicio de la línea. Debe ser un usuario con acceso de escritura al repositorio.
+# Reparto según la Propuesta de Arquitectura v0.1 (ADR-02); ajústalo si el equipo lo cambia (EQ-03).
+#
+# La última regla que coincide es la que aplica.
+
+# Por defecto (todo lo que no tenga dueño más abajo)
+* @ArcaniusBrain
+
+# Documentación del proyecto
+# /docs/requisitos/      @usuario-1 @usuario-2 @usuario-3 @usuario-4 @usuario-5
+# /docs/dominio/         @usuario-1 @usuario-2 @usuario-3 @usuario-4 @usuario-5
+# /docs/arquitectura/    @usuario-1 @usuario-2 @usuario-3 @usuario-4 @usuario-5
+
+# Código compartido: cualquier cambio se acuerda entre todos (Shared Kernel)
+# /src/shared/           @usuario-1 @usuario-2 @usuario-3 @usuario-4 @usuario-5
+
+# Servicios (ADR-02)
+# /src/services/identidad/       @usuario-1
+# /src/services/programas/       @usuario-1
+# /src/services/postulacion/     @usuario-2 @usuario-3
+# /src/services/becas/           @usuario-4 @usuario-5
+# /src/services/seguimiento/     @usuario-5
+# /src/services/comunicaciones/  @responsable-s6
+
+# Frontend, despliegue e integración continua
+# /frontend/   @usuario-?
+# /deploy/     @usuario-?
+# /.github/    @ArcaniusBrain

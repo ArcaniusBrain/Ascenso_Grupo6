@@ -1,0 +1,87 @@
+classDiagram
+  direction LR
+  namespace Agregado_Usuario {
+    class Usuario {
+      <<Raíz de agregado>>
+      +Id: UsuarioId
+      -cedula: Cedula
+      -contacto: Contacto
+      -canalPreferido: CanalCodigo
+      -estado: EstadoUsuario
+      -tipos: Set~TipoUsuarioId~
+      -programasAsignados: Set~ProgramaId~
+      -universidadId: UniversidadId
+      +RequiereSegundoFactor() bool
+      +Desactivar() void
+    }
+    class CanalCodigo {
+      <<Enumeración>>
+      CORREO
+      SMS
+    }
+    class EstadoUsuario {
+      <<Enumeración>>
+      ACTIVO
+      DESACTIVADO
+    }
+  }
+  namespace Agregado_TipoUsuario {
+    class TipoUsuario {
+      <<Raíz de agregado>>
+      +Id: TipoUsuarioId
+      -nombre: string
+      -permisos: Set~string~
+      -accesoFinancieroODecision: bool
+      +OtorgarPermiso(permiso: string) void
+      +ExigeSegundoFactor() bool
+    }
+  }
+  namespace Agregado_ClienteApiUniversidad {
+    class ClienteApiUniversidad {
+      <<Raíz de agregado>>
+      +Id: ClienteApiUniversidadId
+      -universidadId: UniversidadId
+      -activo: bool
+      +PuedeEnviarPor(universidadId: UniversidadId) bool
+      +Revocar() void
+    }
+  }
+  class IUsuarioRepository {
+    <<interface>>
+    +ObtenerPorId(id: UsuarioId) Usuario
+    +ObtenerPorCedula(cedula: Cedula) Usuario
+    +Guardar(x: Usuario) void
+  }
+  class ITipoUsuarioRepository {
+    <<interface>>
+    +ObtenerPorId(id: TipoUsuarioId) TipoUsuario
+    +ObtenerTodos() List~TipoUsuario~
+    +Guardar(x: TipoUsuario) void
+  }
+  class IClienteApiUniversidadRepository {
+    <<interface>>
+    +ObtenerPorId(id: ClienteApiUniversidadId) ClienteApiUniversidad
+    +Guardar(x: ClienteApiUniversidad) void
+  }
+  class UniversidadAliada {
+    <<Raíz · otro agregado>>
+  }
+  Usuario --> CanalCodigo
+  Usuario --> EstadoUsuario
+  Usuario ..> TipoUsuario : tipoUsuarioId
+  ClienteApiUniversidad ..> UniversidadAliada : universidadId
+  Usuario ..> UniversidadAliada : universidadId del enlace
+  IUsuarioRepository ..> Usuario : guarda
+  ITipoUsuarioRepository ..> TipoUsuario : guarda
+  IClienteApiUniversidadRepository ..> ClienteApiUniversidad : guarda
+  note for Usuario "Protege: cédula única (R1); se desactiva, nunca se borra. La cuenta del postulante también es un Usuario (HU-01.1)."
+  note for TipoUsuario "Catálogo configurable: un tipo nuevo no exige código (Anexo A HU-37.1)."
+  style Usuario fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style CanalCodigo fill:#eeeeee,stroke:#757575,color:#000000
+  style EstadoUsuario fill:#eeeeee,stroke:#757575,color:#000000
+  style TipoUsuario fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style ClienteApiUniversidad fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style IUsuarioRepository fill:#ffffff,stroke:#424242,color:#000000
+  style ITipoUsuarioRepository fill:#ffffff,stroke:#424242,color:#000000
+  style IClienteApiUniversidadRepository fill:#ffffff,stroke:#424242,color:#000000
+  style UniversidadAliada fill:#f5f5f5,stroke:#9e9e9e,color:#616161

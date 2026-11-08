@@ -1,0 +1,26 @@
+sequenceDiagram
+  participant UI as :UI
+  participant H as :RevocarBecaHandler
+  participant OTP as :IServicioOtp
+  participant RB as :IBecaRepository
+  participant B as :Beca
+  participant EV as :PublicadorEventos
+  participant M as :LiberarPresupuestoAlRevocar
+  participant RP as :IPresupuestoProgramaRepository
+  participant PP as :PresupuestoPrograma
+  UI->>H: Manejar(RevocarBeca)
+  H->>OTP: Validar(usuarioId, codigo)
+  OTP-->>H: true
+  H->>RB: ObtenerPorId(becaId)
+  RB-->>H: beca
+  H->>B: Revocar(motivo, grave)
+  H->>RB: Guardar(beca)
+  Note over H,B: Transacción 1: Beca, con su RegistroDecision y su Outbox
+  H->>EV: Publicar(beca.EventosPendientes)
+  H-->>UI: ok
+  EV->>M: Manejar(BecaRevocada)
+  M->>RP: ObtenerPorPrograma(programaId)
+  RP-->>M: presupuesto
+  M->>PP: LiberarBecaRevocada(montoNoDesembolsado)
+  M->>RP: Guardar(presupuesto)
+  Note over M,PP: Transacción 2: liberar solo aumenta lo disponible, por eso puede ir después

@@ -1,0 +1,10 @@
+stateDiagram-v2
+  [*] --> Abierto : AbrirPeriodo()
+  Abierto --> Cerrado : CerrarPeriodo()
+  Cerrado --> [*]
+  state Abierto {
+    state "No actual" as NoActual
+    [*] --> NoActual
+    NoActual --> Actual : MarcarActual()
+    Actual --> NoActual : MarcarActual() de otro periodo
+  }

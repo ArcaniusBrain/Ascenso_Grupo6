@@ -1,0 +1,5 @@
+stateDiagram-v2
+  [*] --> Abierta : new Consulta()
+  Abierta --> Respondida : Responder()
+  Respondida --> Cerrada : Cerrar()
+  Cerrada --> [*]

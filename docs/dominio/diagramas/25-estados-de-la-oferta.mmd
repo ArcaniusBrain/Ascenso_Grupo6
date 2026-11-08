@@ -1,0 +1,8 @@
+stateDiagram-v2
+  [*] --> Pendiente : OfertaFactory.Emitir()
+  Pendiente --> Aceptada : Aceptar() [antes de la fecha límite]
+  Pendiente --> Rechazada : Rechazar()
+  Pendiente --> Expirada : Expirar() [fecha límite vencida]
+  Aceptada --> [*]
+  Rechazada --> [*]
+  Expirada --> [*]

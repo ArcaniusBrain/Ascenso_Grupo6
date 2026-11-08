@@ -1,0 +1,38 @@
+classDiagram
+  direction LR
+  class ConfirmarPagoHandler {
+    <<Aplicación>>
+    +Manejar(comando: ConfirmarPago) void
+  }
+  class IBecaRepository {
+    <<interface>>
+    +ObtenerPorId(id: BecaId) Beca
+    +ParaCambioDePeriodo(periodo: CodigoPeriodo) List~BecaId~
+    +Guardar(beca: Beca) void
+  }
+  class BecaRepositoryEf {
+    <<Infraestructura>>
+    +ObtenerPorId(id: BecaId) Beca
+    +Guardar(beca: Beca) void
+  }
+  class Beca {
+    <<Raíz de agregado>>
+    +Id: BecaId
+    +ConfirmarPago(pagoId: PagoId) void
+  }
+  class IServicioOtp {
+    <<interface>>
+    +Validar(usuarioId: UsuarioId, codigo: string) bool
+  }
+  ConfirmarPagoHandler --> IBecaRepository : usa
+  ConfirmarPagoHandler --> IServicioOtp : usa
+  IBecaRepository <|.. BecaRepositoryEf
+  IBecaRepository ..> Beca : guarda y devuelve
+  ConfirmarPagoHandler ..> Beca : llama
+  note for IBecaRepository "Proyecto Dominio. Se inyecta en Aplicación, nunca en la entidad (lámina 43)."
+  note for ConfirmarPagoHandler "Carga, llama al agregado, guarda y publica eventos. Ni un if de negocio (lámina 46)."
+  style ConfirmarPagoHandler fill:#e3f2fd,stroke:#1976d2,color:#000000
+  style IBecaRepository fill:#ffffff,stroke:#424242,color:#000000
+  style BecaRepositoryEf fill:#f3e5f5,stroke:#7b1fa2,color:#000000
+  style Beca fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style IServicioOtp fill:#ffffff,stroke:#424242,color:#000000

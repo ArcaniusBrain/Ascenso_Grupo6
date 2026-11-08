@@ -1,0 +1,95 @@
+classDiagram
+  direction TB
+  namespace Subdominios_Core {
+    class EVA["Evaluación y Selección"] {
+      <<Bounded Context · Core>>
+      Comite
+      Evaluacion
+      ConflictoInteres
+      RF-06 a 10, 39
+    }
+    class FON["Programas y Fondos"] {
+      <<Bounded Context · Core>>
+      Programa
+      Donante
+      PresupuestoPrograma
+      RF-11, 12, 13
+    }
+  }
+  namespace Subdominios_de_Soporte {
+    class BEC["Gestión de Becas"] {
+      <<Bounded Context · Soporte>>
+      Oferta
+      Beca
+      BeneficiosPersona
+      DatosPago
+      VentanaRenovacion
+      RF-15 a 22, 26, 27, 28
+    }
+    class POS["Postulación"] {
+      <<Bounded Context · Soporte>>
+      CicloPostulacion
+      Postulante
+      Postulacion
+      RF-01 a 05
+    }
+    class SEG["Seguimiento Académico"] {
+      <<Bounded Context · Soporte>>
+      ReporteAcademico
+      PlazoReporte
+      EvaluacionCumplimiento
+      RF-24, 25
+    }
+    class CAT["Catálogo Institucional"] {
+      <<Bounded Context · Soporte>>
+      CalendarioAcademico
+      UniversidadAliada
+      RF-14, 38
+    }
+    class TRZ["Trazabilidad"] {
+      <<Bounded Context · Soporte>>
+      RegistroDecision (registro inmutable)
+      RF-35
+    }
+    class COM["Comunicaciones"] {
+      <<Bounded Context · Soporte>>
+      Consulta
+      RegistroEnvio
+      RF-29 a 32
+    }
+    class REP["Reportería e Impacto"] {
+      <<Bounded Context · Soporte>>
+      ConsentimientoDonante
+      modelos de lectura
+      RF-23, 33, 34, 36, 40
+    }
+  }
+  namespace Subdominios_Genericos {
+    class IAM["Identidad y Acceso"] {
+      <<Bounded Context · Genérico>>
+      Usuario
+      TipoUsuario
+      ClienteApiUniversidad
+      RF-37, 2FA, OTP
+    }
+    class ARC["Archivos"] {
+      <<Bounded Context · Genérico>>
+      Firebase Storage
+    }
+    class ENV["Envío de mensajes"] {
+      <<Bounded Context · Genérico>>
+      Correo y SMS
+    }
+  }
+  style EVA fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style FON fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style BEC fill:#bbdefb,stroke:#1565c0,color:#000000
+  style POS fill:#bbdefb,stroke:#1565c0,color:#000000
+  style SEG fill:#bbdefb,stroke:#1565c0,color:#000000
+  style CAT fill:#bbdefb,stroke:#1565c0,color:#000000
+  style TRZ fill:#bbdefb,stroke:#1565c0,color:#000000
+  style COM fill:#bbdefb,stroke:#1565c0,color:#000000
+  style REP fill:#bbdefb,stroke:#1565c0,color:#000000
+  style IAM fill:#eeeeee,stroke:#757575,color:#000000
+  style ARC fill:#eeeeee,stroke:#757575,color:#000000
+  style ENV fill:#eeeeee,stroke:#757575,color:#000000

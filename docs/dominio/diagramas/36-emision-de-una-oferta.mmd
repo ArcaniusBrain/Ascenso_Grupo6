@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant UI as :UI
+  participant H as :EmitirOfertaHandler
+  participant RP as :IPresupuestoProgramaRepository
+  participant PP as :PresupuestoPrograma
+  participant F as OfertaFactory
+  participant RO as :IOfertaRepository
+  participant EV as :PublicadorEventos
+  UI->>H: Manejar(EmitirOferta)
+  H->>RP: ObtenerPorPrograma(programaId)
+  RP-->>H: presupuesto
+  H->>PP: ReservarOferta(monto, cicloId)
+  H->>RP: Guardar(presupuesto)
+  Note over H,PP: Transacción 1: solo PresupuestoPrograma
+  H->>F: Emitir(postulacion, programa, ciclo, fechaLimite, carta)
+  F-->>H: oferta
+  H->>RO: Guardar(oferta)
+  Note over H,RO: Transacción 2: solo Oferta. Si falla, la aplicación invoca LiberarOferta (compensación, HU-15.1)
+  H->>EV: Publicar(oferta.EventosPendientes)
+  H-->>UI: ok

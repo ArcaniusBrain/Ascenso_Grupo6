@@ -1,0 +1,6 @@
+stateDiagram-v2
+  [*] --> Pendiente : SolicitarRenovacion() [ventana abierta]
+  Pendiente --> Aprobada : AprobarRenovacion()
+  Pendiente --> Rechazada : RechazarRenovacion()
+  Aprobada --> [*]
+  Rechazada --> [*]

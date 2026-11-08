@@ -1,0 +1,198 @@
+classDiagram
+  direction LR
+  namespace Agregado_CicloPostulacion {
+    class CicloPostulacion {
+      <<Raíz de agregado>>
+      +Id: CicloId
+      -programaId: ProgramaId
+      -periodo: CodigoPeriodo
+      -ventana: VentanaFechas
+      -cupoNuevos: int
+      -publicado: bool
+      -inicioEvaluacion: datetime
+      -cierreRevision: datetime
+    }
+    class CriterioElegibilidad {
+      <<Value Object>>
+      +Tipo: TipoCriterio
+      +Operador: OperadorCriterio
+      +Valor: string
+    }
+    class DocumentoRequerido {
+      <<Value Object>>
+      +Nombre: string
+      +Obligatorio: bool
+    }
+    class RubricaAplicada {
+      <<Value Object>>
+      +CicloId: CicloId
+      +Version: int
+      +Criterios: List~Criterio~
+    }
+  }
+  namespace Agregado_Postulante {
+    class Postulante {
+      <<Raíz de agregado>>
+      +Id: PostulanteId
+      -usuarioId: UsuarioId
+      -cedula: Cedula
+      -contacto: Contacto
+      -universidadId: UniversidadId
+      -condicion: CondicionMatricula
+    }
+    class PerfilAcademico {
+      <<Value Object>>
+      +Carrera: string
+      +PeriodoActual: CodigoPeriodo
+    }
+    class PromedioCertificado {
+      <<Value Object>>
+      +Valor: Promedio
+      +Via: ViaDatosAcademicos
+      +Origen: string
+      +RegistradoEn: datetime
+    }
+    class DatosSocioeconomicos {
+      <<Value Object>>
+      +IngresoFamiliar: Dinero
+      +ComposicionFamiliar: int
+    }
+  }
+  namespace Agregado_Postulacion {
+    class Postulacion {
+      <<Raíz de agregado>>
+      +Id: PostulacionId
+      -postulanteId: PostulanteId
+      -cicloId: CicloId
+      -estado: EstadoPostulacion
+      -puntuacionConsolidada: decimal
+      -marcaDiferencia: bool
+      -ofertaPendiente: OfertaId
+      -motivoRetiro: MotivoRetiro
+    }
+    class DocumentoCargado {
+      <<Entidad>>
+      +Id: DocumentoCargadoId
+      -nombre: string
+      -archivo: ReferenciaArchivo
+      -estado: EstadoDocumento
+      -motivoRechazo: Justificacion
+      -limiteResubida: FechaLimite
+    }
+    class AsignacionEvaluador {
+      <<Entidad>>
+      +Id: AsignacionId
+      -evaluadorId: UsuarioId
+      -asignada: datetime
+      -estado: EstadoAsignacion
+      -reemplazaA: AsignacionId
+    }
+    class CopiaPerfil {
+      <<Value Object>>
+      +TomadaEn: datetime
+      +Academico: PerfilAcademico
+      +Socioeconomico: DatosSocioeconomicos
+    }
+    class ExcepcionAutorizada {
+      <<Value Object>>
+      +AutorizadaPor: UsuarioId
+      +Fecha: datetime
+      +Justificacion: Justificacion
+    }
+    class Seleccion {
+      <<Value Object>>
+      +Origen: OrigenSeleccion
+      +DecididaPor: UsuarioId
+      +Fecha: datetime
+      +Justificacion: Justificacion
+    }
+    class ListaEspera {
+      <<Value Object>>
+      +Puesto: int
+      +VigenteHasta: date
+    }
+    class MotivoNoElegibilidad {
+      <<Value Object>>
+      +CriteriosIncumplidos: List~string~
+    }
+  }
+  namespace Agregado_Comite {
+    class Comite {
+      <<Raíz de agregado>>
+      +Id: ComiteId
+      -programaId: ProgramaId
+    }
+    class MiembroComite {
+      <<Value Object>>
+      +UsuarioId: UsuarioId
+      +EsJefatura: bool
+    }
+  }
+  namespace Agregado_Evaluacion {
+    class Evaluacion {
+      <<Raíz de agregado>>
+      +Id: EvaluacionId
+      -postulacionId: PostulacionId
+      -evaluadorId: UsuarioId
+      -estado: EstadoEvaluacion
+    }
+    class Puntuacion {
+      <<Value Object>>
+      +Criterio: string
+      +Valor: decimal
+      +Comentario: string
+    }
+    class RubricaAplicada_Evaluacion["RubricaAplicada"] {
+      <<Value Object>>
+      +CicloId: CicloId
+      +Version: int
+      +Criterios: List~Criterio~
+    }
+  }
+  namespace Agregado_ConflictoInteres {
+    class ConflictoInteres {
+      <<Raíz de agregado>>
+      +Id: ConflictoInteresId
+      -declaranteId: UsuarioId
+      -postulanteId: PostulanteId
+      -declarado: datetime
+    }
+  }
+  CicloPostulacion "1" *-- "*" CriterioElegibilidad : criterios
+  CicloPostulacion "1" *-- "*" DocumentoRequerido : documentos
+  CicloPostulacion "1" *-- "0..1" RubricaAplicada : rúbrica congelada
+  Postulante "1" *-- "1" PerfilAcademico : académico
+  PerfilAcademico "1" *-- "1" PromedioCertificado : promedio
+  Postulante "1" *-- "1" DatosSocioeconomicos : socioeconómico
+  Postulacion "1" *-- "*" DocumentoCargado : documentos
+  Postulacion "1" *-- "*" AsignacionEvaluador : asignaciones
+  Postulacion "1" *-- "1" CopiaPerfil : copia al postular
+  Postulacion "1" *-- "0..1" ExcepcionAutorizada : excepción
+  Postulacion "1" *-- "0..1" Seleccion : selección
+  Postulacion "1" *-- "0..1" ListaEspera : lista de espera
+  Postulacion "1" *-- "0..1" MotivoNoElegibilidad : motivo
+  Comite "1" *-- "1..*" MiembroComite : miembros
+  Evaluacion "1" *-- "*" Puntuacion : puntuaciones
+  Evaluacion "1" *-- "1" RubricaAplicada_Evaluacion : puntúa contra
+  style CicloPostulacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style CriterioElegibilidad fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style DocumentoRequerido fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style RubricaAplicada fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Postulante fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style PerfilAcademico fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style PromedioCertificado fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style DatosSocioeconomicos fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Postulacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style DocumentoCargado fill:#bbdefb,stroke:#1565c0,color:#000000
+  style AsignacionEvaluador fill:#bbdefb,stroke:#1565c0,color:#000000
+  style CopiaPerfil fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style ExcepcionAutorizada fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Seleccion fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style ListaEspera fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style MotivoNoElegibilidad fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Comite fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style MiembroComite fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Evaluacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Puntuacion fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style RubricaAplicada_Evaluacion fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style ConflictoInteres fill:#0d47a1,stroke:#0d47a1,color:#ffffff

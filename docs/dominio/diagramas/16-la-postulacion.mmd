@@ -1,0 +1,209 @@
+classDiagram
+  direction LR
+  namespace Agregado_Postulacion {
+    class Postulacion {
+      <<Raíz de agregado>>
+      +Id: PostulacionId
+      -postulanteId: PostulanteId
+      -cicloId: CicloId
+      -estado: EstadoPostulacion
+      -puntuacionConsolidada: decimal
+      -marcaDiferencia: bool
+      -ofertaPendiente: OfertaId
+      -motivoRetiro: MotivoRetiro
+      +CargarDocumento(nombre: string, archivo: ReferenciaArchivo) void
+      +RechazarDocumento(nombre: string, motivo: Justificacion, limite: FechaLimite) void
+      +RegistrarVerificacion(cumple: bool, motivo: MotivoNoElegibilidad) void
+      +AnularNoElegible(coordinadorId: UsuarioId, j: Justificacion) void
+      +AsignarEvaluador(evaluadorId: UsuarioId) void
+      +ReemplazarEvaluador(saliente: UsuarioId, entrante: UsuarioId) void
+      +AutorizarExcepcion(coordinadorId: UsuarioId, j: Justificacion) void
+      +Consolidar(totales: List~decimal~, umbral: decimal) void
+      +SeleccionarPorRanking() void
+      +ResolverCasoLimite(decisorId: UsuarioId, seleccionar: bool, j: Justificacion) void
+      +ConfirmarListaEspera(puesto: int, hasta: date) void
+      +TerminarListaEspera() void
+      +RegistrarOfertaEmitida(ofertaId: OfertaId) void
+      +RegistrarOfertaAceptada() void
+      +RegistrarOfertaCerrada(motivo: MotivoRetiro) void
+      +Retirar() void
+    }
+    class DocumentoCargado {
+      <<Entidad>>
+      +Id: DocumentoCargadoId
+      -nombre: string
+      -archivo: ReferenciaArchivo
+      -estado: EstadoDocumento
+      -motivoRechazo: Justificacion
+      -limiteResubida: FechaLimite
+      +Rechazar(motivo: Justificacion, limite: FechaLimite) void
+    }
+    class AsignacionEvaluador {
+      <<Entidad>>
+      +Id: AsignacionId
+      -evaluadorId: UsuarioId
+      -asignada: datetime
+      -estado: EstadoAsignacion
+      -reemplazaA: AsignacionId
+      +RetirarPorConflicto() void
+    }
+    class CopiaPerfil {
+      <<Value Object>>
+      +TomadaEn: datetime
+      +Academico: PerfilAcademico
+      +Socioeconomico: DatosSocioeconomicos
+    }
+    class ExcepcionAutorizada {
+      <<Value Object>>
+      +AutorizadaPor: UsuarioId
+      +Fecha: datetime
+      +Justificacion: Justificacion
+    }
+    class Seleccion {
+      <<Value Object>>
+      +Origen: OrigenSeleccion
+      +DecididaPor: UsuarioId
+      +Fecha: datetime
+      +Justificacion: Justificacion
+    }
+    class ListaEspera {
+      <<Value Object>>
+      +Puesto: int
+      +VigenteHasta: date
+    }
+    class MotivoNoElegibilidad {
+      <<Value Object>>
+      +CriteriosIncumplidos: List~string~
+    }
+    class EstadoPostulacion {
+      <<Enumeración>>
+      RECIBIDA
+      EN_VERIFICACION
+      EN_EVALUACION
+      NO_ELEGIBLE
+      OTORGADA
+      RECHAZADA
+      RETIRADA
+    }
+    class MotivoRetiro {
+      <<Enumeración>>
+      VOLUNTARIO
+      OFERTA_RECHAZADA
+      OFERTA_EXPIRADA
+    }
+    class EstadoDocumento {
+      <<Enumeración>>
+      FALTANTE
+      CARGADO
+      RECHAZADO
+    }
+    class EstadoAsignacion {
+      <<Enumeración>>
+      VIGENTE
+      RETIRADA_POR_CONFLICTO
+    }
+    class OrigenSeleccion {
+      <<Enumeración>>
+      RANKING
+      CASO_LIMITE
+    }
+  }
+  class PostulacionFactory {
+    <<Fábrica>>
+    +Crear(postulante: Postulante, ciclo: CicloPostulacion, ahora: datetime)$ Postulacion
+  }
+  class VerificadorElegibilidad {
+    <<Servicio de dominio>>
+    +Verificar(copia: CopiaPerfil, criterios: List~CriterioElegibilidad~, restricciones: List~RestriccionElegibilidad~) MotivoNoElegibilidad
+  }
+  class PostulacionRecibida {
+    <<Evento de dominio>>
+    +PostulacionId: PostulacionId
+    +Fecha: DateTimeOffset
+  }
+  class DocumentosCompletados {
+    <<Evento de dominio>>
+    +PostulacionId: PostulacionId
+    +Fecha: DateTimeOffset
+  }
+  class PostulacionVerificada {
+    <<Evento de dominio>>
+    +PostulacionId: PostulacionId
+    +Elegible: bool
+    +Fecha: DateTimeOffset
+  }
+  class PostulacionConsolidada {
+    <<Evento de dominio>>
+    +PostulacionId: PostulacionId
+    +Puntuacion: decimal
+    +Fecha: DateTimeOffset
+  }
+  class ListaEsperaConfirmada {
+    <<Evento de dominio>>
+    +PostulacionId: PostulacionId
+    +Puesto: int
+    +Fecha: DateTimeOffset
+  }
+  class IPostulacionRepository {
+    <<interface>>
+    +ObtenerPorId(id: PostulacionId) Postulacion
+    +EnListaEspera(cicloId: CicloId) List~Postulacion~
+    +Guardar(x: Postulacion) void
+  }
+  class Postulante {
+    <<Raíz · otro agregado>>
+  }
+  class CicloPostulacion {
+    <<Raíz · otro agregado>>
+  }
+  class Oferta {
+    <<Raíz · otro agregado>>
+  }
+  Postulacion "1" *-- "*" DocumentoCargado : documentos
+  Postulacion "1" *-- "*" AsignacionEvaluador : asignaciones
+  Postulacion "1" *-- "1" CopiaPerfil : copia al postular
+  Postulacion "1" *-- "0..1" ExcepcionAutorizada : excepción
+  Postulacion "1" *-- "0..1" Seleccion : selección
+  Postulacion "1" *-- "0..1" ListaEspera : lista de espera
+  Postulacion "1" *-- "0..1" MotivoNoElegibilidad : motivo
+  Postulacion --> EstadoPostulacion
+  Postulacion --> MotivoRetiro
+  DocumentoCargado --> EstadoDocumento
+  AsignacionEvaluador --> EstadoAsignacion
+  Seleccion --> OrigenSeleccion
+  Postulacion ..> Postulante : postulanteId
+  Postulacion ..> CicloPostulacion : cicloId
+  Postulacion ..> Oferta : ofertaPendiente
+  PostulacionFactory ..> Postulacion : crea
+  VerificadorElegibilidad ..> Postulacion : usa
+  Postulacion ..> PostulacionRecibida : registra
+  Postulacion ..> DocumentosCompletados : registra
+  Postulacion ..> PostulacionVerificada : registra
+  Postulacion ..> PostulacionConsolidada : registra
+  Postulacion ..> ListaEsperaConfirmada : registra
+  IPostulacionRepository ..> Postulacion : guarda
+  note for Postulacion "Protege: sin saltar etapas; mínimo dos evaluadores vigentes o excepción; una sola oferta pendiente; retiro solo en Recibida o En verificación (HU-04.1, 05.1, 06.2, 15.1)."
+  style Postulacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style DocumentoCargado fill:#bbdefb,stroke:#1565c0,color:#000000
+  style AsignacionEvaluador fill:#bbdefb,stroke:#1565c0,color:#000000
+  style CopiaPerfil fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style ExcepcionAutorizada fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Seleccion fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style ListaEspera fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style MotivoNoElegibilidad fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style EstadoPostulacion fill:#eeeeee,stroke:#757575,color:#000000
+  style MotivoRetiro fill:#eeeeee,stroke:#757575,color:#000000
+  style EstadoDocumento fill:#eeeeee,stroke:#757575,color:#000000
+  style EstadoAsignacion fill:#eeeeee,stroke:#757575,color:#000000
+  style OrigenSeleccion fill:#eeeeee,stroke:#757575,color:#000000
+  style PostulacionFactory fill:#fff59d,stroke:#f9a825,color:#000000
+  style VerificadorElegibilidad fill:#e1bee7,stroke:#6a1b9a,color:#000000
+  style PostulacionRecibida fill:#ffcc80,stroke:#e65100,color:#000000
+  style DocumentosCompletados fill:#ffcc80,stroke:#e65100,color:#000000
+  style PostulacionVerificada fill:#ffcc80,stroke:#e65100,color:#000000
+  style PostulacionConsolidada fill:#ffcc80,stroke:#e65100,color:#000000
+  style ListaEsperaConfirmada fill:#ffcc80,stroke:#e65100,color:#000000
+  style IPostulacionRepository fill:#ffffff,stroke:#424242,color:#000000
+  style Postulante fill:#f5f5f5,stroke:#9e9e9e,color:#616161
+  style CicloPostulacion fill:#f5f5f5,stroke:#9e9e9e,color:#616161
+  style Oferta fill:#f5f5f5,stroke:#9e9e9e,color:#616161

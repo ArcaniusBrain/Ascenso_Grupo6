@@ -1,0 +1,186 @@
+classDiagram
+  direction LR
+  namespace Agregado_Oferta {
+    class Oferta {
+      <<Raíz de agregado>>
+      +Id: OfertaId
+      -postulacionId: PostulacionId
+      -postulanteId: PostulanteId
+      -programaId: ProgramaId
+      -cicloId: CicloId
+      -periodo: CodigoPeriodo
+      -monto: Dinero
+      -duracionPeriodos: int
+      -exigeCompromiso: bool
+      -fechaLimite: FechaLimite
+      -carta: ReferenciaArchivo
+      -estado: EstadoOferta
+      +Aceptar(ahora: datetime) void
+      +Rechazar() void
+      +Expirar(ahora: datetime) void
+    }
+    class CondicionesPermanencia {
+      <<Value Object>>
+      +PromedioMinimo: Promedio
+      +HorasServicio: int
+      +ReportesExigidos: List~string~
+    }
+    class EstadoOferta {
+      <<Enumeración>>
+      PENDIENTE
+      ACEPTADA
+      RECHAZADA
+      EXPIRADA
+    }
+  }
+  namespace Agregado_BeneficiosPersona {
+    class BeneficiosPersona {
+      <<Raíz de agregado>>
+      +Id: BeneficiosPersonaId
+      -postulanteId: PostulanteId
+      -cedula: Cedula
+      +PuedePostular(programaId: ProgramaId, permiteAcumulacion: bool, periodo: CodigoPeriodo) bool
+      +RegistrarAceptacion(nuevo: BeneficioVigente, topeMatricula: Dinero) void
+      +ActualizarEstado(becaId: BecaId, cuentaComoActiva: bool) void
+    }
+    class BeneficioVigente {
+      <<Entidad>>
+      +Id: BeneficioVigenteId
+      -becaId: BecaId
+      -programaId: ProgramaId
+      -alcance: Alcance
+      -periodo: CodigoPeriodo
+      -monto: Dinero
+      -cuentaComoActiva: bool
+    }
+  }
+  namespace Agregado_DatosPago {
+    class DatosPago {
+      <<Raíz de agregado>>
+      +Id: DatosPagoId
+      -becarioId: PostulanteId
+      +Registrar(cuenta: CuentaBancaria) void
+      +Cambiar(cuenta: CuentaBancaria) void
+    }
+    class CuentaBancaria {
+      <<Value Object>>
+      +Titular: string
+      +CedulaTitular: Cedula
+      +Banco: string
+      +TipoCuenta: string
+      +Numero: string
+    }
+  }
+  namespace Agregado_VentanaRenovacion {
+    class VentanaRenovacion {
+      <<Raíz de agregado>>
+      +Id: VentanaRenovacionId
+      -programaId: ProgramaId
+      -periodo: CodigoPeriodo
+      -ventana: VentanaFechas
+      +EstaAbierta(ahora: datetime) bool
+    }
+  }
+  class OfertaFactory {
+    <<Fábrica>>
+    +Emitir(postulacion: Postulacion, programa: Programa, ciclo: CicloPostulacion, fechaLimite: FechaLimite, carta: ReferenciaArchivo)$ Oferta
+  }
+  class ServicioAceptacionOferta {
+    <<Servicio de dominio>>
+    +Aceptar(oferta: Oferta, persona: BeneficiosPersona, alcance: Alcance, topeMatricula: Dinero, ahora: datetime) void
+  }
+  class OfertaEmitida {
+    <<Evento de dominio>>
+    +OfertaId: OfertaId
+    +PostulacionId: PostulacionId
+    +Fecha: DateTimeOffset
+  }
+  class OfertaAceptada {
+    <<Evento de dominio>>
+    +OfertaId: OfertaId
+    +Monto: Dinero
+    +Fecha: DateTimeOffset
+  }
+  class OfertaRechazada {
+    <<Evento de dominio>>
+    +OfertaId: OfertaId
+    +Monto: Dinero
+    +Fecha: DateTimeOffset
+  }
+  class OfertaExpirada {
+    <<Evento de dominio>>
+    +OfertaId: OfertaId
+    +Monto: Dinero
+    +Fecha: DateTimeOffset
+  }
+  class IOfertaRepository {
+    <<interface>>
+    +ObtenerPorId(id: OfertaId) Oferta
+    +PendientesVencidas(ahora: datetime) List~Oferta~
+    +Guardar(x: Oferta) void
+  }
+  class IBeneficiosPersonaRepository {
+    <<interface>>
+    +ObtenerPorId(id: BeneficiosPersonaId) BeneficiosPersona
+    +ObtenerPorPostulante(postulanteId: PostulanteId) BeneficiosPersona
+    +Guardar(x: BeneficiosPersona) void
+  }
+  class IDatosPagoRepository {
+    <<interface>>
+    +ObtenerPorId(id: DatosPagoId) DatosPago
+    +ObtenerPorBecario(postulanteId: PostulanteId) DatosPago
+    +Guardar(x: DatosPago) void
+  }
+  class IVentanaRenovacionRepository {
+    <<interface>>
+    +ObtenerPorId(id: VentanaRenovacionId) VentanaRenovacion
+    +ObtenerPorProgramaYPeriodo(programaId: ProgramaId, periodo: CodigoPeriodo) VentanaRenovacion
+    +Guardar(x: VentanaRenovacion) void
+  }
+  class Postulacion {
+    <<Raíz · otro agregado>>
+  }
+  class Programa {
+    <<Raíz · otro agregado>>
+  }
+  Oferta "1" *-- "1" CondicionesPermanencia : copia de lo ofrecido
+  Oferta --> EstadoOferta
+  BeneficiosPersona "1" *-- "*" BeneficioVigente : becas de la persona
+  DatosPago "1" *-- "1" CuentaBancaria : cuenta
+  Oferta ..> Postulacion : postulacionId
+  Oferta ..> Programa : programaId
+  VentanaRenovacion ..> Programa : programaId
+  OfertaFactory ..> Oferta : crea
+  ServicioAceptacionOferta ..> Oferta : usa
+  ServicioAceptacionOferta ..> BeneficiosPersona : usa
+  Oferta ..> OfertaEmitida : registra
+  Oferta ..> OfertaAceptada : registra
+  Oferta ..> OfertaRechazada : registra
+  Oferta ..> OfertaExpirada : registra
+  IOfertaRepository ..> Oferta : guarda
+  IBeneficiosPersonaRepository ..> BeneficiosPersona : guarda
+  IDatosPagoRepository ..> DatosPago : guarda
+  IVentanaRenovacionRepository ..> VentanaRenovacion : guarda
+  note for BeneficiosPersona "La regla C2 vive en la raíz (lámina 31): no dos becas COMPLETO activas; suma por periodo menor o igual al costo de matrícula."
+  note for ServicioAceptacionOferta "Toca dos agregados y no pertenece a ninguno, como ServicioDeTransferencia de la lámina 36 (D-3)."
+  note for Oferta "Protege: se acepta una sola vez y antes de la fecha límite (HU-16.1, R20)."
+  style Oferta fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style CondicionesPermanencia fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style EstadoOferta fill:#eeeeee,stroke:#757575,color:#000000
+  style BeneficiosPersona fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style BeneficioVigente fill:#bbdefb,stroke:#1565c0,color:#000000
+  style DatosPago fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style CuentaBancaria fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style VentanaRenovacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style OfertaFactory fill:#fff59d,stroke:#f9a825,color:#000000
+  style ServicioAceptacionOferta fill:#e1bee7,stroke:#6a1b9a,color:#000000
+  style OfertaEmitida fill:#ffcc80,stroke:#e65100,color:#000000
+  style OfertaAceptada fill:#ffcc80,stroke:#e65100,color:#000000
+  style OfertaRechazada fill:#ffcc80,stroke:#e65100,color:#000000
+  style OfertaExpirada fill:#ffcc80,stroke:#e65100,color:#000000
+  style IOfertaRepository fill:#ffffff,stroke:#424242,color:#000000
+  style IBeneficiosPersonaRepository fill:#ffffff,stroke:#424242,color:#000000
+  style IDatosPagoRepository fill:#ffffff,stroke:#424242,color:#000000
+  style IVentanaRenovacionRepository fill:#ffffff,stroke:#424242,color:#000000
+  style Postulacion fill:#f5f5f5,stroke:#9e9e9e,color:#616161
+  style Programa fill:#f5f5f5,stroke:#9e9e9e,color:#616161

@@ -1,0 +1,10 @@
+stateDiagram-v2
+  state "Con incidencia" as ConIncidencia
+  [*] --> Programado : ProgramarDesembolsos()
+  Programado --> Pagado : ConfirmarPago() [OTP válido]
+  Pagado --> ConIncidencia : MarcarPagoFallido() o MarcarPagoDevuelto()
+  ConIncidencia --> Pagado : ConfirmarPago() [nuevo pago, OTP válido]
+  Programado --> Cancelado : Revocar() o Concluir() de la beca
+  ConIncidencia --> Cancelado : Revocar() o Concluir() de la beca
+  Pagado --> [*]
+  Cancelado --> [*]

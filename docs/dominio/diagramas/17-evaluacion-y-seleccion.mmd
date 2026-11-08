@@ -1,0 +1,132 @@
+classDiagram
+  direction LR
+  namespace Agregado_Comite {
+    class Comite {
+      <<Raíz de agregado>>
+      +Id: ComiteId
+      -programaId: ProgramaId
+      +AgregarMiembro(usuarioId: UsuarioId) void
+      +DesignarJefatura(usuarioId: UsuarioId) void
+      +EsMiembro(usuarioId: UsuarioId) bool
+    }
+    class MiembroComite {
+      <<Value Object>>
+      +UsuarioId: UsuarioId
+      +EsJefatura: bool
+    }
+  }
+  namespace Agregado_Evaluacion {
+    class Evaluacion {
+      <<Raíz de agregado>>
+      +Id: EvaluacionId
+      -postulacionId: PostulacionId
+      -evaluadorId: UsuarioId
+      -estado: EstadoEvaluacion
+      +Puntuar(criterio: string, valor: decimal, comentario: string) void
+      +Enviar() void
+      +Total() decimal
+    }
+    class Puntuacion {
+      <<Value Object>>
+      +Criterio: string
+      +Valor: decimal
+      +Comentario: string
+    }
+    class RubricaAplicada {
+      <<Value Object>>
+      +CicloId: CicloId
+      +Version: int
+      +Criterios: List~Criterio~
+    }
+    class EstadoEvaluacion {
+      <<Enumeración>>
+      BORRADOR
+      ENVIADA
+    }
+  }
+  namespace Agregado_ConflictoInteres {
+    class ConflictoInteres {
+      <<Raíz de agregado>>
+      +Id: ConflictoInteresId
+      -declaranteId: UsuarioId
+      -postulanteId: PostulanteId
+      -declarado: datetime
+      +Declarar(declaranteId: UsuarioId, postulanteId: PostulanteId, ahora: datetime)$ ConflictoInteres
+      +Restringe(usuarioId: UsuarioId, postulanteId: PostulanteId) bool
+    }
+  }
+  class ConsolidadorPuntuaciones {
+    <<Servicio de dominio>>
+    +Consolidar(totales: List~decimal~, metodo: MetodoConsolidacion) decimal
+    +HayDiferenciaGrande(totales: List~decimal~, umbral: decimal) bool
+  }
+  class EvaluacionEnviada {
+    <<Evento de dominio>>
+    +EvaluacionId: EvaluacionId
+    +PostulacionId: PostulacionId
+    +Fecha: DateTimeOffset
+  }
+  class ConflictoDeclarado {
+    <<Evento de dominio>>
+    +DeclaranteId: UsuarioId
+    +PostulanteId: PostulanteId
+    +Fecha: DateTimeOffset
+  }
+  class IComiteRepository {
+    <<interface>>
+    +ObtenerPorId(id: ComiteId) Comite
+    +ObtenerPorPrograma(programaId: ProgramaId) Comite
+    +Guardar(x: Comite) void
+  }
+  class IEvaluacionRepository {
+    <<interface>>
+    +ObtenerPorId(id: EvaluacionId) Evaluacion
+    +ObtenerPorPostulacion(postulacionId: PostulacionId) List~Evaluacion~
+    +Guardar(x: Evaluacion) void
+  }
+  class IConflictoInteresRepository {
+    <<interface>>
+    +ObtenerPorId(id: ConflictoInteresId) ConflictoInteres
+    +Existe(usuarioId: UsuarioId, postulanteId: PostulanteId) bool
+    +Guardar(x: ConflictoInteres) void
+  }
+  class Programa {
+    <<Raíz · otro agregado>>
+  }
+  class Postulacion {
+    <<Raíz · otro agregado>>
+  }
+  class Postulante {
+    <<Raíz · otro agregado>>
+  }
+  Comite "1" *-- "1..*" MiembroComite : miembros
+  Evaluacion "1" *-- "*" Puntuacion : puntuaciones
+  Evaluacion "1" *-- "1" RubricaAplicada : puntúa contra
+  Evaluacion --> EstadoEvaluacion
+  Comite ..> Programa : programaId
+  Evaluacion ..> Postulacion : postulacionId
+  ConflictoInteres ..> Postulante : postulanteId
+  Evaluacion ..> EvaluacionEnviada : registra
+  ConflictoInteres ..> ConflictoDeclarado : registra
+  ConsolidadorPuntuaciones ..> Evaluacion : usa
+  IComiteRepository ..> Comite : guarda
+  IEvaluacionRepository ..> Evaluacion : guarda
+  IConflictoInteresRepository ..> ConflictoInteres : guarda
+  note for Evaluacion "Protege: puntuaciones dentro del rango de cada criterio; no se envía sin todos los criterios (HU-08.1)."
+  note for ConsolidadorPuntuaciones "Strategy por MetodoConsolidacion (HU-09.1). Las asignaciones y la consolidación viven en Postulacion (9b)."
+  style Comite fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style MiembroComite fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Evaluacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Puntuacion fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style RubricaAplicada fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style EstadoEvaluacion fill:#eeeeee,stroke:#757575,color:#000000
+  style ConflictoInteres fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style ConsolidadorPuntuaciones fill:#e1bee7,stroke:#6a1b9a,color:#000000
+  style EvaluacionEnviada fill:#ffcc80,stroke:#e65100,color:#000000
+  style ConflictoDeclarado fill:#ffcc80,stroke:#e65100,color:#000000
+  style IComiteRepository fill:#ffffff,stroke:#424242,color:#000000
+  style IEvaluacionRepository fill:#ffffff,stroke:#424242,color:#000000
+  style IConflictoInteresRepository fill:#ffffff,stroke:#424242,color:#000000
+  style Programa fill:#f5f5f5,stroke:#9e9e9e,color:#616161
+  style Postulacion fill:#f5f5f5,stroke:#9e9e9e,color:#616161
+  style Postulante fill:#f5f5f5,stroke:#9e9e9e,color:#616161

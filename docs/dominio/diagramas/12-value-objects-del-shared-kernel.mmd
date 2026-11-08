@@ -1,0 +1,52 @@
+classDiagram
+  direction LR
+  namespace Shared_Kernel {
+    class Dinero {
+      <<Value Object>>
+      +Cantidad: decimal
+      +Moneda: string
+    }
+    class Cedula {
+      <<Value Object>>
+      +Numero: string
+    }
+    class Contacto {
+      <<Value Object>>
+      +Correo: string
+      +Telefono: string
+    }
+    class VentanaFechas {
+      <<Value Object>>
+      +Apertura: date
+      +Cierre: date
+    }
+    class FechaLimite {
+      <<Value Object>>
+      +Fecha: date
+    }
+    class Promedio {
+      <<Value Object>>
+      +Valor: decimal
+    }
+    class Justificacion {
+      <<Value Object>>
+      +Texto: string
+    }
+    class ReferenciaArchivo {
+      <<Value Object>>
+      +RutaFirebase: string
+    }
+    class CodigoPeriodo {
+      <<Value Object>>
+      +Valor: string
+    }
+  }
+  style Dinero fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Cedula fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Contacto fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style VentanaFechas fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style FechaLimite fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Promedio fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Justificacion fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style ReferenciaArchivo fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style CodigoPeriodo fill:#c8e6c9,stroke:#2e7d32,color:#000000

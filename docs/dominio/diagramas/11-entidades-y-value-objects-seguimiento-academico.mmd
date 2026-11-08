@@ -1,0 +1,155 @@
+classDiagram
+  direction LR
+  namespace Agregado_ReporteAcademico {
+    class ReporteAcademico {
+      <<Raíz de agregado>>
+      +Id: ReporteAcademicoId
+      -becaId: BecaId
+      -periodo: CodigoPeriodo
+      -promedio: Promedio
+      -materiasAprobadas: int
+      -materiasReprobadas: int
+      -matricula: EstadoMatricula
+      -origen: OrigenReporte
+      -autorId: UsuarioId
+      -entregado: datetime
+      -tardio: bool
+    }
+  }
+  namespace Agregado_PlazoReporte {
+    class PlazoReporte {
+      <<Raíz de agregado>>
+      +Id: PlazoReporteId
+      -programaId: ProgramaId
+      -periodo: CodigoPeriodo
+      -fechaLimite: FechaLimite
+    }
+  }
+  namespace Agregado_EvaluacionCumplimiento {
+    class EvaluacionCumplimiento {
+      <<Raíz de agregado>>
+      +Id: EvaluacionCumplimientoId
+      -reporteId: ReporteAcademicoId
+      -becaId: BecaId
+      -resultado: ResultadoGlobal
+      -consecuencia: Consecuencia
+      -siguientePaso: string
+    }
+    class ResultadoCondicion {
+      <<Value Object>>
+      +Condicion: string
+      +Cumple: bool
+    }
+  }
+  namespace Agregado_Usuario {
+    class Usuario {
+      <<Raíz de agregado>>
+      +Id: UsuarioId
+      -cedula: Cedula
+      -contacto: Contacto
+      -canalPreferido: CanalCodigo
+      -estado: EstadoUsuario
+      -tipos: Set~TipoUsuarioId~
+      -programasAsignados: Set~ProgramaId~
+      -universidadId: UniversidadId
+    }
+  }
+  namespace Agregado_TipoUsuario {
+    class TipoUsuario {
+      <<Raíz de agregado>>
+      +Id: TipoUsuarioId
+      -nombre: string
+      -permisos: Set~string~
+      -accesoFinancieroODecision: bool
+    }
+  }
+  namespace Agregado_ClienteApiUniversidad {
+    class ClienteApiUniversidad {
+      <<Raíz de agregado>>
+      +Id: ClienteApiUniversidadId
+      -universidadId: UniversidadId
+      -activo: bool
+    }
+  }
+  namespace Registro_de_decisiones {
+    class RegistroDecision {
+      <<Registro inmutable>>
+      +Id: RegistroDecisionId
+      -tipo: TipoDecision
+      -ocurrido: datetime
+      -justificacion: Justificacion
+      -estadoAnterior: string
+      -estadoNuevo: string
+      -datos: string
+    }
+    class SujetoRef {
+      <<Value Object>>
+      +Tipo: TipoSujeto
+      +Id: string
+    }
+    class Actor {
+      <<Value Object>>
+      +UsuarioId: UsuarioId
+      +Rol: string
+      +EsSistema: bool
+    }
+  }
+  namespace Agregado_Consulta {
+    class Consulta {
+      <<Raíz de agregado>>
+      +Id: ConsultaId
+      -autorId: PostulanteId
+      -estado: EstadoConsulta
+    }
+    class Mensaje {
+      <<Entidad>>
+      +Id: MensajeId
+      -autor: Actor
+      -texto: string
+      -enviado: datetime
+    }
+    class SujetoConsulta["SujetoRef"] {
+      <<Value Object>>
+      +Tipo: TipoSujeto
+      +Id: string
+    }
+  }
+  namespace Agregado_RegistroEnvio {
+    class RegistroEnvio {
+      <<Raíz de agregado>>
+      +Id: RegistroEnvioId
+      -destinatarioId: UsuarioId
+      -hito: string
+      -canal: string
+      -anticipacionDias: int
+      -estado: EstadoEnvio
+    }
+  }
+  namespace Agregado_ConsentimientoDonante {
+    class ConsentimientoDonante {
+      <<Raíz de agregado>>
+      +Id: ConsentimientoDonanteId
+      -becarioId: PostulanteId
+      -aceptado: datetime
+    }
+  }
+  EvaluacionCumplimiento "1" *-- "*" ResultadoCondicion : resultados
+  RegistroDecision "1" *-- "1" SujetoRef : sobre
+  RegistroDecision "1" *-- "1" Actor : quién
+  Consulta "1" *-- "*" Mensaje : mensajes
+  Consulta "1" *-- "1" SujetoConsulta : sobre
+  style ReporteAcademico fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style PlazoReporte fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style EvaluacionCumplimiento fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style ResultadoCondicion fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Usuario fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style TipoUsuario fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style ClienteApiUniversidad fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style RegistroDecision fill:#d7ccc8,stroke:#5d4037,color:#000000
+  style SujetoRef fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Actor fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Consulta fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Mensaje fill:#bbdefb,stroke:#1565c0,color:#000000
+  style SujetoConsulta fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style RegistroEnvio fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style ConsentimientoDonante fill:#0d47a1,stroke:#0d47a1,color:#ffffff

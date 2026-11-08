@@ -1,0 +1,33 @@
+classDiagram
+  direction LR
+  class Pago {
+    <<Entidad>>
+    +Id: PagoId
+    -monto: Dinero
+    -estado: EstadoPago
+    +Confirmar() void
+    +MarcarFallido(motivo: Justificacion) void
+    +Equals(otro: object) bool
+  }
+  class Dinero {
+    <<Value Object>>
+    +Cantidad: decimal
+    +Moneda: string
+    +Dinero(cantidad: decimal, moneda: string)
+    +Sumar(otro: Dinero) Dinero
+    +Equals(otro: object) bool
+  }
+  class EstadoPago {
+    <<Enumeración>>
+    REGISTRADO
+    CONFIRMADO
+    FALLIDO
+    DEVUELTO
+  }
+  Pago "1" *-- "1" Dinero : monto
+  Pago --> EstadoPago
+  note for Pago "Entidad: dos pagos de 2.000 USD el mismo día son dos pagos distintos. Su estado cambia y sigue siendo el mismo pago. Igual a otro solo si tiene el mismo Id."
+  note for Dinero "Value Object: dos montos de 2.000 USD son intercambiables. Inmutable: Sumar devuelve otro Dinero. Igual a otro si todos sus valores son iguales."
+  style Pago fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Dinero fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style EstadoPago fill:#eeeeee,stroke:#757575,color:#000000

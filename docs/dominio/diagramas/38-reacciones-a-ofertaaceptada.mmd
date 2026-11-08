@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant EV as :PublicadorEventos
+  participant M1 as :CrearBecaAlAceptar
+  participant F as BecaFactory
+  participant RB as :IBecaRepository
+  participant M2 as :ConfirmarOtorgamientoAlAceptar
+  participant PP as :PresupuestoPrograma
+  participant M3 as :OtorgarPostulacionAlAceptar
+  participant PO as :Postulacion
+  EV->>M1: Manejar(OfertaAceptada)
+  M1->>F: DesdeOferta(oferta, programa)
+  F-->>M1: beca
+  M1->>RB: Guardar(beca)
+  EV->>M2: Manejar(OfertaAceptada)
+  M2->>PP: ConfirmarOtorgamiento(monto)
+  EV->>M3: Manejar(OfertaAceptada)
+  M3->>PO: RegistrarOfertaAceptada()
+  Note over EV,PO: Cada manejador implementa IManejador de OfertaAceptada y guarda su agregado en su propia transacción

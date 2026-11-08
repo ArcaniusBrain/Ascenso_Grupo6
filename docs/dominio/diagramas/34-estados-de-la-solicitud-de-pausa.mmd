@@ -1,0 +1,6 @@
+stateDiagram-v2
+  [*] --> Pendiente : SolicitarPausa() [meses dentro del máximo]
+  Pendiente --> Aprobada : AprobarPausa()
+  Pendiente --> Rechazada : RechazarPausa()
+  Aprobada --> [*]
+  Rechazada --> [*]

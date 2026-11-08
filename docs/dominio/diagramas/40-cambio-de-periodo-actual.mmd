@@ -1,0 +1,26 @@
+sequenceDiagram
+  participant UI as :UI
+  participant H as :MarcarPeriodoActualHandler
+  participant RC as :ICalendarioAcademicoRepository
+  participant CA as :CalendarioAcademico
+  participant EV as :PublicadorEventos
+  participant M as :IniciarPeriodoEnBecas
+  participant RB as :IBecaRepository
+  participant B as :Beca
+  UI->>H: Manejar(MarcarPeriodoActual)
+  H->>RC: Obtener()
+  RC-->>H: calendario
+  H->>CA: MarcarActual(2027-1)
+  H->>RC: Guardar(calendario)
+  H->>EV: Publicar(calendario.EventosPendientes)
+  H-->>UI: ok
+  EV->>M: Manejar(PeriodoMarcadoActual)
+  M->>RB: ParaCambioDePeriodo(2027-1)
+  RB-->>M: becaIds
+  loop Por cada beca, paginado e idempotente
+    M->>RB: ObtenerPorId(becaId)
+    RB-->>M: beca
+    M->>B: IniciarNuevoPeriodo(2027-1)
+    M->>RB: Guardar(beca)
+  end
+  Note over M,B: Una transacción por beca, con su RegistroDecision y actor sistema

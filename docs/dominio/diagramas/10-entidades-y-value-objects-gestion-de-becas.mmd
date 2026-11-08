@@ -1,0 +1,157 @@
+classDiagram
+  direction LR
+  namespace Agregado_Oferta {
+    class Oferta {
+      <<Raíz de agregado>>
+      +Id: OfertaId
+      -postulacionId: PostulacionId
+      -postulanteId: PostulanteId
+      -programaId: ProgramaId
+      -cicloId: CicloId
+      -periodo: CodigoPeriodo
+      -monto: Dinero
+      -duracionPeriodos: int
+      -exigeCompromiso: bool
+      -fechaLimite: FechaLimite
+      -carta: ReferenciaArchivo
+      -estado: EstadoOferta
+    }
+    class CondicionesPermanencia {
+      <<Value Object>>
+      +PromedioMinimo: Promedio
+      +HorasServicio: int
+      +ReportesExigidos: List~string~
+    }
+  }
+  namespace Agregado_BeneficiosPersona {
+    class BeneficiosPersona {
+      <<Raíz de agregado>>
+      +Id: BeneficiosPersonaId
+      -postulanteId: PostulanteId
+      -cedula: Cedula
+    }
+    class BeneficioVigente {
+      <<Entidad>>
+      +Id: BeneficioVigenteId
+      -becaId: BecaId
+      -programaId: ProgramaId
+      -alcance: Alcance
+      -periodo: CodigoPeriodo
+      -monto: Dinero
+      -cuentaComoActiva: bool
+    }
+  }
+  namespace Agregado_DatosPago {
+    class DatosPago {
+      <<Raíz de agregado>>
+      +Id: DatosPagoId
+      -becarioId: PostulanteId
+    }
+    class CuentaBancaria {
+      <<Value Object>>
+      +Titular: string
+      +CedulaTitular: Cedula
+      +Banco: string
+      +TipoCuenta: string
+      +Numero: string
+    }
+  }
+  namespace Agregado_VentanaRenovacion {
+    class VentanaRenovacion {
+      <<Raíz de agregado>>
+      +Id: VentanaRenovacionId
+      -programaId: ProgramaId
+      -periodo: CodigoPeriodo
+      -ventana: VentanaFechas
+    }
+  }
+  namespace Agregado_Beca {
+    class Beca {
+      <<Raíz de agregado>>
+      +Id: BecaId
+      -postulanteId: PostulanteId
+      -programaId: ProgramaId
+      -ofertaId: OfertaId
+      -estado: EstadoBeca
+      -alcance: Alcance
+      -modalidad: ModalidadPago
+    }
+    class TramoBeca {
+      <<Entidad>>
+      +Periodo: CodigoPeriodo
+      -montoAprobado: Dinero
+      -origen: OrigenTramo
+    }
+    class Suspension {
+      <<Entidad>>
+      +Id: SuspensionId
+      -tipo: TipoSuspension
+      -motivo: Justificacion
+      -accionRequerida: string
+      -fechaRevision: FechaLimite
+      -inicio: datetime
+      -fin: datetime
+    }
+    class SolicitudPausa {
+      <<Entidad>>
+      +Id: SolicitudPausaId
+      -motivo: MotivoPausa
+      -duracionMeses: int
+      -estado: EstadoSolicitud
+    }
+    class SolicitudRenovacion {
+      <<Entidad>>
+      +Id: SolicitudRenovacionId
+      -periodo: CodigoPeriodo
+      -montoComprometido: Dinero
+      -estado: EstadoSolicitud
+    }
+    class Desembolso {
+      <<Entidad>>
+      +Id: DesembolsoId
+      -periodo: CodigoPeriodo
+      -fechaPrevista: date
+      -monto: Dinero
+      -destinatario: Destinatario
+      -estado: EstadoDesembolso
+    }
+    class Pago {
+      <<Entidad>>
+      +Id: PagoId
+      -fecha: date
+      -monto: Dinero
+      -metodo: string
+      -destinatario: Destinatario
+      -estado: EstadoPago
+    }
+    class Compromiso {
+      <<Value Object>>
+      +Firmado: datetime
+      +Condiciones: string
+    }
+  }
+  Oferta "1" *-- "1" CondicionesPermanencia : copia de lo ofrecido
+  BeneficiosPersona "1" *-- "*" BeneficioVigente : becas de la persona
+  DatosPago "1" *-- "1" CuentaBancaria : cuenta
+  Beca "1" *-- "1..*" TramoBeca : tramos por periodo
+  Beca "1" *-- "0..1" Compromiso : compromiso
+  Beca "1" *-- "*" Suspension : suspensiones y pausas
+  Beca "1" *-- "*" SolicitudPausa : pausas
+  Beca "1" *-- "*" SolicitudRenovacion : renovaciones
+  Beca "1" *-- "*" Desembolso : calendario
+  Desembolso "1" *-- "*" Pago : pagos
+  style Oferta fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style CondicionesPermanencia fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style BeneficiosPersona fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style BeneficioVigente fill:#bbdefb,stroke:#1565c0,color:#000000
+  style DatosPago fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style CuentaBancaria fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style VentanaRenovacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Beca fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style TramoBeca fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Suspension fill:#bbdefb,stroke:#1565c0,color:#000000
+  style SolicitudPausa fill:#bbdefb,stroke:#1565c0,color:#000000
+  style SolicitudRenovacion fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Desembolso fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Pago fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Compromiso fill:#c8e6c9,stroke:#2e7d32,color:#000000

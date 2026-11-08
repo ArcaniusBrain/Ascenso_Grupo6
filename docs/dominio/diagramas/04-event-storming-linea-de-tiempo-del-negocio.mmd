@@ -1,0 +1,35 @@
+flowchart LR
+  classDef evento fill:#ffb74d,stroke:#e65100,color:#000
+  classDef duda fill:#f8bbd0,stroke:#ad1457,color:#000
+
+  subgraph G1["1 · Catálogo y Fondos"]
+    direction TB
+    E1["Periodo abierto"]:::evento --> E3["Programa creado"]:::evento --> E2["Aporte registrado"]:::evento
+  end
+  subgraph G2["2 · Postulación"]
+    direction TB
+    E4["Ciclo publicado"]:::evento --> E5["Postulación recibida"]:::evento --> E6["Documentos completados"]:::evento --> E7["Postulación verificada"]:::evento
+  end
+  subgraph G3["3 · Evaluación y Selección"]
+    direction TB
+    E8["Periodo de evaluación abierto"]:::evento --> E9["Evaluación enviada"]:::evento --> E10["Postulación consolidada"]:::evento --> E11["Lista de espera confirmada"]:::evento
+  end
+  subgraph G4["4 · Gestión de Becas"]
+    direction TB
+    E12["Oferta emitida"]:::evento --> E13["Oferta aceptada"]:::evento --> E14["Compromiso firmado"]:::evento --> E15["Beca activada"]:::evento --> E16["Pago confirmado"]:::evento
+  end
+  subgraph G5["5 · Seguimiento y renovación"]
+    direction TB
+    E17["Reporte académico registrado"]:::evento --> E18["Incumplimiento detectado"]:::evento --> E19["Renovación solicitada"]:::evento --> E20["Renovación aprobada"]:::evento --> E21["Periodo marcado actual"]:::evento
+  end
+
+  G1 --> G2 --> G3 --> G4 --> G5
+
+  D1["¿Qué lleva a Rechazada? (HU-10.2)"]:::duda
+  D2["¿Cómo se calcula el total de cada evaluador? (Anexo B: 15)"]:::duda
+  D3["¿Cuándo se fija el monto de una renovación? (HU-12.2)"]:::duda
+  D4["¿La pausa también paga lo vencido? (Anexo B: 12)"]:::duda
+  D2 -.- E10
+  D1 -.- E11
+  D3 -.- E19
+  D4 -.- E16

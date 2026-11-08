@@ -1,0 +1,176 @@
+classDiagram
+  direction LR
+  namespace Agregado_CalendarioAcademico {
+    class CalendarioAcademico {
+      <<Raíz de agregado>>
+      +Id: CalendarioAcademicoId
+    }
+    class PeriodoAcademico {
+      <<Entidad>>
+      +Codigo: CodigoPeriodo
+      -estado: EstadoPeriodo
+      -actual: bool
+    }
+  }
+  namespace Agregado_UniversidadAliada {
+    class UniversidadAliada {
+      <<Raíz de agregado>>
+      +Id: UniversidadId
+      -nombre: string
+      -contactoDesignado: Contacto
+    }
+    class CarreraElegible {
+      <<Entidad>>
+      +Id: CarreraElegibleId
+      -nombre: string
+    }
+    class CostoMatricula {
+      <<Entidad>>
+      +Id: CostoMatriculaId
+      -periodo: CodigoPeriodo
+      -costo: Dinero
+      -registrado: datetime
+    }
+    class InicioInscripciones {
+      <<Entidad>>
+      +Id: InicioInscripcionesId
+      -periodo: CodigoPeriodo
+      -fecha: date
+      -registrado: datetime
+    }
+    class Convenio {
+      <<Value Object>>
+      +Terminos: string
+      +Via: ViaDatosAcademicos
+    }
+  }
+  namespace Agregado_Programa {
+    class Programa {
+      <<Raíz de agregado>>
+      +Id: ProgramaId
+      -nombre: string
+      -periodoInicio: CodigoPeriodo
+      -cupoBecarios: int
+      -duracionPeriodos: int
+      -montoPorPeriodo: Dinero
+      -modalidad: ModalidadPago
+      -alcance: Alcance
+      -permiteAcumulacion: bool
+      -metodoConsolidacion: MetodoConsolidacion
+      -umbralDiferencia: decimal
+      -duracionMaxPausaMeses: int
+      -donantes: List~DonanteId~
+    }
+    class Rubrica {
+      <<Entidad>>
+      +Id: RubricaId
+      -version: int
+      -bloqueada: bool
+    }
+    class Criterio {
+      <<Value Object>>
+      +Nombre: string
+      +Peso: decimal
+      +Minimo: decimal
+      +Maximo: decimal
+    }
+    class RestriccionElegibilidad {
+      <<Entidad>>
+      +Id: RestriccionElegibilidadId
+      -universidadId: UniversidadId
+      -carreras: List~string~
+    }
+    class CondicionesPermanencia {
+      <<Value Object>>
+      +PromedioMinimo: Promedio
+      +HorasServicio: int
+      +ReportesExigidos: List~string~
+      +DescripcionRenovacion: string
+    }
+    class PoliticaConsecuencias {
+      <<Value Object>>
+      +Contempladas: Set~Consecuencia~
+      +Descripcion: string
+    }
+    class CompromisoRequerido {
+      <<Value Object>>
+      +Exigido: bool
+      +Condiciones: string
+    }
+    class ConfigComunicacion {
+      <<Value Object>>
+      +CanalesAdicionales: Set~string~
+      +DiasRecordatorio: List~int~
+    }
+  }
+  namespace Agregado_Donante {
+    class Donante {
+      <<Raíz de agregado>>
+      +Id: DonanteId
+      -nombre: string
+      -tipo: TipoDonante
+      -contacto: Contacto
+    }
+    class Aporte {
+      <<Entidad>>
+      +Id: AporteId
+      -programaId: ProgramaId
+      -periodo: CodigoPeriodo
+      -monto: Dinero
+      -registrado: datetime
+    }
+  }
+  namespace Agregado_PresupuestoPrograma {
+    class PresupuestoPrograma {
+      <<Raíz de agregado>>
+      +Id: PresupuestoProgramaId
+      -programaId: ProgramaId
+      -aportes: Dinero
+      -otorgado: Dinero
+      -ofertasPendientes: Dinero
+      -renovacionesPendientes: Dinero
+      -desembolsado: Dinero
+      -cupoBecarios: int
+      -cuposOcupados: int
+    }
+    class CupoCiclo {
+      <<Entidad>>
+      +Id: CupoCicloId
+      -cicloId: CicloId
+      -limite: int
+      -ocupados: int
+    }
+  }
+  CalendarioAcademico "1" *-- "*" PeriodoAcademico : periodos
+  UniversidadAliada "1" *-- "*" CarreraElegible : carreras
+  UniversidadAliada "1" *-- "*" CostoMatricula : costos
+  UniversidadAliada "1" *-- "*" InicioInscripciones : inscripciones
+  UniversidadAliada "1" *-- "1" Convenio : convenio
+  Programa "1" *-- "1" Rubrica : rúbrica
+  Rubrica "1" *-- "1..*" Criterio : criterios
+  Programa "1" *-- "*" RestriccionElegibilidad : restricciones
+  Programa "1" *-- "1" CondicionesPermanencia : permanencia
+  Programa "1" *-- "1" PoliticaConsecuencias : consecuencias
+  Programa "1" *-- "1" CompromisoRequerido : compromiso
+  Programa "1" *-- "1" ConfigComunicacion : comunicación
+  Donante "1" *-- "*" Aporte : aportes
+  PresupuestoPrograma "1" *-- "*" CupoCiclo : cupos por ciclo
+  style CalendarioAcademico fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style PeriodoAcademico fill:#bbdefb,stroke:#1565c0,color:#000000
+  style UniversidadAliada fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style CarreraElegible fill:#bbdefb,stroke:#1565c0,color:#000000
+  style CostoMatricula fill:#bbdefb,stroke:#1565c0,color:#000000
+  style InicioInscripciones fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Convenio fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Programa fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Rubrica fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Criterio fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style RestriccionElegibilidad fill:#bbdefb,stroke:#1565c0,color:#000000
+  style CondicionesPermanencia fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style PoliticaConsecuencias fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style CompromisoRequerido fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style ConfigComunicacion fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Donante fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Aporte fill:#bbdefb,stroke:#1565c0,color:#000000
+  style PresupuestoPrograma fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style CupoCiclo fill:#bbdefb,stroke:#1565c0,color:#000000

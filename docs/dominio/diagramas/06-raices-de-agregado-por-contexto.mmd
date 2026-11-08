@@ -1,0 +1,166 @@
+classDiagram
+  direction LR
+  namespace Catalogo_Institucional {
+    class CalendarioAcademico {
+      <<Raíz de agregado>>
+      +Id: CalendarioAcademicoId
+    }
+    class UniversidadAliada {
+      <<Raíz de agregado>>
+      +Id: UniversidadId
+    }
+  }
+  namespace Programas_y_Fondos {
+    class Programa {
+      <<Raíz de agregado>>
+      +Id: ProgramaId
+    }
+    class Donante {
+      <<Raíz de agregado>>
+      +Id: DonanteId
+    }
+    class PresupuestoPrograma {
+      <<Raíz de agregado>>
+      +Id: PresupuestoProgramaId
+    }
+  }
+  namespace Postulacion_ {
+    class CicloPostulacion {
+      <<Raíz de agregado>>
+      +Id: CicloId
+    }
+    class Postulante {
+      <<Raíz de agregado>>
+      +Id: PostulanteId
+    }
+    class Postulacion {
+      <<Raíz de agregado>>
+      +Id: PostulacionId
+    }
+  }
+  namespace Evaluacion_y_Seleccion {
+    class Comite {
+      <<Raíz de agregado>>
+      +Id: ComiteId
+    }
+    class Evaluacion {
+      <<Raíz de agregado>>
+      +Id: EvaluacionId
+    }
+    class ConflictoInteres {
+      <<Raíz de agregado>>
+      +Id: ConflictoInteresId
+    }
+  }
+  namespace Gestion_de_Becas {
+    class Oferta {
+      <<Raíz de agregado>>
+      +Id: OfertaId
+    }
+    class Beca {
+      <<Raíz de agregado>>
+      +Id: BecaId
+    }
+    class BeneficiosPersona {
+      <<Raíz de agregado>>
+      +Id: BeneficiosPersonaId
+    }
+    class DatosPago {
+      <<Raíz de agregado>>
+      +Id: DatosPagoId
+    }
+    class VentanaRenovacion {
+      <<Raíz de agregado>>
+      +Id: VentanaRenovacionId
+    }
+  }
+  namespace Seguimiento_Academico {
+    class ReporteAcademico {
+      <<Raíz de agregado>>
+      +Id: ReporteAcademicoId
+    }
+    class PlazoReporte {
+      <<Raíz de agregado>>
+      +Id: PlazoReporteId
+    }
+    class EvaluacionCumplimiento {
+      <<Raíz de agregado>>
+      +Id: EvaluacionCumplimientoId
+    }
+  }
+  namespace Identidad_y_Acceso {
+    class Usuario {
+      <<Raíz de agregado>>
+      +Id: UsuarioId
+    }
+    class TipoUsuario {
+      <<Raíz de agregado>>
+      +Id: TipoUsuarioId
+    }
+    class ClienteApiUniversidad {
+      <<Raíz de agregado>>
+      +Id: ClienteApiUniversidadId
+    }
+  }
+  namespace Comunicaciones_y_Reporteria {
+    class Consulta {
+      <<Raíz de agregado>>
+      +Id: ConsultaId
+    }
+    class RegistroEnvio {
+      <<Raíz de agregado>>
+      +Id: RegistroEnvioId
+    }
+    class ConsentimientoDonante {
+      <<Raíz de agregado>>
+      +Id: ConsentimientoDonanteId
+    }
+  }
+  Programa ..> UniversidadAliada : universidadId
+  Programa ..> Donante : donanteId
+  PresupuestoPrograma ..> Programa : programaId
+  CicloPostulacion ..> Programa : programaId
+  Postulante ..> UniversidadAliada : universidadId
+  Postulante ..> Usuario : usuarioId
+  Postulacion ..> Postulante : postulanteId
+  Postulacion ..> CicloPostulacion : cicloId
+  Comite ..> Programa : programaId
+  Evaluacion ..> Postulacion : postulacionId
+  ConflictoInteres ..> Postulante : postulanteId
+  Oferta ..> Postulacion : postulacionId
+  Beca ..> Oferta : ofertaId
+  Beca ..> Programa : programaId
+  BeneficiosPersona ..> Postulante : postulanteId
+  DatosPago ..> Postulante : becarioId
+  VentanaRenovacion ..> Programa : programaId
+  ReporteAcademico ..> Beca : becaId
+  PlazoReporte ..> Programa : programaId
+  EvaluacionCumplimiento ..> ReporteAcademico : reporteId
+  Usuario ..> TipoUsuario : tipoUsuarioId
+  Consulta ..> Postulante : postulanteId
+  ConsentimientoDonante ..> Postulante : becarioId
+  style CalendarioAcademico fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style UniversidadAliada fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Programa fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Donante fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style PresupuestoPrograma fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style CicloPostulacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Postulante fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Postulacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Comite fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Evaluacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style ConflictoInteres fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Oferta fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Beca fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style BeneficiosPersona fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style DatosPago fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style VentanaRenovacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style ReporteAcademico fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style PlazoReporte fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style EvaluacionCumplimiento fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Usuario fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style TipoUsuario fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style ClienteApiUniversidad fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Consulta fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style RegistroEnvio fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style ConsentimientoDonante fill:#0d47a1,stroke:#0d47a1,color:#ffffff

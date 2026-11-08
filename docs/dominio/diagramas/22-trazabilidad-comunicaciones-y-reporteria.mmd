@@ -1,0 +1,181 @@
+classDiagram
+  direction LR
+  namespace Registro_de_decisiones {
+    class RegistroDecision {
+      <<Registro inmutable>>
+      +Id: RegistroDecisionId
+      -tipo: TipoDecision
+      -ocurrido: datetime
+      -justificacion: Justificacion
+      -estadoAnterior: string
+      -estadoNuevo: string
+      -datos: string
+    }
+    class SujetoRef {
+      <<Value Object>>
+      +Tipo: TipoSujeto
+      +Id: string
+    }
+    class Actor {
+      <<Value Object>>
+      +UsuarioId: UsuarioId
+      +Rol: string
+      +EsSistema: bool
+    }
+    class TipoSujeto {
+      <<Enumeración>>
+      POSTULACION
+      BECA
+      POSTULANTE
+      PROGRAMA
+      DATOS_PAGO
+    }
+    class TipoDecision {
+      <<Enumeración>>
+      POSTULACION_RECIBIDA
+      NO_ELEGIBLE
+      ANULACION_NO_ELEGIBLE
+      RETIRO
+      ASIGNACION_EVALUADOR
+      EXCEPCION_UN_EVALUADOR
+      CONFLICTO_DECLARADO
+      CONSOLIDACION
+      CASO_LIMITE_RESUELTO
+      LISTA_ESPERA
+      OFERTA_EMITIDA
+      OFERTA_ACEPTADA
+      OFERTA_RECHAZADA
+      OFERTA_EXPIRADA
+      COMPROMISO_FIRMADO
+      ACTIVACION
+      SUSPENSION
+      REANUDACION
+      PAUSA
+      REACTIVACION
+      INACTIVACION
+      SALIDA_DE_INACTIVA
+      RENOVACION_SOLICITADA
+      RENOVACION_APROBADA
+      RENOVACION_RECHAZADA
+      CONCLUSION
+      REVOCACION
+      PAGO_REGISTRADO
+      PAGO_CONFIRMADO
+      PAGO_FALLIDO
+      PAGO_DEVUELTO
+      DATOS_PAGO_MODIFICADOS
+      DATOS_PAGO_CONSULTADOS
+      DOCUMENTO_RECHAZADO
+      REPORTE_ACADEMICO
+      CUMPLIMIENTO_EVALUADO
+      CONSECUENCIA_APLICADA
+      APORTE_REGISTRADO
+    }
+  }
+  namespace Agregado_Consulta {
+    class Consulta {
+      <<Raíz de agregado>>
+      +Id: ConsultaId
+      -autorId: PostulanteId
+      -estado: EstadoConsulta
+      +Responder(autorId: UsuarioId, texto: string) void
+      +Cerrar() void
+    }
+    class Mensaje {
+      <<Entidad>>
+      +Id: MensajeId
+      -autor: Actor
+      -texto: string
+      -enviado: datetime
+    }
+    class SujetoConsulta["SujetoRef"] {
+      <<Value Object>>
+      +Tipo: TipoSujeto
+      +Id: string
+    }
+    class EstadoConsulta {
+      <<Enumeración>>
+      ABIERTA
+      RESPONDIDA
+      CERRADA
+    }
+  }
+  namespace Agregado_RegistroEnvio {
+    class RegistroEnvio {
+      <<Raíz de agregado>>
+      +Id: RegistroEnvioId
+      -destinatarioId: UsuarioId
+      -hito: string
+      -canal: string
+      -anticipacionDias: int
+      -estado: EstadoEnvio
+      +MarcarEntregado() void
+      +MarcarFallido() void
+    }
+    class EstadoEnvio {
+      <<Enumeración>>
+      ENTREGADO
+      FALLIDO
+    }
+  }
+  namespace Agregado_ConsentimientoDonante {
+    class ConsentimientoDonante {
+      <<Raíz de agregado>>
+      +Id: ConsentimientoDonanteId
+      -becarioId: PostulanteId
+      -aceptado: datetime
+      +Aceptar(ahora: datetime) void
+    }
+  }
+  class IConsultaRepository {
+    <<interface>>
+    +ObtenerPorId(id: ConsultaId) Consulta
+    +Guardar(x: Consulta) void
+  }
+  class IRegistroEnvioRepository {
+    <<interface>>
+    +ObtenerPorId(id: RegistroEnvioId) RegistroEnvio
+    +Existe(destinatarioId: UsuarioId, hito: string, anticipacion: int) bool
+    +Guardar(x: RegistroEnvio) void
+  }
+  class IConsentimientoDonanteRepository {
+    <<interface>>
+    +ObtenerPorId(id: ConsentimientoDonanteId) ConsentimientoDonante
+    +ObtenerPorBecario(postulanteId: PostulanteId) ConsentimientoDonante
+    +Guardar(x: ConsentimientoDonante) void
+  }
+  class IEventoDeDominio {
+    <<interface>>
+    +Fecha: DateTimeOffset
+  }
+  RegistroDecision "1" *-- "1" SujetoRef : sobre
+  RegistroDecision "1" *-- "1" Actor : quién
+  SujetoRef --> TipoSujeto
+  RegistroDecision --> TipoDecision
+  RegistroDecision ..> IEventoDeDominio : forma persistida de
+  Consulta "1" *-- "*" Mensaje : mensajes
+  Consulta "1" *-- "1" SujetoConsulta : sobre
+  Consulta --> EstadoConsulta
+  RegistroEnvio --> EstadoEnvio
+  IConsultaRepository ..> Consulta : guarda
+  IRegistroEnvioRepository ..> RegistroEnvio : guarda
+  IConsentimientoDonanteRepository ..> ConsentimientoDonante : guarda
+  note for RegistroDecision "No es agregado ni tiene repositorio: se guarda con el agregado que registró el evento (D-6). Append-only, ni Dirección lo edita (HU-35.1)."
+  note for RegistroEnvio "Uno por destinatario, hito y anticipación: no duplica avisos (Anexo A HU-29.1, HU-30.1)."
+  note for ConsentimientoDonante "Lo da el propio becario; uno vigente (HU-33.2)."
+  style RegistroDecision fill:#d7ccc8,stroke:#5d4037,color:#000000
+  style SujetoRef fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Actor fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style TipoSujeto fill:#eeeeee,stroke:#757575,color:#000000
+  style TipoDecision fill:#eeeeee,stroke:#757575,color:#000000
+  style Consulta fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style Mensaje fill:#bbdefb,stroke:#1565c0,color:#000000
+  style SujetoConsulta fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style EstadoConsulta fill:#eeeeee,stroke:#757575,color:#000000
+  style RegistroEnvio fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style EstadoEnvio fill:#eeeeee,stroke:#757575,color:#000000
+  style ConsentimientoDonante fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style IConsultaRepository fill:#ffffff,stroke:#424242,color:#000000
+  style IRegistroEnvioRepository fill:#ffffff,stroke:#424242,color:#000000
+  style IConsentimientoDonanteRepository fill:#ffffff,stroke:#424242,color:#000000
+  style IEventoDeDominio fill:#ffffff,stroke:#424242,color:#000000

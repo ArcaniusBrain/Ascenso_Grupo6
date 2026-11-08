@@ -1,0 +1,306 @@
+classDiagram
+  direction LR
+  namespace Agregado_Beca {
+    class Beca {
+      <<Raíz de agregado>>
+      +Id: BecaId
+      -postulanteId: PostulanteId
+      -programaId: ProgramaId
+      -ofertaId: OfertaId
+      -estado: EstadoBeca
+      -alcance: Alcance
+      -modalidad: ModalidadPago
+      +Activar() void
+      +FirmarCompromiso() void
+      +Suspender(motivo: Justificacion, accion: string, revision: FechaLimite) void
+      +Reanudar(j: Justificacion) void
+      +SolicitarPausa(motivo: MotivoPausa, meses: int) void
+      +AprobarPausa(solicitudId: SolicitudPausaId, j: Justificacion) void
+      +RechazarPausa(solicitudId: SolicitudPausaId, j: Justificacion) void
+      +ReactivarTrasPausa(estatusVerificado: bool, j: Justificacion) void
+      +VencerPausa() void
+      +SolicitarRenovacion(periodo: CodigoPeriodo, monto: Dinero) void
+      +AprobarRenovacion(j: Justificacion) void
+      +RechazarRenovacion(j: Justificacion) void
+      +IniciarNuevoPeriodo(periodo: CodigoPeriodo) void
+      +SalirDeInactiva(aActiva: bool, j: Justificacion) void
+      +Concluir(j: Justificacion) void
+      +Revocar(motivo: Justificacion, grave: bool) void
+      +ProgramarDesembolsos(periodo: CodigoPeriodo, fechas: List~date~) void
+      +RegistrarPago(desembolsoId: DesembolsoId, fecha: date, metodo: string) void
+      +ConfirmarPago(pagoId: PagoId) void
+      +MarcarPagoFallido(pagoId: PagoId, j: Justificacion) void
+      +MarcarPagoDevuelto(pagoId: PagoId, j: Justificacion) void
+    }
+    class TramoBeca {
+      <<Entidad>>
+      +Periodo: CodigoPeriodo
+      -montoAprobado: Dinero
+      -origen: OrigenTramo
+    }
+    class Suspension {
+      <<Entidad>>
+      +Id: SuspensionId
+      -tipo: TipoSuspension
+      -motivo: Justificacion
+      -accionRequerida: string
+      -fechaRevision: FechaLimite
+      -inicio: datetime
+      -fin: datetime
+    }
+    class SolicitudPausa {
+      <<Entidad>>
+      +Id: SolicitudPausaId
+      -motivo: MotivoPausa
+      -duracionMeses: int
+      -estado: EstadoSolicitud
+    }
+    class SolicitudRenovacion {
+      <<Entidad>>
+      +Id: SolicitudRenovacionId
+      -periodo: CodigoPeriodo
+      -montoComprometido: Dinero
+      -estado: EstadoSolicitud
+    }
+    class Desembolso {
+      <<Entidad>>
+      +Id: DesembolsoId
+      -periodo: CodigoPeriodo
+      -fechaPrevista: date
+      -monto: Dinero
+      -destinatario: Destinatario
+      -estado: EstadoDesembolso
+    }
+    class Pago {
+      <<Entidad>>
+      +Id: PagoId
+      -fecha: date
+      -monto: Dinero
+      -metodo: string
+      -destinatario: Destinatario
+      -estado: EstadoPago
+      +Confirmar() void
+      +MarcarFallido(j: Justificacion) void
+    }
+    class Compromiso {
+      <<Value Object>>
+      +Firmado: datetime
+      +Condiciones: string
+    }
+    class EstadoBeca {
+      <<Enumeración>>
+      OTORGADA
+      ACTIVA
+      SUSPENDIDA
+      RENOVADA
+      INACTIVA
+      CONCLUIDA
+      REVOCADA
+    }
+    class OrigenTramo {
+      <<Enumeración>>
+      OFERTA
+      RENOVACION
+    }
+    class TipoSuspension {
+      <<Enumeración>>
+      SUSPENSION
+      PAUSA
+    }
+    class MotivoPausa {
+      <<Enumeración>>
+      LICENCIA_MEDICA
+      RETIRO_TEMPORAL
+    }
+    class EstadoSolicitud {
+      <<Enumeración>>
+      PENDIENTE
+      APROBADA
+      RECHAZADA
+    }
+    class Destinatario {
+      <<Enumeración>>
+      BECARIO
+      UNIVERSIDAD
+    }
+    class EstadoDesembolso {
+      <<Enumeración>>
+      PROGRAMADO
+      PAGADO
+      CON_INCIDENCIA
+      CANCELADO
+    }
+    class EstadoPago {
+      <<Enumeración>>
+      REGISTRADO
+      CONFIRMADO
+      FALLIDO
+      DEVUELTO
+    }
+  }
+  class BecaFactory {
+    <<Fábrica>>
+    +DesdeOferta(oferta: Oferta, programa: Programa)$ Beca
+  }
+  class BecaActivada {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +Fecha: DateTimeOffset
+  }
+  class BecaSuspendida {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +Motivo: Justificacion
+    +Fecha: DateTimeOffset
+  }
+  class BecaInactivada {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +Fecha: DateTimeOffset
+  }
+  class BecaRevocada {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +MontoNoDesembolsado: Dinero
+    +Fecha: DateTimeOffset
+  }
+  class RenovacionSolicitada {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +Monto: Dinero
+    +Fecha: DateTimeOffset
+  }
+  class PagoConfirmado {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +PagoId: PagoId
+    +Monto: Dinero
+    +Fecha: DateTimeOffset
+  }
+  class CompromisoFirmado {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +Fecha: DateTimeOffset
+  }
+  class BecaReanudada {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +Fecha: DateTimeOffset
+  }
+  class BecaRenovada {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +Periodo: CodigoPeriodo
+    +Fecha: DateTimeOffset
+  }
+  class BecaConcluida {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +Fecha: DateTimeOffset
+  }
+  class RenovacionAprobada {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +Monto: Dinero
+    +Fecha: DateTimeOffset
+  }
+  class RenovacionRechazada {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +Monto: Dinero
+    +Fecha: DateTimeOffset
+  }
+  class PagoFallido {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +PagoId: PagoId
+    +Fecha: DateTimeOffset
+  }
+  class PagoDevuelto {
+    <<Evento de dominio>>
+    +BecaId: BecaId
+    +PagoId: PagoId
+    +Fecha: DateTimeOffset
+  }
+  class IBecaRepository {
+    <<interface>>
+    +ObtenerPorId(id: BecaId) Beca
+    +ParaCambioDePeriodo(periodo: CodigoPeriodo) List~BecaId~
+    +Guardar(x: Beca) void
+  }
+  class Oferta {
+    <<Raíz · otro agregado>>
+  }
+  class Programa {
+    <<Raíz · otro agregado>>
+  }
+  Beca "1" *-- "1..*" TramoBeca : tramos por periodo
+  Beca "1" *-- "0..1" Compromiso : compromiso
+  Beca "1" *-- "*" Suspension : suspensiones y pausas
+  Beca "1" *-- "*" SolicitudPausa : pausas
+  Beca "1" *-- "*" SolicitudRenovacion : renovaciones
+  Beca "1" *-- "*" Desembolso : calendario
+  Desembolso "1" *-- "*" Pago : pagos
+  Beca --> EstadoBeca
+  TramoBeca --> OrigenTramo
+  Suspension --> TipoSuspension
+  SolicitudPausa --> MotivoPausa
+  SolicitudPausa --> EstadoSolicitud
+  SolicitudRenovacion --> EstadoSolicitud
+  Desembolso --> Destinatario
+  Desembolso --> EstadoDesembolso
+  Pago --> EstadoPago
+  Beca ..> Oferta : ofertaId
+  Beca ..> Programa : programaId
+  BecaFactory ..> Beca : crea
+  Beca ..> BecaActivada : registra
+  Beca ..> BecaSuspendida : registra
+  Beca ..> BecaInactivada : registra
+  Beca ..> BecaRevocada : registra
+  Beca ..> RenovacionSolicitada : registra
+  Beca ..> PagoConfirmado : registra
+  Beca ..> CompromisoFirmado : registra
+  Beca ..> BecaReanudada : registra
+  Beca ..> BecaRenovada : registra
+  Beca ..> BecaConcluida : registra
+  Beca ..> RenovacionAprobada : registra
+  Beca ..> RenovacionRechazada : registra
+  Beca ..> PagoFallido : registra
+  Beca ..> PagoDevuelto : registra
+  IBecaRepository ..> Beca : guarda
+  note for Beca "Protege: solo las transiciones de 15.2 (patrón State); lo pagado por periodo no supera su tramo; sin pagos sin compromiso exigido, ni en Suspendida, Revocada, Concluida o Inactiva para el periodo siguiente."
+  note for TramoBeca "Identidad natural: su periodo dentro de la beca (C1)."
+  style Beca fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style TramoBeca fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Suspension fill:#bbdefb,stroke:#1565c0,color:#000000
+  style SolicitudPausa fill:#bbdefb,stroke:#1565c0,color:#000000
+  style SolicitudRenovacion fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Desembolso fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Pago fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Compromiso fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style EstadoBeca fill:#eeeeee,stroke:#757575,color:#000000
+  style OrigenTramo fill:#eeeeee,stroke:#757575,color:#000000
+  style TipoSuspension fill:#eeeeee,stroke:#757575,color:#000000
+  style MotivoPausa fill:#eeeeee,stroke:#757575,color:#000000
+  style EstadoSolicitud fill:#eeeeee,stroke:#757575,color:#000000
+  style Destinatario fill:#eeeeee,stroke:#757575,color:#000000
+  style EstadoDesembolso fill:#eeeeee,stroke:#757575,color:#000000
+  style EstadoPago fill:#eeeeee,stroke:#757575,color:#000000
+  style BecaFactory fill:#fff59d,stroke:#f9a825,color:#000000
+  style BecaActivada fill:#ffcc80,stroke:#e65100,color:#000000
+  style BecaSuspendida fill:#ffcc80,stroke:#e65100,color:#000000
+  style BecaInactivada fill:#ffcc80,stroke:#e65100,color:#000000
+  style BecaRevocada fill:#ffcc80,stroke:#e65100,color:#000000
+  style RenovacionSolicitada fill:#ffcc80,stroke:#e65100,color:#000000
+  style PagoConfirmado fill:#ffcc80,stroke:#e65100,color:#000000
+  style CompromisoFirmado fill:#ffcc80,stroke:#e65100,color:#000000
+  style BecaReanudada fill:#ffcc80,stroke:#e65100,color:#000000
+  style BecaRenovada fill:#ffcc80,stroke:#e65100,color:#000000
+  style BecaConcluida fill:#ffcc80,stroke:#e65100,color:#000000
+  style RenovacionAprobada fill:#ffcc80,stroke:#e65100,color:#000000
+  style RenovacionRechazada fill:#ffcc80,stroke:#e65100,color:#000000
+  style PagoFallido fill:#ffcc80,stroke:#e65100,color:#000000
+  style PagoDevuelto fill:#ffcc80,stroke:#e65100,color:#000000
+  style IBecaRepository fill:#ffffff,stroke:#424242,color:#000000
+  style Oferta fill:#f5f5f5,stroke:#9e9e9e,color:#616161
+  style Programa fill:#f5f5f5,stroke:#9e9e9e,color:#616161

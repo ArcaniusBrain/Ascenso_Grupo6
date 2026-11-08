@@ -1,0 +1,112 @@
+classDiagram
+  direction LR
+  namespace Agregado_CalendarioAcademico {
+    class CalendarioAcademico {
+      <<Raíz de agregado>>
+      +Id: CalendarioAcademicoId
+      +AbrirPeriodo(codigo: CodigoPeriodo) void
+      +CerrarPeriodo(codigo: CodigoPeriodo) void
+      +MarcarActual(codigo: CodigoPeriodo) void
+      +PeriodoActual() CodigoPeriodo
+    }
+    class PeriodoAcademico {
+      <<Entidad>>
+      +Codigo: CodigoPeriodo
+      -estado: EstadoPeriodo
+      -actual: bool
+      +EsActual() bool
+    }
+    class EstadoPeriodo {
+      <<Enumeración>>
+      ABIERTO
+      CERRADO
+    }
+  }
+  namespace Agregado_UniversidadAliada {
+    class UniversidadAliada {
+      <<Raíz de agregado>>
+      +Id: UniversidadId
+      -nombre: string
+      -contactoDesignado: Contacto
+      +AgregarCarrera(nombre: string) void
+      +RegistrarCosto(periodo: CodigoPeriodo, costo: Dinero) void
+      +CostoVigente(periodo: CodigoPeriodo) Dinero
+      +RegistrarInicioInscripciones(periodo: CodigoPeriodo, fecha: date) void
+      +InscripcionesIniciadas(periodo: CodigoPeriodo, ahora: datetime) bool
+    }
+    class CarreraElegible {
+      <<Entidad>>
+      +Id: CarreraElegibleId
+      -nombre: string
+    }
+    class CostoMatricula {
+      <<Entidad>>
+      +Id: CostoMatriculaId
+      -periodo: CodigoPeriodo
+      -costo: Dinero
+      -registrado: datetime
+    }
+    class InicioInscripciones {
+      <<Entidad>>
+      +Id: InicioInscripcionesId
+      -periodo: CodigoPeriodo
+      -fecha: date
+      -registrado: datetime
+    }
+    class Convenio {
+      <<Value Object>>
+      +Terminos: string
+      +Via: ViaDatosAcademicos
+    }
+    class ViaDatosAcademicos {
+      <<Enumeración>>
+      API
+      MANUAL
+    }
+  }
+  class PeriodoAbierto {
+    <<Evento de dominio>>
+    +Codigo: CodigoPeriodo
+    +Fecha: DateTimeOffset
+  }
+  class PeriodoMarcadoActual {
+    <<Evento de dominio>>
+    +Codigo: CodigoPeriodo
+    +Fecha: DateTimeOffset
+  }
+  class ICalendarioAcademicoRepository {
+    <<interface>>
+    +Obtener() CalendarioAcademico
+    +Guardar(x: CalendarioAcademico) void
+  }
+  class IUniversidadAliadaRepository {
+    <<interface>>
+    +ObtenerPorId(id: UniversidadId) UniversidadAliada
+    +Guardar(x: UniversidadAliada) void
+  }
+  CalendarioAcademico "1" *-- "*" PeriodoAcademico : periodos
+  PeriodoAcademico --> EstadoPeriodo
+  UniversidadAliada "1" *-- "*" CarreraElegible : carreras
+  UniversidadAliada "1" *-- "*" CostoMatricula : costos
+  UniversidadAliada "1" *-- "*" InicioInscripciones : inscripciones
+  UniversidadAliada "1" *-- "1" Convenio : convenio
+  Convenio --> ViaDatosAcademicos
+  CalendarioAcademico ..> PeriodoAbierto : registra
+  CalendarioAcademico ..> PeriodoMarcadoActual : registra
+  ICalendarioAcademicoRepository ..> CalendarioAcademico : guarda
+  IUniversidadAliadaRepository ..> UniversidadAliada : guarda
+  note for CalendarioAcademico "Protege: un solo periodo actual y código único (RF-38). Dirección abre, cierra y marca (R16)."
+  note for UniversidadAliada "Protege: costos e inicios de inscripción solo se agregan; vigente = último registrado (HU-14.2, HU-14.3)."
+  style CalendarioAcademico fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style PeriodoAcademico fill:#bbdefb,stroke:#1565c0,color:#000000
+  style EstadoPeriodo fill:#eeeeee,stroke:#757575,color:#000000
+  style UniversidadAliada fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style CarreraElegible fill:#bbdefb,stroke:#1565c0,color:#000000
+  style CostoMatricula fill:#bbdefb,stroke:#1565c0,color:#000000
+  style InicioInscripciones fill:#bbdefb,stroke:#1565c0,color:#000000
+  style Convenio fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style ViaDatosAcademicos fill:#eeeeee,stroke:#757575,color:#000000
+  style PeriodoAbierto fill:#ffcc80,stroke:#e65100,color:#000000
+  style PeriodoMarcadoActual fill:#ffcc80,stroke:#e65100,color:#000000
+  style ICalendarioAcademicoRepository fill:#ffffff,stroke:#424242,color:#000000
+  style IUniversidadAliadaRepository fill:#ffffff,stroke:#424242,color:#000000

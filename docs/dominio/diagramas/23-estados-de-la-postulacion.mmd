@@ -1,0 +1,18 @@
+stateDiagram-v2
+  state "En verificación" as EnVerificacion
+  state "En evaluación" as EnEvaluacion
+  state "No elegible" as NoElegible
+  [*] --> Recibida : PostulacionFactory.Crear()
+  Recibida --> EnVerificacion : CargarDocumento() [obligatorios completos]
+  Recibida --> Retirada : Retirar()
+  EnVerificacion --> EnEvaluacion : RegistrarVerificacion() [cumple]
+  EnVerificacion --> NoElegible : RegistrarVerificacion() [no cumple]
+  EnVerificacion --> Retirada : Retirar()
+  NoElegible --> EnEvaluacion : AnularNoElegible()
+  EnEvaluacion --> Otorgada : RegistrarOfertaAceptada()
+  EnEvaluacion --> Retirada : RegistrarOfertaCerrada() [oferta rechazada o expirada]
+  EnEvaluacion --> Rechazada : PENDIENTE HU-10.2
+  Otorgada --> [*]
+  Rechazada --> [*]
+  Retirada --> [*]
+  NoElegible --> [*]

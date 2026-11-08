@@ -1,0 +1,96 @@
+classDiagram
+  direction TB
+  class Entidad~TId~ {
+    <<abstract>>
+    +Id: TId
+    +EventosPendientes: List~IEventoDeDominio~
+    #Registrar(evento: IEventoDeDominio) void
+    +Equals(otro: object) bool
+  }
+  class RaizDeAgregado~TId~ {
+    <<abstract>>
+    +Version: int
+  }
+  class IEventoDeDominio {
+    <<interface>>
+    +Fecha: DateTimeOffset
+  }
+  class IManejador~TEvento~ {
+    <<interface>>
+    +Manejar(evento: TEvento) void
+  }
+  class Dinero {
+    <<Value Object>>
+    +Cantidad: decimal
+    +Moneda: string
+    +Dinero(cantidad: decimal, moneda: string)
+    +Sumar(otro: Dinero) Dinero
+    +Restar(otro: Dinero) Dinero
+    +EsMayorQue(otro: Dinero) bool
+  }
+  class Cedula {
+    <<Value Object>>
+    +Numero: string
+    +Cedula(numero: string)
+  }
+  class Contacto {
+    <<Value Object>>
+    +Correo: string
+    +Telefono: string
+    +Contacto(correo: string, telefono: string)
+  }
+  class VentanaFechas {
+    <<Value Object>>
+    +Apertura: date
+    +Cierre: date
+    +VentanaFechas(apertura: date, cierre: date)
+    +Contiene(momento: datetime) bool
+  }
+  class FechaLimite {
+    <<Value Object>>
+    +Fecha: date
+    +FechaLimite(fecha: date)
+    +Vencida(momento: datetime) bool
+  }
+  class Promedio {
+    <<Value Object>>
+    +Valor: decimal
+    +Promedio(valor: decimal)
+    +EsMayorOIgual(otro: Promedio) bool
+  }
+  class Justificacion {
+    <<Value Object>>
+    +Texto: string
+    +Justificacion(texto: string)
+  }
+  class ReferenciaArchivo {
+    <<Value Object>>
+    +RutaFirebase: string
+    +ReferenciaArchivo(ruta: string)
+  }
+  class CodigoPeriodo {
+    <<Value Object>>
+    +Valor: string
+    +CodigoPeriodo(valor: string)
+  }
+  Entidad~TId~ <|-- RaizDeAgregado~TId~
+  Entidad~TId~ ..> IEventoDeDominio : registra
+  IManejador~TEvento~ ..> IEventoDeDominio : maneja
+  note for Entidad "Igual a otra si tiene el mismo Id (lámina 23). Toda entidad interna hereda de aquí."
+  note for RaizDeAgregado "Toda raíz hereda de aquí. Version: la base la compara al guardar (lámina 31)."
+  note for Dinero "record inmutable: valida al nacer cantidad no negativa y moneda de 3 letras; no suma monedas distintas (lámina 25)."
+  note for VentanaFechas "R20: UTC-4, el día de cierre se incluye hasta las 23:59. Única implementación."
+  note for CodigoPeriodo "Así se referencia un periodo desde fuera de CalendarioAcademico, por ejemplo 2026-2."
+  style Entidad fill:#fafafa,stroke:#424242,color:#000000
+  style RaizDeAgregado fill:#fafafa,stroke:#424242,color:#000000
+  style IEventoDeDominio fill:#ffffff,stroke:#424242,color:#000000
+  style IManejador fill:#ffffff,stroke:#424242,color:#000000
+  style Dinero fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Cedula fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Contacto fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style VentanaFechas fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style FechaLimite fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Promedio fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style Justificacion fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style ReferenciaArchivo fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style CodigoPeriodo fill:#c8e6c9,stroke:#2e7d32,color:#000000

@@ -1,0 +1,23 @@
+sequenceDiagram
+  participant UI as :UI
+  participant H as :AceptarOfertaHandler
+  participant RO as :IOfertaRepository
+  participant RB as :IBeneficiosPersonaRepository
+  participant S as :ServicioAceptacionOferta
+  participant BP as :BeneficiosPersona
+  participant O as :Oferta
+  participant EV as :PublicadorEventos
+  UI->>H: Manejar(AceptarOferta)
+  H->>RO: ObtenerPorId(ofertaId)
+  RO-->>H: oferta
+  H->>RB: ObtenerPorPostulante(postulanteId)
+  RB-->>H: beneficios
+  H->>S: Aceptar(oferta, beneficios, alcance, topeMatricula, ahora)
+  S->>BP: RegistrarAceptacion(beneficio, topeMatricula)
+  S->>O: Aceptar(ahora)
+  S-->>H: ok
+  H->>RO: Guardar(oferta)
+  H->>RB: Guardar(beneficios)
+  Note over H,RB: Una transacción con dos agregados: única excepción (D-3), como ServicioDeTransferencia (lámina 36)
+  H->>EV: Publicar(oferta.EventosPendientes)
+  H-->>UI: ok

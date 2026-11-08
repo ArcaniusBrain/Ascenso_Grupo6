@@ -1,0 +1,75 @@
+classDiagram
+  direction LR
+  namespace Lado_de_escritura {
+    class ConfirmarPagoHandler {
+      <<Aplicación>>
+      +Manejar(comando: ConfirmarPago) void
+    }
+    class IBecaRepository {
+      <<interface>>
+      +ObtenerPorId(id: BecaId) Beca
+      +Guardar(beca: Beca) void
+    }
+    class BecaRepositoryEf {
+      <<Infraestructura>>
+      +ObtenerPorId(id: BecaId) Beca
+      +Guardar(beca: Beca) void
+    }
+    class BdTransaccional["BD transaccional"] {
+      <<Base de datos>>
+      relacional, normalizada
+      agregados con Version
+      RegistroDecision
+      Outbox
+    }
+  }
+  namespace Propagacion {
+    class PublicadorOutbox {
+      <<Infraestructura>>
+      +PublicarPendientes() void
+    }
+    class ProyectorLineaTiempo {
+      <<Aplicación>>
+      +Manejar(evento: PagoConfirmado) void
+    }
+  }
+  namespace Lado_de_lectura {
+    class ObtenerLineaTiempoHandler {
+      <<Aplicación>>
+      +Manejar(consulta: ObtenerLineaTiempo) LineaTiempoDto
+    }
+    class IConsultaLineaTiempo {
+      <<interface>>
+      +PorBeca(becaId: BecaId) LineaTiempoDto
+    }
+    class BdConsulta["BD de consulta"] {
+      <<Base de datos>>
+      NoSQL, desnormalizada
+      modelos de lectura
+    }
+  }
+  class IManejador~TEvento~ {
+    <<interface>>
+    +Manejar(evento: TEvento) void
+  }
+  ConfirmarPagoHandler --> IBecaRepository : usa
+  IBecaRepository <|.. BecaRepositoryEf
+  BecaRepositoryEf --> BdTransaccional : una transacción
+  PublicadorOutbox --> BdTransaccional : lee Outbox
+  PublicadorOutbox ..> ProyectorLineaTiempo : publica eventos
+  IManejador~TEvento~ <|.. ProyectorLineaTiempo
+  ProyectorLineaTiempo --> BdConsulta : actualiza
+  ObtenerLineaTiempoHandler --> IConsultaLineaTiempo : usa
+  IConsultaLineaTiempo --> BdConsulta : lee
+  note for BdTransaccional "Los repositorios trabajan solo aquí. Las reglas de negocio se deciden con esta base."
+  note for BdConsulta "Consistencia eventual. Solo la escriben los proyectores; la leen pantallas y reportes."
+  style ConfirmarPagoHandler fill:#e3f2fd,stroke:#1976d2,color:#000000
+  style IBecaRepository fill:#ffffff,stroke:#424242,color:#000000
+  style BecaRepositoryEf fill:#f3e5f5,stroke:#7b1fa2,color:#000000
+  style BdTransaccional fill:#cfd8dc,stroke:#455a64,color:#000000
+  style PublicadorOutbox fill:#f3e5f5,stroke:#7b1fa2,color:#000000
+  style ProyectorLineaTiempo fill:#e3f2fd,stroke:#1976d2,color:#000000
+  style ObtenerLineaTiempoHandler fill:#e3f2fd,stroke:#1976d2,color:#000000
+  style IConsultaLineaTiempo fill:#ffffff,stroke:#424242,color:#000000
+  style BdConsulta fill:#cfd8dc,stroke:#455a64,color:#000000
+  style IManejador fill:#ffffff,stroke:#424242,color:#000000

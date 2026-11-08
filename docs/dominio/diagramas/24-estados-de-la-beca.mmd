@@ -1,0 +1,18 @@
+stateDiagram-v2
+  [*] --> Otorgada : BecaFactory.DesdeOferta()
+  Otorgada --> Activa : FirmarCompromiso()
+  Otorgada --> Activa : Activar() [sin compromiso exigido]
+  Activa --> Suspendida : Suspender() o AprobarPausa()
+  Suspendida --> Activa : Reanudar() o ReactivarTrasPausa() [estatus verificado]
+  Suspendida --> Inactiva : VencerPausa()
+  Suspendida --> Revocada : Revocar()
+  Activa --> Renovada : AprobarRenovacion()
+  Renovada --> Activa : IniciarNuevoPeriodo()
+  Activa --> Inactiva : IniciarNuevoPeriodo() [renovación rechazada o no solicitada]
+  Inactiva --> Activa : SalirDeInactiva() [a Activa]
+  Inactiva --> Concluida : SalirDeInactiva() [a Concluida]
+  Inactiva --> Revocada : Revocar()
+  Activa --> Concluida : Concluir()
+  Activa --> Revocada : Revocar() [incumplimiento grave]
+  Concluida --> [*]
+  Revocada --> [*]

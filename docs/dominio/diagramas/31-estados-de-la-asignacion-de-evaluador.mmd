@@ -1,0 +1,5 @@
+stateDiagram-v2
+  state "Retirada por conflicto" as RetiradaPorConflicto
+  [*] --> Vigente : AsignarEvaluador()
+  Vigente --> RetiradaPorConflicto : ReemplazarEvaluador() [conflicto declarado]
+  RetiradaPorConflicto --> [*]

@@ -1,0 +1,98 @@
+classDiagram
+  direction LR
+  class UNI["Sistema académico de la universidad"] {
+    <<Sistema externo>>
+    respuesta propia de cada universidad
+  }
+  class IFuenteAcademica {
+    <<interface>>
+    +ObtenerReporte(becaId: BecaId, periodo: CodigoPeriodo) ReporteAcademico
+  }
+  class TraductorFuenteAcademica {
+    <<ACL>>
+    +Traducir(r: RespuestaUniversidad) ReporteAcademico
+  }
+  class SEG["Seguimiento Académico"] {
+    <<Bounded Context · Soporte>>
+  }
+  class POS["Postulación"] {
+    <<Bounded Context · Soporte>>
+  }
+  class FBS["Firebase Storage"] {
+    <<Sistema externo>>
+  }
+  class IAlmacenamientoArchivos {
+    <<interface>>
+    +Guardar(contenido: byte[], ruta: string) ReferenciaArchivo
+    +Obtener(r: ReferenciaArchivo) byte[]
+  }
+  class AdaptadorFirebaseStorage {
+    <<ACL>>
+    +Guardar(contenido: byte[], ruta: string) ReferenciaArchivo
+  }
+  class BEC["Gestión de Becas"] {
+    <<Bounded Context · Soporte>>
+  }
+  class IDP["Proveedor de identidad (ADR)"] {
+    <<Sistema externo>>
+  }
+  class IAM["Identidad y Acceso"] {
+    <<Bounded Context · Genérico>>
+  }
+  class IServicioOtp {
+    <<interface>>
+    +Enviar(usuarioId: UsuarioId, canal: CanalCodigo) void
+    +Validar(usuarioId: UsuarioId, codigo: string) bool
+  }
+  class MAIL["Proveedor de correo y SMS"] {
+    <<Sistema externo>>
+  }
+  class ICanalNotificacion {
+    <<interface>>
+    +Enviar(destinatario: Contacto, mensaje: string) void
+  }
+  class CanalCorreo {
+    <<ACL>>
+    +Enviar(destinatario: Contacto, mensaje: string) void
+  }
+  class CanalSms {
+    <<ACL>>
+    +Enviar(destinatario: Contacto, mensaje: string) void
+  }
+  class COM["Comunicaciones"] {
+    <<Bounded Context · Soporte>>
+  }
+  UNI "U" --> "D" TraductorFuenteAcademica : ACL
+  IFuenteAcademica <|.. TraductorFuenteAcademica
+  SEG --> IFuenteAcademica : usa
+  POS --> IFuenteAcademica : usa (promedio)
+  FBS "U" --> "D" AdaptadorFirebaseStorage : ACL
+  IAlmacenamientoArchivos <|.. AdaptadorFirebaseStorage
+  POS --> IAlmacenamientoArchivos : usa
+  BEC --> IAlmacenamientoArchivos : usa (carta)
+  IDP "U" --> "D" IAM : Conformist
+  IAM --> IServicioOtp : provee
+  BEC --> IServicioOtp : usa
+  MAIL "U" --> "D" CanalCorreo : ACL
+  MAIL "U" --> "D" CanalSms : ACL
+  ICanalNotificacion <|.. CanalCorreo
+  ICanalNotificacion <|.. CanalSms
+  COM --> ICanalNotificacion : usa
+  note for TraductorFuenteAcademica "Como TraductorPasarela de la lámina 18: si la universidad cambia su formato, solo cambia el traductor."
+  style UNI fill:#f5f5f5,stroke:#9e9e9e,color:#424242
+  style IFuenteAcademica fill:#ffffff,stroke:#424242,color:#000000
+  style TraductorFuenteAcademica fill:#ffe0b2,stroke:#ef6c00,color:#000000
+  style SEG fill:#bbdefb,stroke:#1565c0,color:#000000
+  style POS fill:#bbdefb,stroke:#1565c0,color:#000000
+  style FBS fill:#f5f5f5,stroke:#9e9e9e,color:#424242
+  style IAlmacenamientoArchivos fill:#ffffff,stroke:#424242,color:#000000
+  style AdaptadorFirebaseStorage fill:#ffe0b2,stroke:#ef6c00,color:#000000
+  style BEC fill:#bbdefb,stroke:#1565c0,color:#000000
+  style IDP fill:#f5f5f5,stroke:#9e9e9e,color:#424242
+  style IAM fill:#eeeeee,stroke:#757575,color:#000000
+  style IServicioOtp fill:#ffffff,stroke:#424242,color:#000000
+  style MAIL fill:#f5f5f5,stroke:#9e9e9e,color:#424242
+  style ICanalNotificacion fill:#ffffff,stroke:#424242,color:#000000
+  style CanalCorreo fill:#ffe0b2,stroke:#ef6c00,color:#000000
+  style CanalSms fill:#ffe0b2,stroke:#ef6c00,color:#000000
+  style COM fill:#bbdefb,stroke:#1565c0,color:#000000
