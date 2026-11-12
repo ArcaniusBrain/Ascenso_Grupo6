@@ -17,6 +17,7 @@ ASCENSO gestiona el ciclo completo de becas de la Fundación Ascenso: postulaci�
 | Diagramas del modelo (44) | v3.2 | [`docs/dominio/diagramas/`](docs/dominio/diagramas/README.md) |
 | Propuesta de arquitectura (ADR-01 a ADR-24) | Borrador v0.1, 4-nov-2026 | [`docs/arquitectura/`](docs/arquitectura/README.md) |
 | Cambios previstos para DDD v3.3 y ADR v0.2 | 7-nov-2026 | [`docs/cambios/`](docs/cambios/cambios_DDD_v3.3_y_ADR_v0.2.md) |
+| **Guía de inicio del equipo (empieza aquí)** | — | [`docs/guia-inicio-equipo.md`](docs/guia-inicio-equipo.md) |
 | Guía de OpenSpec del equipo | — | [`docs/guia-openspec.md`](docs/guia-openspec.md) |
 
 **Precedencia entre documentos:** cuando dos fuentes difieren, mandan las **historias de usuario** (con las decisiones del cliente); luego el **DDD**; luego la **arquitectura**.
