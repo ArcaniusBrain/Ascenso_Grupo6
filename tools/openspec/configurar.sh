@@ -7,7 +7,7 @@
 #   bash tools/openspec/configurar.sh none       # sin asistente, solo la línea de comandos
 #
 # Qué hace:
-#   1. Comprueba Node.js 22.12 o superior.
+#   1. Comprueba Node.js 22.22 o superior (o 24.15+), lo que piden las dependencias de OpenSpec.
 #   2. Instala la versión de OpenSpec acordada por el equipo (VERSION_OPENSPEC).
 #   3. Ejecuta `openspec init` sin tocar openspec/config.yaml (es del equipo).
 #   4. Valida los cambios y specs del repositorio.
@@ -24,13 +24,14 @@ cd "$(git rev-parse --show-toplevel)"
 
 echo "== 1/4 Node.js"
 if ! command -v node >/dev/null 2>&1; then
-  echo "No se encontró Node.js. Instala Node.js 22 LTS (o superior) desde https://nodejs.org y vuelve a ejecutar." >&2
+  echo "No se encontró Node.js. Instala Node.js 24 LTS desde https://nodejs.org y vuelve a ejecutar." >&2
   exit 1
 fi
 node -e '
   const [ma, mi] = process.versions.node.split(".").map(Number);
-  if (ma < 22 || (ma === 22 && mi < 12)) {
-    console.error("Node.js " + process.versions.node + " es muy viejo: OpenSpec necesita 22.12 o superior.");
+  const ok = (ma === 22 && mi >= 22) || (ma === 24 && mi >= 15) || ma >= 26;
+  if (!ok) {
+    console.error("Node.js " + process.versions.node + " no sirve: instala Node.js 24 LTS (o 22.22+) desde https://nodejs.org.");
     process.exit(1);
   }
   console.log("Node.js " + process.versions.node + " OK");

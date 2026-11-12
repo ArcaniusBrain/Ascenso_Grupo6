@@ -3,7 +3,7 @@
 OpenSpec es obligatorio en el proyecto (ADR-23): antes de escribir código se acuerda **qué** debe hacer el sistema en una propuesta revisable, y al terminar esa propuesta queda archivada con fecha. Esta guía dice cómo lo usamos en ASCENSO.
 
 - Versión acordada: **OpenSpec 2.0.0** (fijada en `tools/openspec/configurar.sh` y en la integración continua).
-- Requisito: **Node.js 22.12 o superior**.
+- Requisito: **Node.js 24 LTS** (sirve también 22.22 o superior). Con versiones anteriores npm muestra avisos `EBADENGINE` y algunos menús interactivos pueden fallar.
 
 ## 1. Configuración (una vez por integrante)
 

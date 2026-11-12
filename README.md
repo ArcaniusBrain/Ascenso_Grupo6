@@ -61,7 +61,7 @@ Las reglas de ramas, commits y pull requests están en [`CONTRIBUTING.md`](CONTR
 
 1. **Proteger `main`** (Settings → Branches): pull request obligatorio con una aprobación.
 2. **Agregar a los integrantes** como colaboradores y completar [`.github/CODEOWNERS`](.github/CODEOWNERS) con sus usuarios.
-3. **Configurar OpenSpec en cada máquina** (obligatorio, ADR-23). Requiere Node.js 22.12 o superior; desde Git Bash, en la raíz del repositorio:
+3. **Configurar OpenSpec en cada máquina** (obligatorio, ADR-23). Requiere Node.js 24 LTS (o 22.22+); desde Git Bash, en la raíz del repositorio:
    ```bash
    bash tools/openspec/configurar.sh
    ```
