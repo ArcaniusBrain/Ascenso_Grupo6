@@ -1,0 +1,33 @@
+name: OpenSpec
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    name: Validar specs y cambios
+    runs-on: ubuntu-latest
+    env:
+      OPENSPEC_VERSION: "2.0.0"   # la misma que tools/openspec/configurar.sh
+      OPENSPEC_TELEMETRY: "0"
+      DO_NOT_TRACK: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Instalar OpenSpec
+        run: npm install -g "@fission-ai/openspec@${OPENSPEC_VERSION}"
+
+      - name: Validar cambios y specs (modo estricto)
+        run: openspec validate --all --strict --no-interactive
+
+      - name: Cambios archivados con todas sus tareas completas
+        run: openspec validate --archived --no-interactive

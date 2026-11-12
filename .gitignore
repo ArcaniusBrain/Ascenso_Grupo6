@@ -63,5 +63,15 @@ Thumbs.db
 desktop.ini
 
 # ── Herramientas locales de cada integrante ────────────────────
+# Habilidades que instala `openspec init` en cada máquina (tools/openspec/configurar.sh)
+.agents/
 .claude/
+.cursor/
+.codex/
+.gemini/
+.opencode/
+.windsurf/
+.github/copilot-instructions.md
+.github/skills/
+.github/prompts/
 CLAUDE.local.md

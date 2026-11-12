@@ -33,11 +33,27 @@ fix(s2): no liberar reservas con oferta existente (ADR-B02)
 
 Commits pequeños y frecuentes: es más fácil revisarlos y dejan un historial claro de quién hizo qué.
 
+## Cambios con OpenSpec
+
+Todo trabajo que cambie comportamiento o diseño empieza como un **cambio de OpenSpec** (`openspec/changes/<nombre>/`). El nombre del cambio y el de la rama coinciden:
+
+```
+cambio:  openspec/changes/emitir-oferta-con-reserva/
+rama:    feat/emitir-oferta-con-reserva
+```
+
+1. Crea la rama y la propuesta (proposal, specs, design, tasks).
+2. Abre el pull request **como borrador** solo con la propuesta y pide revisión: se aprueba el *qué* antes de escribir código.
+3. Implementa las tareas en la misma rama, marcándolas en `tasks.md`.
+4. Con todo en verde, archiva el cambio (`openspec archive <nombre>`) en la misma rama y pasa el pull request a listo para revisión.
+
+El detalle está en [`docs/guia-openspec.md`](docs/guia-openspec.md).
+
 ## Pull requests
 
 1. Sube la rama y abre el pull request contra `main`. La plantilla se llena sola: completa cada punto.
 2. Pide revisión a quien figure en [`.github/CODEOWNERS`](.github/CODEOWNERS) para esas carpetas.
-3. Se fusiona con **al menos una aprobación** y la integración continua en verde (cuando exista).
+3. Se fusiona con **al menos una aprobación** y la integración continua en verde (incluye `openspec validate --all --strict`).
 4. Después de fusionar, borra la rama.
 
 ## Documentos

@@ -1,0 +1,112 @@
+schema: spec-driven
+
+context: |
+  Idioma: todos los artefactos (proposal, specs, design, tasks) se escriben en español.
+  Se mantienen en inglés los encabezados estructurales de OpenSpec (## ADDED Requirements,
+  ### Requirement:, #### Scenario:, ## Purpose…) y las palabras clave SHALL/MUST y
+  **GIVEN**/**WHEN**/**THEN**/**AND** de los escenarios.
+
+  Proyecto: ASCENSO, plataforma de becas y ayudas estudiantiles de la Fundación Ascenso.
+  Proyecto semestral de Desarrollo de Software (UCAB), equipo de cinco personas.
+
+  Fuentes, en orden de precedencia (si difieren, manda la primera):
+  1. Historias de usuario Plan B (73 HU, criterios en Gherkin) con las decisiones del cliente
+     C1–C5 y R1–R30 y los supuestos S1–S12: docs/requisitos/historias-de-usuario/
+     y docs/requisitos/respuestas_cliente.md. Preguntas abiertas: anexo-b-preguntas-abiertas.md.
+     Reglas técnicas por HU: anexo-a-reglas-tecnicas.md.
+  2. Modelo de dominio DDD: docs/dominio/DDD_v3.2.md (agregados, invariantes, eventos,
+     máquinas de estado, flujos de consistencia, decisiones D-1 a D-14).
+  3. Arquitectura: docs/arquitectura/adr/ (ADR-01 a ADR-24).
+  4. Cambios aprobados pendientes de aplicar a esos documentos: docs/cambios/.
+  El PRD original (docs/requisitos/prd.md) solo se usa cuando las fuentes anteriores no dicen nada.
+
+  Arquitectura (resumen; el detalle está en los ADR):
+  - Microservicios .NET 10 (C#) detrás de un API Gateway YARP; frontend React + Next.js.
+  - Cada servicio: Clean Architecture con DDD en cuatro proyectos (Domain, Application,
+    Infrastructure, Api) más pruebas. El dominio no conoce EF Core, MassTransit, ASP.NET Core
+    ni Firebase. Handlers sin reglas de negocio (cargan, invocan, guardan, publican).
+  - PostgreSQL con EF Core, un schema por servicio; nadie lee ni escribe el schema de otro.
+  - Archivos solo en Firebase Storage (referencia interna, enlaces firmados de corta vigencia).
+  - Eventos de integración con MassTransit 8 + RabbitMQ y Outbox; contratos en Ascenso.Contracts.
+  - Llamadas síncronas entre servicios solo las de la lista cerrada del ADR-02.
+  - Identidad con Keycloak; OTP por operación sensible en S1 (ADR-10).
+  - Toda decisión deja RegistroDecision inmutable en la misma transacción (ADR-12).
+  - Concurrencia optimista con versión en cada raíz de agregado (ADR-16).
+  - Fechas límite en UTC-4, el día límite incluido hasta las 23:59 (R20), con reloj inyectado.
+  - Reportes y panel leen una base de lectura PostgreSQL aparte, escrita solo por proyectores.
+
+  Servicios y contextos (ADR-02):
+  - S1 Identidad y Acceso: Usuario, TipoUsuario, ClienteApiUniversidad, servicio de OTP.
+  - S2 Catálogo y Programas: CalendarioAcademico, UniversidadAliada, Programa, Donante,
+    PresupuestoPrograma.
+  - S3 Postulación y Evaluación: CicloPostulacion, Postulante, Postulacion, Comite, Evaluacion,
+    ConflictoInteres.
+  - S4 Gestión de Becas: Oferta, Beca, BeneficiosPersona, DatosPago, VentanaRenovacion.
+  - S5 Seguimiento Académico: ReporteAcademico, PlazoReporte, EvaluacionCumplimiento.
+  - S6 Comunicaciones y Reportería: Consulta, RegistroEnvio, ConsentimientoDonante,
+    modelos de lectura y hub de tiempo real.
+
+  Catálogo de capacidades (rutas de openspec/specs/). Usar SIEMPRE estos nombres; si ninguno
+  sirve, justificar uno nuevo en la propuesta y agregarlo aquí en el mismo pull request.
+  - identidad-acceso (S1): cuentas, tipos de usuario, permisos, segundo factor. RF-37.
+  - codigos-un-solo-uso (S1): OTP por operación sensible. R4–R6; HU-20.1, 20.3, 22.1, 25.2, 37.2.
+  - calendario-academico (S2): periodos académicos y periodo actual. RF-38.
+  - universidades-convenios (S2): universidades, convenios, carreras, costo de matrícula,
+    inicio de inscripciones. RF-14.
+  - programas (S2): configuración de programas y plantilla de rúbrica. RF-11 (y RF-07, parte).
+  - presupuesto-cupos (S2): presupuesto disponible, reservas, cupo del programa y del ciclo. RF-12.
+  - donantes-aportes (S2): donantes y aportes. RF-13.
+  - ciclos-postulacion (S3): convocatorias, ventanas, criterios, documentos. RF-02.
+  - postulaciones (S3): perfil, postulación, documentos, elegibilidad, retiro. RF-01, 03, 04, 05.
+  - comite-evaluacion (S3): comités, asignación de evaluadores, conflictos de interés. RF-06, 39.
+  - evaluacion-puntuacion (S3): rúbrica aplicada, puntuaciones y comentarios. RF-07, 08.
+  - seleccion-ranking (S3): consolidación, ranking, casos límite, lista de espera. RF-09, 10.
+  - ofertas (S4): emisión, aceptación, rechazo, expiración, no doble beneficio. RF-15, 16.
+  - becas (S4): ciclo de vida, compromiso, suspensión, pausa, revocación, historiales.
+    RF-17, 18, 21, 22, 27, 28.
+  - desembolsos-pagos (S4): calendario de desembolsos, pagos, datos de pago. RF-19, 20.
+  - renovaciones (S4): ventanas y solicitudes de renovación. RF-26.
+  - seguimiento-academico (S5): reportes académicos, plazos, permanencia. RF-24, 25.
+  - notificaciones (S6): notificaciones, recordatorios, avisos al comité. RF-29, 30, 31.
+  - consultas (S6): mensajería con postulantes y becarios. RF-32.
+  - reportes (S6): reporte financiero, de impacto, institucional, panel. RF-23, 33, 34, 40.
+  - registro-decisiones (transversal): registro inmutable y exportación. RF-35, 36.
+
+  Nombres de cambios: verbo en infinitivo + objeto, en kebab-case y en español
+  (por ejemplo emitir-oferta-con-reserva, registrar-postulante). La rama de git lleva el mismo
+  nombre con prefijo feat/, fix/ o docs/ (ver CONTRIBUTING.md).
+
+rules:
+  proposal:
+    - 'Citar en "Why" las HU, RF, decisiones del cliente (C/R/S) y ADR que motivan el cambio.'
+    - 'Usar solo capacidades del catálogo del contexto; una capacidad nueva se justifica y se agrega al catálogo.'
+    - 'Un cambio es un incremento que se revisa en un solo pull request; si abarca varias HU grandes o varios servicios sin necesidad, dividirlo.'
+    - 'En "Impact" nombrar los servicios (S1–S6) afectados y si se tocan contratos de eventos (Ascenso.Contracts) o el Shared Kernel; ambos exigen acuerdo de todo el equipo.'
+    - 'Un cambio solo de documentación, herramientas o configuración no declara capacidades y lleva skip_specs true.'
+  specs:
+    - 'Los requisitos y escenarios salen de las reglas y criterios de aceptación de las HU; cada requisito cita su HU entre paréntesis, por ejemplo (HU-15.1).'
+    - 'Traducir DADO QUE / CUANDO / ENTONCES / Y a **GIVEN** / **WHEN** / **THEN** / **AND**; el resto del texto queda en español.'
+    - 'Copiar tal cual los valores que fijó el cliente (montos, plazos, intentos, horarios); no inventar valores que las HU marcan como "sin definir".'
+    - 'Lo que sigue abierto en el Anexo B no se especifica; se anota en design.md como pregunta abierta con su número.'
+    - 'No mencionar clases, tablas, endpoints ni librerías: eso va en design.md.'
+  design:
+    - 'Nombrar los agregados, eventos y servicios de dominio del DDD que intervienen, y los ADR que se aplican.'
+    - 'Respetar: reglas en el dominio; una transacción, un agregado (única excepción D-3); ningún servicio lee el schema de otro; llamadas síncronas solo de la lista cerrada del ADR-02; RegistroDecision por cada decisión; versión en la raíz.'
+    - 'Si el diseño necesita contradecir un ADR o el DDD, decirlo explícitamente y modificar ese documento en el mismo pull request.'
+    - 'Incluir los eventos de integración nuevos o modificados con su productor, consumidores y versión.'
+  tasks:
+    - 'Agrupar por capa en este orden: Domain, Application, Infrastructure, Api; cada grupo trae sus propias pruebas.'
+    - 'Cada regla de negocio tiene una prueba unitaria en Domain; cada escenario de la spec, al menos una prueba (unitaria o de integración) que lo nombre.'
+    - 'Incluir la migración de EF Core cuando cambie el modelo persistido y la versión del contrato cuando cambie un evento de integración.'
+    - 'Cada tarea indica cómo se verifica (prueba, comando o resultado observable) y cabe en una sesión de trabajo.'
+
+operations:
+  apply:
+    guidance:
+      - 'Implementar las tareas en orden y marcarlas al terminar cada una.'
+      - 'No modificar otros servicios ni el Shared Kernel si no hay una tarea que lo pida.'
+      - 'Ejecutar las pruebas del servicio antes de marcar un grupo como terminado.'
+  archive:
+    guidance:
+      - 'Archivar solo con todas las tareas completas, las pruebas en verde y openspec validate --strict sin errores.'
+      - 'Archivar dentro del mismo pull request del cambio, antes de fusionarlo.'

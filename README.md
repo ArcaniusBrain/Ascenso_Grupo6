@@ -17,6 +17,7 @@ ASCENSO gestiona el ciclo completo de becas de la Fundación Ascenso: postulaci�
 | Diagramas del modelo (44) | v3.2 | [`docs/dominio/diagramas/`](docs/dominio/diagramas/README.md) |
 | Propuesta de arquitectura (ADR-01 a ADR-24) | Borrador v0.1, 4-nov-2026 | [`docs/arquitectura/`](docs/arquitectura/README.md) |
 | Cambios previstos para DDD v3.3 y ADR v0.2 | 7-nov-2026 | [`docs/cambios/`](docs/cambios/cambios_DDD_v3.3_y_ADR_v0.2.md) |
+| Guía de OpenSpec del equipo | — | [`docs/guia-openspec.md`](docs/guia-openspec.md) |
 
 **Precedencia entre documentos:** cuando dos fuentes difieren, mandan las **historias de usuario** (con las decisiones del cliente); luego el **DDD**; luego la **arquitectura**.
 
@@ -44,7 +45,7 @@ La partición está pendiente de aprobación del profesor (ADR-02); por eso `src
 │   ├── dominio/           DDD (md), diagramas Mermaid y enlaces a mermaid.live
 │   ├── arquitectura/      README, un archivo por ADR, figuras y PDF original
 │   └── cambios/           Cambios previstos para las próximas versiones
-├── openspec/              (se crea con `openspec init`, ver Próximos pasos)
+├── openspec/              Specs por capacidad y cambios (propuestas) de OpenSpec
 ├── src/                   Backend .NET: servicios, SharedKernel y Contracts
 ├── frontend/              Aplicación Next.js
 ├── deploy/                docker-compose y configuración local
@@ -60,11 +61,11 @@ Las reglas de ramas, commits y pull requests están en [`CONTRIBUTING.md`](CONTR
 
 1. **Proteger `main`** (Settings → Branches): pull request obligatorio con una aprobación.
 2. **Agregar a los integrantes** como colaboradores y completar [`.github/CODEOWNERS`](.github/CODEOWNERS) con sus usuarios.
-3. **Inicializar OpenSpec** (obligatorio, ADR-23). Requiere Node.js 20 o superior:
+3. **Configurar OpenSpec en cada máquina** (obligatorio, ADR-23). Requiere Node.js 22.12 o superior; desde Git Bash, en la raíz del repositorio:
    ```bash
-   npm install -g @fission-ai/openspec@latest
-   openspec init
+   bash tools/openspec/configurar.sh
    ```
-4. **Primera propuesta de OpenSpec:** aplicar [`docs/cambios/cambios_DDD_v3.3_y_ADR_v0.2.md`](docs/cambios/cambios_DDD_v3.3_y_ADR_v0.2.md) para producir el DDD v3.3 y el ADR v0.2.
+   Detalles y flujo de trabajo en [`docs/guia-openspec.md`](docs/guia-openspec.md).
+4. **Primer cambio de OpenSpec:** [`openspec/changes/actualizar-ddd-v3-3-y-adr-v0-2/`](openspec/changes/actualizar-ddd-v3-3-y-adr-v0-2/proposal.md) aplica la lista de cambios para producir el DDD v3.3 y el ADR v0.2.
 5. **Pruebas técnicas** antes de cerrar la arquitectura: segundo factor por correo/SMS en Keycloak (ADR-09) y enlaces firmados contra el emulador de Firebase (ADR-06).
 6. **Después de la revisión del profesor:** crear la solución .NET en `src/`, el `docker-compose` en `deploy/` y el proyecto Next.js en `frontend/`.
