@@ -1,0 +1,37 @@
+sequenceDiagram
+  autonumber
+  actor Fin as Finanzas
+  participant API as :ApiBecas
+  participant H as :ConfirmarPagoHandler
+  participant Repo as :IBecaRepository
+  participant S1 as :IValidadorOtp
+  participant B as :Beca
+  participant Infra as :RepositorioBecaEfCore
+  Fin->>API: POST /pagos con challengeId + codigo + operationId
+  API->>H: Ejecutar(comando, identidad token)
+  H->>Repo: Obtener Beca y Desembolso
+  Repo-->>H: Beca cargada
+  H->>H: Verificar permiso, alcance y estado del agregado
+  alt Permiso o estado invalido
+    H-->>API: Error 403/409 o 422
+    API-->>Fin: ProblemDetails
+  else Estado autorizado
+    H->>S1: ValidarYConsumir(usuario, recurso, operacion, codigo, challenge)
+    S1-->>H: OTP consumido una sola vez o rechazo
+    alt OTP invalido o reutilizado
+      H-->>API: 403 / 422 sin cambios
+    else OTP valido
+      H->>B: ConfirmarPago() y registrar evento
+      H->>Repo: Guardar Beca + RegistroDecision + Outbox
+      Repo->>Infra: Unidad de trabajo
+      alt Conflicto de version
+        Infra-->>Repo: 409
+        Repo-->>H: Conflicto
+        H-->>API: 409 requiere nuevo desafio
+      else Commit
+        Infra-->>Repo: Confirmado
+        Repo-->>H: Resultado
+        H-->>API: PagoConfirmadoRespuesta
+      end
+    end
+  end

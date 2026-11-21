@@ -1,0 +1,25 @@
+﻿ID,Asunto,Estado,Fundamento,Acción para cierre
+ADR-01,Seis servicios .NET con Clean Architecture,OBLIGATORIA segun consigna informada / DISEÑO V1.1,La Clase 09 demuestra Clean/hexagonal; la lámina «Decisiones Arquitectónicas» exige microservicios conectados por APIs.,Configuración fijada en v1.1; lámina original incluida en 06_FUENTES/Arquitectura_Obligatoria.jpeg (v1.3).
+ADR-02,Partición S1–S6 de los 12 Bounded Contexts,OBLIGATORIA segun consigna informada / DISEÑO V1.1,Agrupa Postulación+Evaluación y conserva BeneficiosPersona+Oferta en S4; evita 12 deployables.,Configuración fijada en v1.1; lámina original incluida en 06_FUENTES/Arquitectura_Obligatoria.jpeg (v1.3).
+ADR-03,S4→S2 reserva síncrona con compensación,ADOPTADA EN DISEÑO,DDD D-1 y regla 8; los mensajes liberan cuando la acción aumenta disponible.,"Probar reintentos, idempotencia y conciliación; cliente define horizonte."
+ADR-04,Clean + cuatro capas / puertos adaptadores,ADOPTADA EN DISEÑO,"Clase 09 láminas 7–9, 14–18, 26–39.",Verificar dirección de dependencias con test CI.
+ADR-05,PostgreSQL + EF Core transaccional,OBLIGATORIA segun consigna informada / DISEÑO V1.1,DDD D-12/D-14; schema y credencial por S.,Configuración fijada en v1.1; lámina original incluida en 06_FUENTES/Arquitectura_Obligatoria.jpeg (v1.3).
+ADR-06,Firebase Storage como único depósito documental,OBLIGATORIA segun consigna informada / DISEÑO V1.1,PRD; documentos existentes en la cuenta de la Fundación.,Configuración fijada en v1.1; lámina original incluida en 06_FUENTES/Arquitectura_Obligatoria.jpeg (v1.3).
+ADR-07,MongoDB para proyecciones CQRS NoSQL,ADOPTADA POR EQUIPO 16-11-2026,DDD D-14 especifica lectura NoSQL; se rechaza la sustitución no aprobada por PostgreSQL del borrador.,"MongoDB en todos los artefactos, conforme DDD D-14."
+ADR-08,Stateless para Beca y Postulacion,ADOPTADA EN DISEÑO / CONFIRMAR CRITERIO PROFESOR,DDD reserva máquina State; Stateless realiza transiciones declarativas sin duplicar clases.,Confirmar si se pide GoF State manual; probar cada transición.
+ADR-09,Keycloak OIDC con 2FA correo/SMS en S1,ADOPTADA EN DISEÑO / PRUEBA TÉCNICA NECESARIA,R3/R4 obligan factor por correo/SMS; TOTP por app no basta.,"Realizar PoC de emisión de token después de 2FA, sin bypass."
+ADR-10,OTP de operación de un solo uso,ADOPTADA EN DISEÑO,HU sensibles + R4; usuario+acción+recurso+expiración.,Consumo atómico e idempotencia entre S1/S4.
+ADR-11,Autorización por recurso y campos,ADOPTADA EN DISEÑO,Permisos HU-37.1 y seguridad del PRD.,Probar filtro de registros y máscara desde servidor.
+ADR-12,RegistroDecision y Outbox en commit atómico,ADOPTADA EN DISEÑO,"DDD D-6, RF-35.",Test rollback y roles insert-only.
+ADR-13,MassTransit 8 + RabbitMQ + Inbox/Outbox,ADOPTADA EN DISEÑO / VERSIÓN POR VERIFICAR,DDD eventos entre S; reintentos e idempotencia.,Fijar paquete y licencia en lockfile; prueba de duplicados.
+ADR-14,Hangfire por servicio para trabajos temporales,ADOPTADA EN DISEÑO,R18 y vencimientos en HU.,Job solo invoca comandos idempotentes.
+ADR-15,SignalR para eventos de interfaz S6,ADOPTADA EN DISEÑO,"HU-32.2, HU-40.1 y RNF tiempo real.",Reconexión obliga GET de verdad.
+ADR-16,Control de versión y concurrencia por agregado,ADOPTADA EN DISEÑO,DDD RaizDeAgregado.Version y C2/D-1.,Carrera para cupos/pagos/revocación.
+ADR-17,Reloj único UTC-4 para plazo de negocio,ADOPTADA EN DISEÑO,R20; DDD VentanaFechas/FechaLimite.,Prueba límite 23:59 y minuto siguiente.
+ADR-18,"Cifrado, máscara, consentimiento y auditoría",ADOPTADA EN DISEÑO / CLAVES PENDIENTES,"RNF confidencialidad; HU-20.3, HU-33.1.",Definir custodia de claves; probar exportaciones.
+ADR-19,ACL académica API / manual / simulada,ADOPTADA EN DISEÑO,C5 y HU-24.3.,"Acordar prioridad de fuentes, autenticar por universidad."
+ADR-20,Notificaciones correo/SMS por S6; OTP en S1,ADOPTADA EN DISEÑO / PROVEEDORES PENDIENTES,HU-29/30 y R4; RegistroEnvio idempotente.,Registrar proveedores de prueba y producción.
+ADR-21,ETL histórico por comandos de servicios,ADOPTADA EN DISEÑO / PLANILLAS PENDIENTES,PRD 800 becarios; invariantes por dueño.,"Validación/dry-run, carga repetible y conciliación."
+ADR-22,Índices y propiedad de datos por esquema,ADOPTADA EN DISEÑO,RNF; HU-09.2/34.1.,"Planes de ejecución, evitar schemas cruzados."
+ADR-23,"CI, OpenSpec y pruebas de arquitectura",OBLIGATORIA segun consigna informada / DISEÑO V1.1,Clase 09 exige test de arquitectura; borrador cita OpenSpec/90% por otras clases.,Configuración fijada en v1.1; OpenSpec no figura en la lámina y proviene de la clase del 14-sep.
+ADR-24,.NET 10 LTS y versiones fijadas,DISEÑO ADOPTADO / PAQUETES POR VERIFICAR,Borrador v0.1; versiones reproducibles.,Validar compatibilidad/licencias reales antes de NuGet/npm.

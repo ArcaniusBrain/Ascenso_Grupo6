@@ -1,0 +1,404 @@
+openapi: 3.1.0
+info:
+  title: ASCENSO - API interservicios privada v1.2
+  version: 1.2.0
+  description: NO exponer por YARP. Solo malla privada, autenticación OAuth2 client_credentials y permisos granulares.
+servers:
+- url: http://servicio-interno:8080
+  description: Solo DNS privado Docker/Kubernetes
+components:
+  securitySchemes:
+    ClienteServicio:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://keycloak.internal/realms/ascenso/protocol/openid-connect/token
+          scopes:
+            fondos.reservar: S4->S2 reservas
+            fondos.liberar: S4->S2 compensación
+            fondos.consultar: S3->S2 disponibilidad
+            otp.consumir: S4->S1 validación de OTP
+            beneficios.consultar: S3->S4 confirmación beca activa
+  schemas:
+    Id:
+      type: string
+      format: uuid
+    ReservaInternaCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - programaId
+      - postulacionId
+      - cicloId
+      - operationId
+      properties:
+        programaId:
+          $ref: '#/components/schemas/Id'
+        postulacionId:
+          $ref: '#/components/schemas/Id'
+        cicloId:
+          $ref: '#/components/schemas/Id'
+        operationId:
+          $ref: '#/components/schemas/Id'
+        codigoPeriodo:
+          type: string
+          description: Período decidido por política de negocio en S2, no monto del cliente.
+    ReservaInternaResponse:
+      type: object
+      required:
+      - reservaId
+      - estado
+      - montoCalculado
+      - moneda
+      properties:
+        reservaId:
+          $ref: '#/components/schemas/Id'
+        estado:
+          type: string
+          enum:
+          - RESERVADA
+          - VINCULADA
+          - LIBERADA
+        montoCalculado:
+          type: number
+          minimum: 0
+        moneda:
+          type: string
+          minLength: 3
+          maxLength: 3
+    LiberacionInternaCommand:
+      type: object
+      required:
+      - operationId
+      - motivo
+      properties:
+        operationId:
+          $ref: '#/components/schemas/Id'
+        motivo:
+          type: string
+          enum:
+          - COMPENSACION
+          - RECHAZO
+          - EXPIRACION
+          - REVOCACION
+    OtpInternoCommand:
+      type: object
+      required:
+      - usuarioId
+      - operacion
+      - recursoId
+      - challengeId
+      - codigo
+      - operationId
+      properties:
+        usuarioId:
+          $ref: '#/components/schemas/Id'
+        operacion:
+          type: string
+          enum:
+          - CONFIRMAR_PAGO
+          - RESOLVER_PAGO
+          - REVOCAR_BECA
+          - MODIFICAR_DATOS_PAGO
+          - APLICAR_CONSECUENCIA_REVOCATORIA
+        recursoId:
+          $ref: '#/components/schemas/Id'
+        challengeId:
+          $ref: '#/components/schemas/Id'
+        codigo:
+          type: string
+        operationId:
+          $ref: '#/components/schemas/Id'
+    OtpInternoResponse:
+      type: object
+      required:
+      - consumido
+      - challengeId
+      properties:
+        consumido:
+          type: boolean
+        challengeId:
+          $ref: '#/components/schemas/Id'
+    RespuestaBeneficio:
+      type: object
+      required:
+      - tieneBecaActiva
+      - consultadoEnUtc
+      properties:
+        tieneBecaActiva:
+          type: boolean
+        consultadoEnUtc:
+          type: string
+          format: date-time
+    DisponibilidadInterna:
+      type: object
+      required:
+      - disponible
+      - cupoDisponible
+      properties:
+        disponible:
+          type: number
+        cupoDisponible:
+          type: integer
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        correlationId:
+          type: string
+          format: uuid
+      required:
+      - title
+      - status
+      - correlationId
+      additionalProperties: false
+paths:
+  /internal/v1/fondos/reservas:
+    post:
+      summary: Reservar importe/cupos calculados en S2, clave única por postulación y ciclo
+      security:
+      - ClienteServicio:
+        - fondos.reservar
+      responses:
+        '200':
+          description: Respuesta privada tipada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaInternaResponse'
+        '401':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservaInternaCommand'
+  /internal/v1/fondos/reservas/{reservaId}/liberar:
+    post:
+      summary: Compensación segura e idempotente
+      security:
+      - ClienteServicio:
+        - fondos.liberar
+      responses:
+        '200':
+          description: Respuesta privada tipada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaInternaResponse'
+        '401':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiberacionInternaCommand'
+  /internal/v1/fondos/{programaId}/disponibilidad:
+    get:
+      summary: Consulta transaccional autoritativa de S3
+      security:
+      - ClienteServicio:
+        - fondos.consultar
+      responses:
+        '200':
+          description: Respuesta privada tipada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisponibilidadInterna'
+        '401':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /internal/v1/otp/validar-y-consumir:
+    post:
+      summary: Consumo atómico de OTP por handler autorizado de S4
+      security:
+      - ClienteServicio:
+        - otp.consumir
+      responses:
+        '200':
+          description: Respuesta privada tipada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpInternoResponse'
+        '401':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpInternoCommand'
+  /internal/v1/beneficios-persona/{personaId}/vigentes:
+    get:
+      summary: Control de becas activas siempre consistente para HU-01.2
+      security:
+      - ClienteServicio:
+        - beneficios.consultar
+      responses:
+        '200':
+          description: Respuesta privada tipada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespuestaBeneficio'
+        '401':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      parameters:
+      - in: path
+        name: personaId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+        description: Identificador interno opaco, no cédula ni otro dato personal.
+      description: S3 obtiene personaId en contexto autorizado; S4 consulta estado autoritativo, falla cerrada si
+        no responde.

@@ -1,0 +1,15 @@
+﻿ID,Estado,Evidencia,Nota
+A2,Corregido,06_FUENTES/Arquitectura_Obligatoria.jpeg;06_FUENTES/DECISIONES_ARQUITECTONICAS_LAMINA_OBLIGATORIA_REFERENCIA.md;01_DOCUMENTO_MAESTRO/ARQUITECTURA_V1.0.md,"Lámina incluida; transcripción comprobada contra la imagen; primera en la precedencia tecnológica (línea de precedencia, §1.2 y §18)."
+A8 / B9,Corregido documentalmente,04_MATRICES/MATRIZ_40_RF_ARQUITECTURA.csv;04_MATRICES/MATRIZ_73_HU_ARQUITECTURA.csv;04_MATRICES/MATRICES_ARQUITECTURA_V1.xlsx;01_DOCUMENTO_MAESTRO/ANEXOS_TECNICOS.md,RF-18 y HU-18.1 en S4 con S6 de apoyo; HU-33.1 nombra a S6. Supuesto a confirmar por el equipo: S4 (alternativa S6).
+B3,Corregido documentalmente,03_CONTRATOS/openapi.yaml;03_CONTRATOS/EVENTOS_E_INTERFACES.md,Se cierra con T2 y T3.
+N6,Corregido,02_DIAGRAMAS/11_secuencia_reserva_oferta.mmd;02_DIAGRAMAS/VISTAS_SECUENCIAS_SVG/11_secuencia_reserva_oferta.svg,Se cierra con T1: la fuente compila.
+N7,Corregido documentalmente,03_CONTRATOS/openapi.yaml;02_DIAGRAMAS/24_secuencia_universidad.mmd,Se cierra con T5.
+T1,Corregido,02_DIAGRAMAS/11_secuencia_reserva_oferta.mmd;ENLACES_MERMAID_ARQUITECTURA.html,Punto y coma reemplazado; las 12 fuentes compilan con Mermaid CLI.
+T2,Corregido documentalmente,03_CONTRATOS/openapi.yaml,POST /api/v1/otp/challenges responde con ChallengeResponse.
+T3,Corregido documentalmente,03_CONTRATOS/openapi.yaml,"AplicarConsecuenciaCommand con consecuencia, siguiente paso y fecha de revisión; OTP exigido solo al revocar (probado con 5 casos de validación de esquema)."
+T4,Corregido documentalmente,04_MATRICES/MATRIZ_40_RF_ARQUITECTURA.csv;04_MATRICES/MATRIZ_73_HU_ARQUITECTURA.csv;01_DOCUMENTO_MAESTRO/ARQUITECTURA_V1.0.md,Dueño S4. Supuesto a confirmar por el equipo (alternativa S6).
+T5,Corregido documentalmente,03_CONTRATOS/openapi.yaml;02_DIAGRAMAS/24_secuencia_universidad.mmd,Cuatro datos por reporte y consulta del resultado por loteId. El catálogo de EstadoMatricula queda abierto: el DDD v3.2 solo define INSCRITO.
+T6,Corregido,02_DIAGRAMAS/DIAGRAMA_COMPONENTES.drawio,"S4 depende de IFondosPrivados e IValidacionOtpPrivada; ya no las realiza. Revisado por estilo de flecha, no por imagen."
+T7,Corregido documentalmente,04_MATRICES/CATALOGO_EVENTOS_INTEGRACION.csv;03_CONTRATOS/EVENTOS_E_INTERFACES.md,"CostoMatriculaVigente, SugerenciaListaEspera y LoteAcademicoRecibido catalogados."
+T8,Corregido,00_INICIO/LEEME_PRIMERO.md;03_CONTRATOS/openapi.yaml,Título del LEEME corregido; ReservaResponse retirado; RegistrarConsultaCommand con ruta (HU-32.1). Los nombres de archivo con V1.0 y V1.1 se conservan para no romper referencias.
+T9,"Corregido, sin prueba remota",ENLACES_MERMAID_ARQUITECTURA.html;CORRECCION_ENLACES_MERMAID.txt,Detectado al corregir: los 24 enlaces de la v1.2 llevaban el código sin el JSON de estado que Mermaid Live espera. Regenerados con el mismo formato de los enlaces del DDD. No se pudo abrir mermaid.live desde el entorno de generación.

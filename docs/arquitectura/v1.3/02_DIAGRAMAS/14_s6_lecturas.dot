@@ -1,0 +1,15 @@
+digraph G { graph [label="S6 | Comunicación y Reportería: puerto MongoDB",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=component,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=LR;
+api[label="API/SignalR S6"];
+app[label="Application\nConsulta, Reportes, Indicadores"];
+dom[label="Domain\nConsulta, RegistroEnvio, ConsentimientoDonante",fillcolor="#dbf4e8"];
+query[label="«interface»\nIConsultaPanel",shape=ellipse,fillcolor="#fff2d7"];
+infra[label="Infrastructure\nProyectores Inbox + Mongo adapter"];
+mongo[label="MongoDB\nmodelos CQRS",shape=cylinder];
+broker[label="RabbitMQ\npublicadores S1-S6"];
+pg[label="PostgreSQL S6\ncomandos de Consulta",shape=cylinder];
+mail[label="Correo / SMS"];
+api -> app;app -> dom;app -> query[style=dashed,arrowhead=open];infra -> query[style=dashed,arrowhead=empty];infra -> {mongo pg mail}[style=dashed];broker -> infra[style=dashed,label="consumo idempotente"];
+
+}

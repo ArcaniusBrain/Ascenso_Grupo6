@@ -1,0 +1,16 @@
+digraph G { graph [label="Prueba automática | Referencias autorizadas",labelloc=t,labeljust=l,fontname="Arial",fontsize=22,fontcolor="#102c49",bgcolor="white",pad=0.35,nodesep=0.53,ranksep=0.72,splines=polyline,compound=true,rankdir=BT]; node [shape=component,fontname="Arial",fontsize=12,style="filled,rounded",color="#1765a3",fillcolor="#eaf3f8",fontcolor="#102c49",margin="0.22,0.16"]; edge [fontname="Arial",fontsize=10,color="#66788a",arrowsize=0.8,penwidth=1.35];
+
+ rankdir=BT;
+ subgraph cluster_clean{label="REGLA DE REFERENCIAS — SERVICIO TIPO";style=rounded;color="#b4d5e2";
+ api[label="Api",fillcolor="#e6edf9"];
+ infra[label="Infrastructure",fillcolor="#e6edf9"];
+ app[label="Application",fillcolor="#dbf4e8"];
+ domain[label="Domain",fillcolor="#fff1d7",color="#bd8732"];
+ }
+ kernel[label="SharedKernel\nValue Objects, tipos base",fillcolor="#def6f0"];
+ contracts[label="Contracts\neventos entre servicios",fillcolor="#def6f0"];
+ api -> app;api -> infra[label="únicamente composición"];
+ infra -> app;infra -> domain;app -> domain;domain -> kernel;
+ infra -> contracts[style=dashed];app -> contracts[style=dashed];
+
+}

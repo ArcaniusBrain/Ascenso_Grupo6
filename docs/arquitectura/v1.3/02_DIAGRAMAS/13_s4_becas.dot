@@ -1,0 +1,22 @@
+digraph G { graph [label="S4 | Gestión de Becas: interfaces y reglas C2",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=component,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=LR;
+api[label="S4 API REST"];
+app[label="Application\nEmitirOferta, Aceptar, Renovar,\nRegistrarPago, Revocar, DatosPago"];
+dom[label="Domain · 5 raíces\nOferta, Beca, BeneficiosPersona,\nDatosPago, VentanaRenovacion",fillcolor="#dbf4e8"];
+repo[label="«interface»\n5 repositorios",shape=ellipse,fillcolor="#fff2d7"];
+reserve[label="«interface»\nIReservaPresupuestoRemota",shape=ellipse,fillcolor="#fff2d7"];
+otp[label="«interface»\nIValidadorOtp",shape=ellipse,fillcolor="#fff2d7"];
+fbase[label="«interface»\nIAlmacenamientoArchivos",shape=ellipse,fillcolor="#fff2d7"];
+infra[label="Infrastructure\nEF + HTTP S2/S1 + Firebase\nOutbox/Inbox"];
+s2[label="S2 fondos privados"];
+s1[label="S1 OTP privado"];
+fb[label="Firebase Storage"];
+seleccion[label="RabbitMQ\nPostulacionSeleccionada / CostoVigente"];
+api -> app;app -> dom;app -> {repo reserve otp fbase}[style=dashed,arrowhead=open];
+infra -> {repo reserve otp fbase}[style=dashed,arrowhead=empty];
+infra -> {s2 s1 fb}[style=dashed,label="adaptador"];
+seleccion -> infra[style=dashed,label="consume (Inbox)"];
+infra -> seleccion[style=dashed,label="publica (Outbox)"];
+
+}

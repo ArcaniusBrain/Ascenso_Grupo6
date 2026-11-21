@@ -1,0 +1,19 @@
+sequenceDiagram
+  autonumber
+  participant S4 as S4 Ofertas
+  participant S2 as S2 PresupuestoPrograma
+  participant Job as Reconciliador S2
+  S4->>S2: POST Reservar(idempotencyKey)
+  S2-->>S4: reservaId
+  alt Guardado de oferta correcto
+    S4->>S4: Commit Oferta + Outbox
+    S4-->>S2: OfertaEmitida.v1
+    S2->>S2: Vincular reserva
+  else Guardado falla
+    S4->>S2: Liberar(reservaId, operationId)
+    opt Red caída / liberación pendiente
+      Job->>S2: Detectar reserva sin vínculo y plazo excedido
+      S2->>S2: Verificar estado con fuente autorizada antes de liberar
+    end
+  end
+  Note over S2,S4: Nunca liberar solo por timeout sin comprobación: podría existir oferta confirmada con evento retrasado

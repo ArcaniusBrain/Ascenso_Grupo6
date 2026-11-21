@@ -1,0 +1,13 @@
+﻿Puerto,Donde se define,Adaptador,Operaciones,Contrato/Regla,Fuente
+IPresupuestoProgramaRepository,Domain/S2,Infraestructura S2: EF Core,"ObtenerPorPrograma, Guardar",Agregado PresupuestoPrograma; prohibir IQueryable,"D-12, D-1"
+IOfertaRepository,Domain/S4,Infraestructura S4: EF Core,"ObtenerPorId, Guardar",Agregado Oferta,"D-12, D-3"
+IBeneficiosPersonaRepository,Domain/S4,Infraestructura S4: EF Core,"ObtenerPorPostulante, Guardar",BeneficiosPersona; misma transacción de aceptación,D-3
+IReservaPresupuestoRemota,Application/S4,Infraestructura S4: cliente HTTP S2,"Reservar, Liberar, Consultar","HTTPS privado S4->S2, OAuth2 client credentials; S2 calcula monto; idempotencia por postulación/ciclo",D-1
+IAlmacenamientoArchivos,Application,Infraestructura: Adaptador Firebase,"Guardar, ObtenerAutorizado","ReferenciaArchivo, nunca URL pública persistida",PRD Firebase
+IFuenteAcademica,Application/S3 (IFuenteAcademicaS3) y Application/S5 (IFuenteAcademicaS5),"ACL académica propia S3 y S5 (API, manual y simulada; sin llamada S3->S5)",ObtenerReporte / RecibirReporte,"S3 obtiene promedio certificado, S5 reportes; no dependencia directa S3->S5",C5
+IValidadorOtp,Application/S4,Infraestructura S4: cliente S1,"ValidarYConsumir(usuario,operacion,recurso,challenge,codigo,operationId)",S4 Handler comprueba rol/estado antes de invocar; S1 consume atómico,"R4, HU-20.1"
+ICanalNotificacion,Application/S6,Infraestructura: canal correo/SMS,Enviar,RegistroEnvio anti-duplicados,HU-29.1
+IRelojNegocio,Application,Infraestructura: TimeProvider de .NET,AhoraUtc / FechaLocalNegocio,No leer DateTime.Now en entidades,R20
+IConsultaBeneficiosPersona,Application/S3,Infrastructure S3: HTTP interno S4,"TieneBecaActiva(cedula,periodo)",Consulta siempre autoritativa; no aceptar cache retrasada,"HU-01.2, C2"
+IConsultaPanel,Application/S6,Infrastructure S6: MongoDB,ConsultarIndicadores y ReporteImpacto,"Solo lectura, eventual; sin acceso a DbContext en Application",DDD D-14
+IReservaPresupuestoInterna,Application/S4,"Infrastructure S4: cliente S2, credenciales propias",Reservar/Compensar,Servidor calcula importe; el browser no manda PlanReserva,"C1, D-1"

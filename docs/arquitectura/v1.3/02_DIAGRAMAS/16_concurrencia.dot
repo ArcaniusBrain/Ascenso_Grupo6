@@ -1,0 +1,14 @@
+digraph G { graph [label="Presupuesto | Concurrencia e idempotencia",labelloc=t,labeljust=l,fontname="Arial",fontsize=22,fontcolor="#102c49",bgcolor="white",pad=0.35,nodesep=0.53,ranksep=0.72,splines=polyline,compound=true,rankdir=LR]; node [shape=box,fontname="Arial",fontsize=12,style="filled,rounded",color="#1765a3",fillcolor="#eaf3f8",fontcolor="#102c49",margin="0.22,0.16"]; edge [fontname="Arial",fontsize=10,color="#66788a",arrowsize=0.8,penwidth=1.35];
+
+ rankdir=LR;
+ a[label="Solicitud A\nReservar 1 cupo",fillcolor="#e2f5e9"];
+ b[label="Solicitud B\nReservar 1 cupo",fillcolor="#e2f5e9"];
+ s2[label="S2 Application\nIdempotency-Key"];
+ root[label="PresupuestoPrograma\nValida saldo y cupo",fillcolor="#d6ecfb"];
+ db[label="PostgreSQL\nUPDATE condicional / versión",shape=cylinder];
+ ok[label="UNO CONFIRMADO\ncommit + Outbox",fillcolor="#d5f3e8"];
+ no[label="OTRO RECHAZADO\n409 o sin cupo",fillcolor="#fff0d8",color="#b98529"];
+ a -> s2;b -> s2;s2 -> root;root -> db;db -> ok[label="versión vigente"];
+ db -> no[label="conflicto",color="#b98529"];
+
+}

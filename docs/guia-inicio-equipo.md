@@ -60,70 +60,63 @@ openspec config set telemetry.enabled false  # no enviar estadísticas de uso
 1. [`README.md`](../README.md): qué hay en el repositorio.
 2. [`CONTRIBUTING.md`](../CONTRIBUTING.md): ramas, commits y pull requests.
 3. [`docs/guia-openspec.md`](guia-openspec.md): cómo se trabaja un cambio y el catálogo de capacidades.
+4. [`docs/arquitectura/README.md`](arquitectura/README.md): la arquitectura v1.3 y por dónde empezar a leerla.
 
-## Parte 2 · La tarea de equipo antes del código
+## Parte 2 · Lo que falta antes del código
 
-El modelo de dominio (DDD v3.2) y la arquitectura (ADR v0.1) tienen errores que hay que corregir **antes** de programar, porque el código se escribe a partir de ellos. Esa corrección es el cambio de OpenSpec [`actualizar-ddd-v3-3-y-adr-v0-2`](../openspec/changes/actualizar-ddd-v3-3-y-adr-v0-2/proposal.md): 20 tareas, cada una explicada en [`docs/cambios/cambios_DDD_v3.3_y_ADR_v0.2.md`](cambios/cambios_DDD_v3.3_y_ADR_v0.2.md).
+La arquitectura está cerrada como diseño: **v1.3** en [`docs/arquitectura/`](arquitectura/README.md). Léanla antes de programar, empezando por `v1.3/ABRIR_PRIMERO.html` y la §17 (orden de construcción) del documento rector. Quedan tres frentes, todos listados en [`docs/arquitectura/pendientes-v1.3.md`](arquitectura/pendientes-v1.3.md):
 
-### Reparto sugerido
+### 2.1 Respuestas del cliente (hecho)
 
-Todo va en **una sola rama** y **un solo pull request**. Para no pisarse, cada grupo trabaja archivos distintos:
+Las respuestas de la última reunión ya están como **Ronda 5** (R31–R44) en [`docs/requisitos/respuestas_cliente.md`](requisitos/respuestas_cliente.md), y `pendientes-v1.3.md` dice qué cambia cada una. Léanlas antes de corregir el dominio: varias reglas cambian (reservas, revocación, rechazo, consentimiento, matrícula). Solo queda por confirmar el nombre exacto del rol que aprueba la migración (B5).
 
-| Quién | Tareas (`tasks.md`) | Archivos |
-|---|---|---|
-| 2 personas | 1.1 a 1.10 · DDD v3.3 | `docs/dominio/` (una sola persona edita el DDD a la vez: se turnan por tarea) |
-| 2 personas | 2.1 a 2.7 · ADR v0.2 | `docs/arquitectura/` (cada una toma ADR distintos) |
-| 1 persona | 3.1 a 3.3 · referencias y validación final, más revisar lo de los demás | `docs/requisitos/`, `README.md`, `openspec/config.yaml` |
+### 2.2 Corregir el dominio: cambio `corregir-ddd-v3-3`
 
-Empiecen por las tareas **bloqueantes**: 1.2 (DDD-07), 2.1 (ADR-B01) y 2.2 (ADR-B02).
+El DDD v3.2 sigue siendo la fuente, pero tiene puntos que la v1.3 no resuelve o en los que se contradicen (versión de la raíz, disparador de *Inactiva*, desembolso aplazado, OTP, registro de cuenta, datos de pago). Las tareas están en [`openspec/changes/corregir-ddd-v3-3/tasks.md`](../openspec/changes/corregir-ddd-v3-3/tasks.md).
 
-### Pasos
+Todo va en **una sola rama** y **un solo pull request**. El DDD es un solo archivo, así que **una persona edita a la vez**: se turnan por tarea, siempre con `git pull --rebase` antes de empezar.
 
 ```bash
 git switch main && git pull
-git switch docs/actualizar-ddd-v3-3-y-adr-v0-2 2>/dev/null || git switch -c docs/actualizar-ddd-v3-3-y-adr-v0-2
+git switch docs/corregir-ddd-v3-3 2>/dev/null || git switch -c docs/corregir-ddd-v3-3
 ```
 
-(La primera persona crea la rama y la sube con `git push -u origin docs/actualizar-ddd-v3-3-y-adr-v0-2`; los demás solo la traen con `git pull`.)
+(La primera persona crea la rama y la sube con `git push -u origin docs/corregir-ddd-v3-3`; los demás la traen con `git pull`.)
 
-Por cada tarea:
+Por cada tarea: aplicar el cambio, marcarla en `tasks.md` (`- [ ]` → `- [x]`) y hacer un commit que cite el ID:
 
-1. Lee su ID en la lista de cambios y aplícalo.
-2. Marca la tarea en `openspec/changes/actualizar-ddd-v3-3-y-adr-v0-2/tasks.md` cambiando `- [ ]` por `- [x]`.
-3. Un commit por tarea, citando el ID:
-   ```bash
-   git add -A
-   git commit -m "docs(ddd): DDD-07 versión explícita en la raíz"
-   git pull --rebase
-   git push
-   ```
+```bash
+git add -A
+git commit -m "docs(ddd): DDD-07 versión explícita en la raíz"
+git pull --rebase
+git push
+```
 
-Para regenerar los diagramas después de editar el DDD (tarea 1.10):
+Para regenerar los diagramas (tarea 3.1):
 
 ```bash
 python tools/mermaid/generar_diagramas.py docs/dominio/DDD_v3.3.md
 ```
 
-Al terminar todas las tareas:
+Al terminar:
 
 ```bash
 openspec validate --all --strict
-openspec archive actualizar-ddd-v3-3-y-adr-v0-2
-git add -A && git commit -m "docs: archivar actualizar-ddd-v3-3-y-adr-v0-2" && git push
+openspec archive corregir-ddd-v3-3 -y
+git add -A && git commit -m "docs: archivar corregir-ddd-v3-3" && git push
 ```
 
-Luego se abre el pull request contra `main`, lo revisa al menos otra persona y se fusiona con el check **OpenSpec** en verde.
+Luego el pull request contra `main`, revisado por todo el equipo (toca el Shared Kernel en diseño).
 
-### En paralelo: preguntas pendientes
+### 2.3 Decisiones y pruebas técnicas
 
-Una persona se encarga de enviar y registrar las respuestas de:
-
-- Las 6 preguntas al profesor de [`docs/arquitectura/pendientes-y-preguntas.md`](arquitectura/pendientes-y-preguntas.md). Sobre todo la 1 (seis servicios) y la 2 (base de lectura PostgreSQL): si dice que no, cambia la forma del código.
-- Las 2 preguntas nuevas al cliente (disparador de *Inactiva*; si R12 aplica a la pausa).
+En paralelo, el equipo cierra las decisiones de la sección C de `pendientes-v1.3.md` (dueño de RF-18, MediatR, ADR de frontend, proveedores de correo y SMS…) y alguien hace las dos pruebas técnicas: segundo factor por correo/SMS en Keycloak y Firebase Storage desde .NET con el emulador.
 
 ## Parte 3 · Después: empieza el código
 
-Cuando el cambio esté archivado y el profesor haya respondido, el primer cambio de código es la **solución base** (proyectos .NET, gateway, `docker-compose`, integración continua de pruebas). A partir de ahí cada uno trabaja sus capacidades con el flujo de [`guia-openspec.md`](guia-openspec.md): rama, `/openspec-propose`, revisión de la propuesta, implementación, archivo.
+El primer cambio de código es la base del monorepo (v1.3 §17, paso 1): la solución .NET, `building-blocks/Ascenso.SharedKernel` y `Ascenso.Contracts`, los contratos movidos a `contracts/`, las pruebas de arquitectura y la integración continua de .NET. Después, S2 (Catálogo y Fondos) con sus pruebas de concurrencia, y luego el resto en el orden de la §17.
+
+Cada servicio tiene su carpeta en `services/` (ver [`services/README.md`](../services/README.md)) y cada trabajo empieza como un cambio de OpenSpec, con el flujo de [`guia-openspec.md`](guia-openspec.md).
 
 ## Problemas frecuentes
 

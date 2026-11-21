@@ -11,16 +11,27 @@ context: |
 
   Fuentes, en orden de precedencia (si difieren, manda la primera):
   1. Historias de usuario Plan B (73 HU, criterios en Gherkin) con las decisiones del cliente
-     C1–C5 y R1–R30 y los supuestos S1–S12: docs/requisitos/historias-de-usuario/
+     C1–C5 y R1–R44 y los supuestos S1–S12: docs/requisitos/historias-de-usuario/
      y docs/requisitos/respuestas_cliente.md. Preguntas abiertas: anexo-b-preguntas-abiertas.md.
+     Excepción decidida por el equipo: en R39, R40 y R44 manda la arquitectura v1.3
+     (postulación rechazada si no se puede comprobar el doble beneficio, código de estudiante
+     traducido por S5, consulta sin postulación obligatoria).
      Reglas técnicas por HU: anexo-a-reglas-tecnicas.md.
   2. Modelo de dominio DDD: docs/dominio/DDD_v3.2.md (agregados, invariantes, eventos,
-     máquinas de estado, flujos de consistencia, decisiones D-1 a D-14).
-  3. Arquitectura: docs/arquitectura/adr/ (ADR-01 a ADR-24).
-  4. Cambios aprobados pendientes de aplicar a esos documentos: docs/cambios/.
+     máquinas de estado, flujos de consistencia, decisiones D-1 a D-14), más la adenda
+     docs/dominio/DDD_v3.3_adenda_S2_S4.md (Programas y Fondos en S2, Becas en S4).
+  3. Lámina "Decisiones Arquitectónicas" del profesor (tecnologías obligatorias):
+     docs/arquitectura/v1.3/06_FUENTES/DECISIONES_ARQUITECTONICAS_LAMINA_OBLIGATORIA_REFERENCIA.md.
+  4. Arquitectura v1.3 (documento rector): docs/arquitectura/v1.3/01_DOCUMENTO_MAESTRO/ARQUITECTURA_V1.0.md
+     (ADR-01 a ADR-24 en su §13), anexos en ANEXOS_TECNICOS.md, matrices de trazabilidad en
+     04_MATRICES/ (dueño de cada RF y HU), pruebas exigidas en 05_CALIDAD/.
+  5. Contratos de API y de eventos: docs/arquitectura/v1.3/03_CONTRATOS/ (openapi.yaml público,
+     openapi-interno.yaml entre servicios, EVENTOS_E_INTERFACES.md). Pasarán a contracts/ en la raíz
+     con el primer cambio de código.
+  6. Correcciones pendientes del dominio: openspec/changes/corregir-ddd-v3-3/.
   El PRD original (docs/requisitos/prd.md) solo se usa cuando las fuentes anteriores no dicen nada.
 
-  Arquitectura (resumen; el detalle está en los ADR):
+  Arquitectura (resumen de la v1.3; el detalle está en el documento rector):
   - Microservicios .NET 10 (C#) detrás de un API Gateway YARP; frontend React + Next.js.
   - Cada servicio: Clean Architecture con DDD en cuatro proyectos (Domain, Application,
     Infrastructure, Api) más pruebas. El dominio no conoce EF Core, MassTransit, ASP.NET Core
@@ -28,22 +39,29 @@ context: |
   - PostgreSQL con EF Core, un schema por servicio; nadie lee ni escribe el schema de otro.
   - Archivos solo en Firebase Storage (referencia interna, enlaces firmados de corta vigencia).
   - Eventos de integración con MassTransit 8 + RabbitMQ y Outbox; contratos en Ascenso.Contracts.
-  - Llamadas síncronas entre servicios solo las de la lista cerrada del ADR-02.
+  - Llamadas síncronas entre servicios solo las de la lista cerrada (v1.3 §3.1): S4 → S2 reservar y
+    liberar presupuesto; S3 → S2 disponibilidad; S4 → S1 validar y consumir OTP; S3 → S4 consulta
+    de beneficios para HU-01.2. Son rutas privadas (OAuth2 client_credentials), nunca expuestas por YARP.
   - Identidad con Keycloak; OTP por operación sensible en S1 (ADR-10).
   - Toda decisión deja RegistroDecision inmutable en la misma transacción (ADR-12).
   - Concurrencia optimista con versión en cada raíz de agregado (ADR-16).
   - Fechas límite en UTC-4, el día límite incluido hasta las 23:59 (R20), con reloj inyectado.
-  - Reportes y panel leen una base de lectura PostgreSQL aparte, escrita solo por proyectores.
+  - Reportes y panel leen proyecciones en MongoDB (CQRS, DDD D-14), escritas solo por proyectores
+    idempotentes de S6. Ninguna regla de cupo, presupuesto o doble beneficio se decide con MongoDB.
+  - Mensajería con Outbox en el productor e Inbox en el consumidor (entrega al menos una vez).
+  - Estructura de código (v1.3 §12): services/Ascenso.S<n>.<Nombre>/ con proyectos Api, Application,
+    Domain, Infrastructure y tests/{Unit,Integration,Architecture}; building-blocks/ con
+    Ascenso.SharedKernel y Ascenso.Contracts; gateway/ (YARP); contracts/; frontend/; deploy/.
 
-  Servicios y contextos (ADR-02):
-  - S1 Identidad y Acceso: Usuario, TipoUsuario, ClienteApiUniversidad, servicio de OTP.
-  - S2 Catálogo y Programas: CalendarioAcademico, UniversidadAliada, Programa, Donante,
+  Servicios y contextos (ADR-02; dueño de cada RF y HU en 04_MATRICES):
+  - S1 Identidad y Acceso (services/Ascenso.S1.Identidad): Usuario, TipoUsuario, ClienteApiUniversidad, OTP.
+  - S2 Catálogo y Fondos (services/Ascenso.S2.CatalogoFondos): CalendarioAcademico, UniversidadAliada, Programa, Donante,
     PresupuestoPrograma.
-  - S3 Postulación y Evaluación: CicloPostulacion, Postulante, Postulacion, Comite, Evaluacion,
+  - S3 Postulación y Evaluación (services/Ascenso.S3.PostulacionEvaluacion): CicloPostulacion, Postulante, Postulacion, Comite, Evaluacion,
     ConflictoInteres.
-  - S4 Gestión de Becas: Oferta, Beca, BeneficiosPersona, DatosPago, VentanaRenovacion.
-  - S5 Seguimiento Académico: ReporteAcademico, PlazoReporte, EvaluacionCumplimiento.
-  - S6 Comunicaciones y Reportería: Consulta, RegistroEnvio, ConsentimientoDonante,
+  - S4 Gestión de Becas (services/Ascenso.S4.Becas): Oferta, Beca, BeneficiosPersona, DatosPago, VentanaRenovacion.
+  - S5 Seguimiento Académico (services/Ascenso.S5.SeguimientoAcademico): ReporteAcademico, PlazoReporte, EvaluacionCumplimiento.
+  - S6 Comunicaciones y Reportería (services/Ascenso.S6.ComunicacionesReporteria): Consulta, RegistroEnvio, ConsentimientoDonante,
     modelos de lectura y hub de tiempo real.
 
   Catálogo de capacidades (rutas de openspec/specs/). Usar SIEMPRE estos nombres; si ninguno
@@ -70,7 +88,8 @@ context: |
   - notificaciones (S6): notificaciones, recordatorios, avisos al comité. RF-29, 30, 31.
   - consultas (S6): mensajería con postulantes y becarios. RF-32.
   - reportes (S6): reporte financiero, de impacto, institucional, panel. RF-23, 33, 34, 40.
-  - registro-decisiones (transversal): registro inmutable y exportación. RF-35, 36.
+  - registro-decisiones (transversal, cada servicio; exportación RF-36 en S6): registro inmutable
+    y exportación para auditoría. RF-35, 36.
 
   Nombres de cambios: verbo en infinitivo + objeto, en kebab-case y en español
   (por ejemplo emitir-oferta-con-reserva, registrar-postulante). La rama de git lleva el mismo
@@ -94,6 +113,7 @@ rules:
     - 'Respetar: reglas en el dominio; una transacción, un agregado (única excepción D-3); ningún servicio lee el schema de otro; llamadas síncronas solo de la lista cerrada del ADR-02; RegistroDecision por cada decisión; versión en la raíz.'
     - 'Si el diseño necesita contradecir un ADR o el DDD, decirlo explícitamente y modificar ese documento en el mismo pull request.'
     - 'Incluir los eventos de integración nuevos o modificados con su productor, consumidores y versión.'
+    - 'Si el cambio agrega o modifica una ruta de API o un evento de integración, actualizar el contrato (openapi.yaml, openapi-interno.yaml o EVENTOS_E_INTERFACES.md) y el catálogo CSV correspondiente en el mismo pull request.'
   tasks:
     - 'Agrupar por capa en este orden: Domain, Application, Infrastructure, Api; cada grupo trae sus propias pruebas.'
     - 'Cada regla de negocio tiene una prueba unitaria en Domain; cada escenario de la spec, al menos una prueba (unitaria o de integración) que lo nombre.'

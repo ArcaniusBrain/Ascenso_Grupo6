@@ -1,0 +1,22 @@
+sequenceDiagram
+  autonumber
+  actor Becario
+  participant Api as :ApiBecas
+  participant H as :AceptarOfertaHandler
+  participant RO as :IOfertaRepository
+  participant RB as :IBeneficiosPersonaRepository
+  participant Dom as :ServicioAceptacionOferta
+  participant O as :Oferta
+  participant BP as :BeneficiosPersona
+  participant DB as :TransaccionLocalS4
+  Becario->>Api: Aceptar oferta
+  Api->>H: Ejecutar(command)
+  H->>RO: ObtenerPorId(ofertaId)
+  H->>RB: ObtenerPorPostulante(postulanteId)
+  H->>Dom: Aceptar(oferta,beneficios,ahora,...)
+  Dom->>BP: RegistrarAceptacion(...) [C2]
+  Dom->>O: Aceptar(ahora)
+  H->>DB: Guardar Oferta + BeneficiosPersona + Registro + Outbox
+  Note over DB: Excepción D-3 aprobada en DDD v3.2, misma BD S4
+  DB-->>H: commit / conflicto
+  H-->>Api: Resultado DTO

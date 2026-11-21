@@ -1,0 +1,35 @@
+﻿Evento del DDD,Servicio de origen,Interesados,Visibilidad propuesta,Fuente
+PeriodoAbierto,S2,S6,integracion,DDD_V3.2.md §16.2
+ProgramaCreado,S2,S2;S3;S6,interno + integracion resumida,DDD_V3.2.md §16.2
+PostulacionRecibida,S3,S6,integracion,DDD_V3.2.md §16.2
+DocumentosCompletados,S3,S3,interno,DDD_V3.2.md §16.2
+PostulacionVerificada,S3,S6,integracion,DDD_V3.2.md §16.2
+CicloPublicado,S3,S2;S6,integracion,DDD_V3.2.md §16.2
+PeriodoEvaluacionAbierto,S3,S2;S6,integracion,DDD_V3.2.md §16.2
+ConflictoDeclarado,S3,S3;S6,interno + integracion resumida,DDD_V3.2.md §16.2
+EvaluacionEnviada,S3,S3,interno,DDD_V3.2.md §16.2
+PostulacionConsolidada,S3,S6,integracion,DDD_V3.2.md §16.2
+ListaEsperaConfirmada,S3,S6,integracion,DDD_V3.2.md §16.2
+OfertaEmitida,S4,S2;S3;S6,integracion,DDD_V3.2.md §16.2
+OfertaAceptada,S4,S2;S3;S6,integracion,DDD_V3.2.md §16.2
+OfertaRechazada,S4,S2;S3;S6,integracion,DDD_V3.2.md §16.2
+OfertaExpirada,S4,S2;S3;S6,integracion,DDD_V3.2.md §16.2
+CupoLiberado,S2,S3;S6,integracion,DDD_V3.2.md §16.2
+AporteRegistrado,S2,S2;S6,interno + integracion,DDD_V3.2.md §16.2
+CompromisoFirmado,S4,S6,integracion,DDD_V3.2.md §16.2
+BecaActivada,S4,S6,integracion,DDD_V3.2.md §16.2
+BecaSuspendida,S4,S6,integracion,DDD_V3.2.md §16.2
+BecaReanudada,S4,S6,integracion,DDD_V3.2.md §16.2
+BecaInactivada,S4,S6,integracion,DDD_V3.2.md §16.2
+BecaRenovada,S4,S2;S6,integracion,DDD_V3.2.md §16.2
+BecaConcluida,S4,S2;S6,integracion,DDD_V3.2.md §16.2
+BecaRevocada,S4,S2;S6,integracion,DDD_V3.2.md §16.2
+RenovacionSolicitada,S4,S6,integracion,DDD_V3.2.md §16.2
+RenovacionAprobada,S4,S2;S6,integracion,DDD_V3.2.md §16.2
+RenovacionRechazada,S4,S2;S6,integracion,DDD_V3.2.md §16.2
+PagoConfirmado,S4,S2;S6,integracion,DDD_V3.2.md §16.2
+PagoFallido,S4,S2;S6,integracion,DDD_V3.2.md §16.2
+PagoDevuelto,S4,S2;S6,integracion,DDD_V3.2.md §16.2
+ReporteAcademicoRegistrado,S5,S5;S6,interno + integracion,DDD_V3.2.md §16.2
+IncumplimientoDetectado,S5,S4;S6,integracion,DDD_V3.2.md §16.2
+PeriodoMarcadoActual,S2,S4;S6,integracion,DDD_V3.2.md §16.2

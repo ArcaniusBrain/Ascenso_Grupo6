@@ -1,0 +1,21 @@
+﻿Evento de negocio,Publica,Interesados,Consecuencia,Precaución
+ProgramaCreado,S2,S2,"Crear presupuesto, auditado",Interno/Integración versionado
+AporteRegistrado,S2,"S2, S6","Registrar aporte en presupuesto, reportería",Idempotente
+CicloPublicado,S3,"S2, S6",Registrar cupo de ciclo y visibilidad,Idempotente
+PeriodoEvaluacionAbierto,S3,"S2, S6","Congelar rúbrica, enviar aviso",Evitar duplicidad
+PostulacionRecibida,S3,S6,Notificación y panel,Sin PII excesiva
+DocumentosCompletados,S3,S3,Verificación en segundo plano,Interno
+PostulacionConsolidada,S3,S6,Proyección ranking,No decidir selección desde read DB
+OfertaEmitida,S4,"S2, S3, S6","Vincular reserva, postulación y correo",Clave ofertaId
+OfertaAceptada,S4,"S2, S3, S6","Confirmar otorgamiento, beca y avisos",D-3 ya persistió ambas raíces S4
+OfertaRechazada / OfertaExpirada,S4,"S2, S3, S6","Liberar reserva, retirar, sugerir espera",Compensar de manera idempotente
+BecaRevocada,S4,"S2, S6","Liberación eventual segura, audit",No sobreliberar fondos
+BecaInactivada,S4,S6,Estado e indicadores,R27 cupo/presupuesto se conservan
+PagoConfirmado / PagoFallido / PagoDevuelto,S4,"S2, S6",Registrar desembolso y estado,No duplicar ni reescribir pago previo
+ReporteAcademicoRegistrado,S5,"S5, S6","Evaluar cumplimiento, indicador",Proveniencia API/manual
+IncumplimientoDetectado,S5,"S4, S6",Coordinador decide consecuencia,No revocar sin decisión autorizada
+PeriodoMarcadoActual,S2,"S4, S6",Iniciar periodo en becas en background,Idempotente por códigoPeriodo
+PostulacionSeleccionada,S3,"S4, S6","Habilita emisión por S4, clave idempotente postulacionId+cicloId",Sin datos personales sensibles; versión y eventId
+CostoMatriculaVigente,S2,S4,Proyectar en S4 el costo vigente por universidad y periodo (C2),No confirmar un segundo beneficio sin dato vigente; versión por universidad y periodo
+SugerenciaListaEspera,S3,S6,Notificar al coordinador el siguiente elegible sugerido tras una oferta expirada o rechazada,S6 solo notifica; la sugerencia se calcula en S3 y no decide la selección
+LoteAcademicoRecibido,S5,S5,Procesar en segundo plano las filas del lote universitario (HU-24.3),Interno; idempotente por loteId

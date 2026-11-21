@@ -64,7 +64,7 @@ Las reglas completas están en `openspec/config.yaml` (los asistentes las leen s
 2. **Idioma:** todo en español, salvo los encabezados de OpenSpec (`### Requirement:`, `#### Scenario:`…), `SHALL`/`MUST` y `**GIVEN**`/`**WHEN**`/`**THEN**`/`**AND**`, que el validador necesita en inglés.
 3. **Capacidades del catálogo.** Usa solo estos nombres; una nueva se justifica en la propuesta y se agrega al catálogo de `config.yaml` en el mismo pull request.
 4. **Specs sin tecnología.** Nada de clases, tablas, endpoints ni librerías en `specs/`: eso va en `design.md`.
-5. **Documentación o herramientas sin cambio de comportamiento:** el cambio no declara capacidades y su `.openspec.yaml` lleva `skip_specs: true` (como `actualizar-ddd-v3-3-y-adr-v0-2`).
+5. **Documentación o herramientas sin cambio de comportamiento:** el cambio no declara capacidades y su `.openspec.yaml` lleva `skip_specs: true` (como `incorporar-arquitectura-v1-3` o `corregir-ddd-v3-3`).
 6. **Shared Kernel y contratos de eventos:** cualquier cambio que los toque necesita la revisión de todo el equipo.
 
 ### Catálogo de capacidades

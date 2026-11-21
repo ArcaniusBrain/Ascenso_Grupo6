@@ -1,0 +1,16 @@
+digraph G { graph [label="ASCENSO | Despliegue propuesto, pruebas externas señaladas",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=component,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=TB;
+web[label="Navegador\nReact / Next.js",fillcolor="#d8f4e8"];
+gw[label="YARP\nGateway REST + WebSocket"];
+srv[label="S1 Identidad | S2 Fondos | S3 Postulación\nS4 Becas | S5 Seguimiento | S6 Comunicaciones",shape=box];
+pg[label="PostgreSQL\nschemas por servicio",shape=cylinder];mongo[label="MongoDB\nCQRS",shape=cylinder,fillcolor="#fff2d7"];
+mq[label="RabbitMQ"];
+key[label="Keycloak OIDC\n2FA correo/SMS por probar",fillcolor="#fff2d7"];
+fb[label="Emulador Firebase dev\nCuenta cliente demo",fillcolor="#fff2d7"];
+mail[label="Correo de pruebas\nSMS simulado",fillcolor="#fff2d7"];
+web -> gw[label="HTTPS / WS"];web -> key[style=dashed,label="inicio OIDC"];
+gw -> srv[label="rutas públicas únicamente"];
+srv -> {pg mongo mq key fb mail}[style=dashed];
+
+}

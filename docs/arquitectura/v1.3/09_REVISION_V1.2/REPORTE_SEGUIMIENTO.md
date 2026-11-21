@@ -1,0 +1,44 @@
+# ASCENSO — Seguimiento documental v1.2
+
+**19 de noviembre de 2026 · Arquitectura sin implementación**
+
+## Alcance
+
+Esta entrega conserva la misma organización y los archivos principales de v1.1. Se modificaron contratos, fuentes de diagramas, matrices, anexos, PDFs y visualizadores HTML para atender los 9 hallazgos antiguos parcialmente resueltos y 8 nuevos de la revisión recibida. No se afirma que microservicios, OTP o APIs funcionen en producción; se entregan diseños y contratos consistentes.
+
+**Una única limitación de fuente primaria:** `Arquitectura_Obligatoria.jpeg` se menciona en el informe pero no está entre los documentos accesibles del proyecto en esta sesión. No se inventa la imagen ni se afirma verificación visual. Las obligaciones atribuidas se incorporan como referencia secundaria. La adenda DDD v3.3 está adjunta como *propuesta* y no modifica el DDD 3.2 del equipo.
+
+## Matriz de los 17 puntos examinados
+
+| ID | Estado | Evidencia | Nota |
+|---|---|---|---|
+| A2 | Limitación externa documentada | 06_FUENTES/DECISIONES_ARQUITECTONICAS_LAMINA_OBLIGATORIA_REFERENCIA.md | La imagen Arquitectura_Obligatoria.jpeg no está accesible. Criterios derivados del informe, no se certifica la lámina primaria. |
+| A8 / B9 | Corregido documentalmente | 04_MATRICES/MATRIZ_73_HU_ARQUITECTURA.csv;04_MATRICES/MATRIZ_40_RF_ARQUITECTURA.csv;04_MATRICES/MATRICES_ARQUITECTURA_V1.xlsx | S3 puerto académico propio, HU/RF-18 S3 y HU-33.2 S6. |
+| A9 | Adenda incluida (aprobación del equipo pendiente) | 06_FUENTES/DDD_V3.3_ADENDA_ARQUITECTONICA_PARA_REVISION.md | El DDD v3.2 original permanece sin modificar. |
+| B3 | Corregido documentalmente | 03_CONTRATOS/openapi.yaml | Dos rutas HU-20.2; valor OTP revocatorio presente. |
+| B8 | Corregido para archivos accesibles | 06_FUENTES/;INVENTARIO_REAL.csv | Se incluyen originales accesibles y referencia secundaria de lámina no accesible. |
+| D4 | Corregido | 02_DIAGRAMAS/03_particion_contextos.dot;02_DIAGRAMAS/03_particion_contextos.svg | ACL académicas S3/S5 y relación Conformist con Keycloak. |
+| D13 | Corregido | 02_DIAGRAMAS/08_seguridades.dot;02_DIAGRAMAS/08_seguridades.svg | React+Next.js, Keycloak adoptado, ámbitos por programa/universidad, sin líneas vacías. |
+| D14 | Corregido | 02_DIAGRAMAS/26_secuencia_caducidad_oferta.mmd;02_DIAGRAMAS/VISTAS_SECUENCIAS_SVG/26_secuencia_caducidad_oferta.svg | Textos abreviados, lienzo independiente con ancho suficiente. |
+| N1 | Corregido: ZIP completo | INVENTARIO_REAL.csv;MANIFIESTO_ENTREGA.md | Un único número de versión v1.2 y comparación automatizada manifiesto/ZIP. |
+| N2 | Corregido: anexos regenerados | 01_DOCUMENTO_MAESTRO/ANEXOS_TECNICOS.md;07_PDF/03_ANEXOS_TECNICOS_40_RF_25_AGREGADOS_34_EVENTOS.pdf | Anexos regenerados desde CSV vigentes, sin copias antiguas. |
+| N3 | Corregido | 03_CONTRATOS/openapi.yaml | AceptarOfertaCommand y MarcarPeriodoCommand distintos. |
+| N4 | Corregido | 03_CONTRATOS/openapi.yaml;01_DOCUMENTO_MAESTRO/ARQUITECTURA_V1.0.md | numeroCuenta via TLS, cifrado por S4 al persistir. |
+| N5 | Corregido | 03_CONTRATOS/openapi-interno.yaml | Ruta por personaId UUID opaco, sin cédula. |
+| N6 | Corregido | 02_DIAGRAMAS/11_secuencia_reserva_oferta.mmd;02_DIAGRAMAS/VISTAS_SECUENCIAS_SVG/11_secuencia_reserva_oferta.svg | S3 Outbox -> RabbitMQ -> Inbox S4 -> handler. |
+| N7 | Corregido como proceso realmente asíncrono | 03_CONTRATOS/openapi.yaml;02_DIAGRAMAS/24_secuencia_universidad.mmd | S5 guarda recepción y Outbox, devuelve 202, worker posterior; ACL S5 posee mapeo de estudiante. |
+| N8 | Corregido para evidencia incluida | 09_REVISION_V1.2/REVISION_CONTROL_17_HALLAZGOS.csv;INVENTARIO_REAL.csv | No se cita como incluida la lámina original no accesible; referencias reales verificadas. |
+
+## Comprobaciones técnicas que SÍ se realizaron
+
+- XML de los dos diagramas `.drawio` y Graphviz de las 20 vistas.
+- Referencias `$ref` en OpenAPI pública y privada; endpoints, códigos de respuesta y restricciones de rutas.
+- Correspondencia 40 RF, 73 HU, 25 agregados, 34 eventos y 24 ADR.
+- Integridad del ZIP, presencia real de fuentes y correspondencia del inventario.
+- Exportaciones PDF (arquitectura, atlas, anexos), visor HTML y SVG locales.
+
+## Lo que NO constituye un cierre externo
+
+- La aceptación formal del profesor, de los integrantes o la obtención del archivo primario de la lámina obligatoria.
+- La modificación del DDD v3.2 por otra versión. La adenda se incluye para revisión del equipo.
+- La ejecución del sistema, inexistente actualmente; quedan pruebas de integración para fase de implementación.

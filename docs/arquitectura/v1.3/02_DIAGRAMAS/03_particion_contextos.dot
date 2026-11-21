@@ -1,0 +1,37 @@
+digraph G { graph [label="ASCENSO | Context Map DDD v3.2 - 12 contextos, 6 servicios",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=component,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=LR; nodesep=.48; ranksep=1.2;
+subgraph cluster_1{label="S1 · Genérico";style=rounded;color="#bad9e9";id[label="Identidad y Acceso"];}
+subgraph cluster_2{label="S2 · Core y soporte";style=rounded;color="#bad9e9";cat[label="Catálogo Institucional"];fon[label="Programas y Fondos",fillcolor="#cde6fc"];}
+subgraph cluster_3{label="S3 · Core y soporte";style=rounded;color="#bad9e9";pos[label="Postulación"];eva[label="Evaluación y Selección",fillcolor="#cde6fc"];}
+subgraph cluster_4{label="S4";style=rounded;color="#bad9e9";bec[label="Gestión de Becas"];}
+subgraph cluster_5{label="S5";style=rounded;color="#bad9e9";seg[label="Seguimiento Académico"];}
+subgraph cluster_6{label="S6";style=rounded;color="#bad9e9";com[label="Comunicaciones"];rep[label="Reportería e Impacto"];}
+trz[label="Trazabilidad\nShared transaction / PL",fillcolor="#fff2d7"];
+files[label="Archivos · Firebase\nACL/Adapter",fillcolor="#fff2d7"];
+mail[label="Envío · Correo/SMS\nACL/Adapter",fillcolor="#fff2d7"];
+sk[label="Shared Kernel\nDDD §5",fillcolor="#daf0d7"];
+uni[label="Sistemas académicos externos",shape=box,fillcolor="#fff2d7"];
+acl3[label="ACL académica S3",shape=box,fillcolor="#fff2d7"];
+acl5[label="ACL académica S5",shape=box,fillcolor="#fff2d7"];
+key[label="Keycloak / OIDC",shape=box,fillcolor="#fff2d7"];
+cat -> fon[label="OHS / PL"];
+cat -> {pos bec seg}[label="OHS / PL",style=dashed];
+fon -> {pos eva}[label="Customer / Supplier"];
+pos -> eva[dir=both,label="Partnership"];
+eva -> bec[label="Customer / Supplier"];
+fon -> bec[dir=both,label="Partnership / D-1",color="#0a817b"];
+bec -> seg[dir=both,label="Customer / Supplier"];
+{bec pos eva seg fon} -> trz[style=dotted,label="Published Language"];
+trz -> {com rep}[style=dashed,label="Published Language"];
+id -> {pos eva bec seg com}[style=dotted,label="OHS · permisos"];
+{pos bec} -> files[style=dashed,label="ACL"];
+com -> mail[style=dashed,label="ACL"];
+uni -> acl3[label="ACL",style=dashed];
+uni -> acl5[label="ACL",style=dashed];
+acl3 -> pos[label="Anti-Corruption Layer",style=dashed];
+acl5 -> seg[label="Anti-Corruption Layer",style=dashed];
+id -> key[label="Conformist",style=dotted];
+sk -> {fon pos bec}[style=dotted,label="Shared Kernel",constraint=false];
+
+}

@@ -1,0 +1,8 @@
+ASCENSO — ARQUITECTURA v1.3
+1. Extraiga el ZIP completo.
+2. Abra ABRIR_PRIMERO.html en Chrome/Edge.
+3. El archivo VISOR_COMPLETO_SIN_CARPETAS.html también es autónomo.
+4. Para edición: 02_DIAGRAMAS/*.drawio y *.mmd; 03_CONTRATOS/*.yaml; 04_MATRICES/*.csv y .xlsx.
+5. PDF: carpeta 07_PDF.
+6. Registro de revisión: 10_REVISION_V1.3 (anteriores: 08_REVISION_V1.1 y 09_REVISION_V1.2).
+7. Lámina del profesor: 06_FUENTES/Arquitectura_Obligatoria.jpeg.

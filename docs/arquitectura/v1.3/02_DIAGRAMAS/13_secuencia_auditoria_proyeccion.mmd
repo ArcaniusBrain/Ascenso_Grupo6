@@ -1,0 +1,24 @@
+sequenceDiagram
+  autonumber
+  participant H as :Handler
+  participant A as :AggregateRoot
+  participant Repo as :IRepository
+  participant Infra as :RepositorioEfCore
+  participant DB as PostgreSQL
+  participant Out as :OutboxWorker
+  participant MQ as RabbitMQ
+  participant S6 as :ProyectorS6
+  participant Mongo as MongoDB
+  H->>A: Ejecutar regla del dominio
+  A-->>H: Registrar evento en memoria
+  H->>Repo: Guardar(agregado)
+  Repo->>Infra: Adapter por puerto
+  Infra->>DB: Commit agregado + RegistroDecision + Outbox
+  DB-->>Infra: Commit atomico
+  Infra-->>H: Resultado guardado
+  Out->>DB: Leer pendientes tras commit
+  Out->>MQ: Publicar evento de integracion
+  MQ-->>S6: Entrega al menos una vez
+  S6->>Mongo: Inbox y proyeccion idempotente
+  S6-->>MQ: Ack tras persistir
+  Note over H,Mongo: El dominio nunca llama RabbitMQ ni MongoDB

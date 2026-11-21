@@ -1,0 +1,18 @@
+digraph G { graph [label="ASCENSO | Regla de dependencias (.NET)",labelloc=t,labeljust=l,fontname="Arial",fontsize=20,fontcolor="#102c49",bgcolor="white",pad=0.28,nodesep=0.55,ranksep=0.85,splines=polyline,compound=true]; node [shape=component,fontname="Arial",fontsize=12,style="filled,rounded",color="#1765a3",fillcolor="#edf6f9",fontcolor="#102c49",margin="0.20,0.14"]; edge [fontname="Arial",fontsize=10,color="#697a8c",arrowsize=0.75,penwidth=1.35];
+
+rankdir=BT; nodesep=.8;ranksep=1.0;
+web[label="Ascenso.S{n}.Api\nASP.NET Core / Controllers",fillcolor="#e3f4f8"];
+infra[label="Ascenso.S{n}.Infrastructure\nEF Core, outbox, adaptadores",fillcolor="#e6ebf4"];
+app[label="Ascenso.S{n}.Application\nCasos de uso y puertos",fillcolor="#d5f4ed"];
+dom[label="Ascenso.S{n}.Domain\nAgregados, VO, eventos, reglas",fillcolor="#e6f1ff"];
+kernel[label="Ascenso.SharedKernel\nTipos de valor compartidos",fillcolor="#fff3da",color="#b98c36"];
+contracts[label="Ascenso.Contracts\nEventos de integración versionados",fillcolor="#fff3da",color="#b98c36"];
+web -> app [label="referencia"];web -> infra[label="solo raíz de composición"];
+infra -> app[label="implementa puertos"];infra -> dom[label="mapea dominio"];
+app -> dom[label="usa tipos de dominio"];
+dom -> kernel;app -> contracts[style=dotted];infra -> contracts[style=dotted];
+edge [color="#d9534f",fontcolor="#d9534f",style=dashed,arrowhead=tee];
+dom -> infra[constraint=false,label="PROHIBIDO"];
+dom -> web[constraint=false,label="PROHIBIDO"];
+
+}

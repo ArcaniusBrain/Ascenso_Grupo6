@@ -28,7 +28,7 @@ Mensaje corto en imperativo y en español, con la referencia a la HU, el ADR o e
 ```
 feat(s4): emitir oferta con reserva síncrona en S2 (HU-15.1, ADR-03)
 docs(ddd): aplicar DDD-07 versión explícita en la raíz
-fix(s2): no liberar reservas con oferta existente (ADR-B02)
+fix(s2): no liberar reservas con oferta existente (ADR-03)
 ```
 
 Commits pequeños y frecuentes: es más fácil revisarlos y dejan un historial claro de quién hizo qué.

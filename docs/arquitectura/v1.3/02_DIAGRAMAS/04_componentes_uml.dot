@@ -1,0 +1,35 @@
+digraph G { graph [label="ASCENSO | UML de componentes y contratos entre servicios",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=component,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=LR; nodesep=.55;ranksep=1.35;
+ui[label="«component»\nNext.js / React",fillcolor="#dbf3e6"];
+gw[label="«component»\nYARP API Gateway"];
+s1[label="«component»\nS1 Identidad"];
+s2[label="«component»\nS2 Catálogo/Fondos"];
+s3[label="«component»\nS3 Postulación/Evaluación"];
+s4[label="«component»\nS4 Becas"];
+s5[label="«component»\nS5 Seguimiento"];
+s6[label="«component»\nS6 Comunicaciones/Reportes"];
+iface2[label="«interface»\nIFondosPrivados",shape=ellipse,fillcolor="#fff4d6"];
+iface1[label="«interface»\nIValidacionOtpPrivada",shape=ellipse,fillcolor="#fff4d6"];
+iface4[label="«interface»\nIConsultaBeneficiosPersona",shape=ellipse,fillcolor="#fff4d6"];
+events[label="«interface»\nIEventosIntegracion.v1",shape=ellipse,fillcolor="#fff4d6"];
+bus[label="«component»\nRabbitMQ / Outbox"];
+websock[label="«interface»\nINotificacionTiempoReal",shape=ellipse,fillcolor="#fff4d6"];
+pg[label="PostgreSQL\ncredenciales por servicio",shape=cylinder];mongo[label="MongoDB\nconsulta CQRS S6",shape=cylinder,fillcolor="#fff2d5"];
+ui -> gw[label="HTTPS",style=dashed,arrowhead=open];
+gw -> {s1 s2 s3 s4 s5 s6}[style=dashed,arrowhead=open,label="REST público"];
+s2 -> iface2[style=dashed,arrowhead=empty,label="realiza"];
+s1 -> iface1[style=dashed,arrowhead=empty,label="realiza"];
+s4 -> iface4[style=dashed,arrowhead=empty,label="realiza"];
+s4 -> iface2[style=dashed,arrowhead=open,label="requiere reservar/liberar"];
+s3 -> iface2[style=dashed,arrowhead=open,label="requiere disponibilidad"];
+s4 -> iface1[style=dashed,arrowhead=open,label="requiere OTP"];
+s3 -> iface4[style=dashed,arrowhead=open,label="HU-01.2"];
+{s1 s2 s3 s4 s5 s6} -> events[style=dashed,arrowhead=open,label="produce / consume"];
+events -> bus[style=dashed,arrowhead=open,label="canal eventos"];
+s6 -> websock[style=dashed,arrowhead=empty,label="realiza"];
+ui -> websock[style=dashed,arrowhead=open,label="SignalR"];
+{s1 s2 s3 s4 s5 s6} -> pg[style=dotted,label="persistencia local"];
+s6 -> mongo[style=dotted,label="proyección/consulta"];
+
+}

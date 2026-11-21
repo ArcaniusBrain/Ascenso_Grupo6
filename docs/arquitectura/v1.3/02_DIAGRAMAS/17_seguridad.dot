@@ -1,0 +1,14 @@
+digraph G { graph [label="Identidad | 2FA de sesión y OTP de operación",labelloc=t,labeljust=l,fontname="Arial",fontsize=22,fontcolor="#102c49",bgcolor="white",pad=0.35,nodesep=0.53,ranksep=0.72,splines=polyline,compound=true,rankdir=LR]; node [shape=box,fontname="Arial",fontsize=12,style="filled,rounded",color="#1765a3",fillcolor="#eaf3f8",fontcolor="#102c49",margin="0.22,0.16"]; edge [fontname="Arial",fontsize=10,color="#66788a",arrowsize=0.8,penwidth=1.35];
+
+ rankdir=LR;
+ user[label="Usuario\nFrontend React"];
+ oidc[label="S1 + Keycloak\nLogin / identidad",fillcolor="#e0edf9"];
+ two[label="2FA sesión\nCorreo / SMS R4",fillcolor="#fff3d9",color="#bb8838"];
+ jwt[label="Token autorizado\nclaims y alcance",fillcolor="#d4f3e7"];
+ api[label="S4 API\nAcción sensible"];
+ auth[label="Autorización por recurso\nestado/rol/propietario"];
+ otp[label="S1 OTP operación\nusuario + recurso + acción",fillcolor="#fff3d9",color="#bb8838"];
+ com[label="Comando del dominio\ncommit + auditoría",fillcolor="#d4f3e7"];
+ user -> oidc;oidc -> two;two -> jwt;jwt -> api;api -> auth;auth -> otp;otp -> com;
+
+}

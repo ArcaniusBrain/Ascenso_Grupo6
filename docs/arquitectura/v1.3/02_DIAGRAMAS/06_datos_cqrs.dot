@@ -1,0 +1,26 @@
+digraph G { graph [label="ASCENSO | CQRS: PostgreSQL escritura, MongoDB lectura",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=component,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=LR;
+handler[label="«component»\nHandlers S1–S6",fillcolor="#dbf4e8"];
+repo[label="«interface»\nIRepository<TAggregate>",shape=ellipse,fillcolor="#fff2d7"];
+ef[label="«component»\nInfrastructure / EF Core"];
+pg[label="PostgreSQL\nS1–S6 schemas aislados",shape=cylinder];
+audit[label="RegistroDecision + Outbox\nmisma UoW",shape=box,fillcolor="#e8f2fc"];
+worker[label="Worker Outbox / RabbitMQ"];
+proj[label="«component»\nProyectores idempotentes S6"];
+readport[label="«interface»\nIConsultaPanel",shape=ellipse,fillcolor="#fff2d7"];
+readadapter[label="«component»\nMongoConsultaPanel"];
+mongo[label="MongoDB\n10 modelos de lectura",shape=cylinder,fillcolor="#fff2d7"];
+query[label="«component»\nQueries S6"];
+handler -> repo[style=dashed,arrowhead=open,label="requiere"];
+ef -> repo[style=dashed,arrowhead=empty,label="realiza"];
+ef -> pg[label="guarda agregado"];
+ef -> audit[label="transacción"];
+audit -> worker[label="después commit"];
+worker -> proj[label="mensaje integración"];
+proj -> mongo[label="upsert + Inbox"];
+query -> readport[style=dashed,arrowhead=open,label="requiere"];
+readadapter -> readport[style=dashed,arrowhead=empty,label="realiza"];
+readadapter -> mongo[label="solo lectura"];
+
+}

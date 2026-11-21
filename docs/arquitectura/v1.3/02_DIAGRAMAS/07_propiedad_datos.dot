@@ -1,0 +1,11 @@
+digraph G { graph [label="ASCENSO | 25 raíces de agregado y propietarios de datos",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=component,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+rankdir=TB; nodesep=.7;
+s1[label="S1 · 3 raíces\nUsuario\nTipoUsuario\nClienteApiUniversidad",shape=box,fillcolor="#e5f1fc"];
+s2[label="S2 · 5 raíces\nCalendarioAcademico\nUniversidadAliada\nPrograma\nDonante\nPresupuestoPrograma",shape=box,fillcolor="#e5f1fc"];
+s3[label="S3 · 6 raíces\nCicloPostulacion\nPostulante\nPostulacion\nComite\nEvaluacion\nConflictoInteres",shape=box,fillcolor="#e5f1fc"];
+s4[label="S4 · 5 raíces\nOferta\nBeca\nBeneficiosPersona\nDatosPago\nVentanaRenovacion",shape=box,fillcolor="#e5f1fc"];
+s5[label="S5 · 3 raíces\nReporteAcademico\nPlazoReporte\nEvaluacionCumplimiento",shape=box,fillcolor="#e5f1fc"];
+s6[label="S6 · 3 raíces\nConsulta\nRegistroEnvio\nConsentimientoDonante",shape=box,fillcolor="#e5f1fc"];
+pg[label="PostgreSQL · datos transaccionales por schema",shape=cylinder];mongo[label="MongoDB · proyecciones S6",shape=cylinder,fillcolor="#fff2d7"];
+{s1 s2 s3 s4 s5 s6} -> pg[style=dashed,label="guarda solo en su schema"];s6 -> mongo[style=dashed,label="proyecta / lee"];
+}

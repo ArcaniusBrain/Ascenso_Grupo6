@@ -1,0 +1,13 @@
+digraph G { graph [label="ASCENSO | Tres niveles de ejecución, no cuatro capas lógicas",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=component,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=TB;
+subgraph cluster_p{label="NIVEL 1 · PRESENTACIÓN";style=rounded;color="#b8ded5";web[label="React + Next.js\nNode.js web",fillcolor="#d9f5ea"];}
+subgraph cluster_b{label="NIVEL 2 · TRANSACCIONAL (.NET/C#)";style=rounded;color="#b8d0e8";gw[label="YARP\nGateway HTTP/WebSockets"];s1[label="S1 Identidad"];s2[label="S2 Catálogo / Fondos"];s3[label="S3 Postulación / Evaluación"];s4[label="S4 Becas"];s5[label="S5 Seguimiento"];s6[label="S6 Comunicación / Reportería"];{rank=same;s1;s2;s3;}{rank=same;s4;s5;s6;}gw -> {s1 s2 s3 s4 s5 s6}[style=dashed,label="API pública"];}
+subgraph cluster_d{label="NIVEL 3 · DATOS Y DEPENDENCIAS TÉCNICAS";style=rounded;color="#b8d0e8";pg[label="PostgreSQL\nSchemas S1–S6",shape=cylinder];mongo[label="MongoDB CQRS\nProyecciones S6",shape=cylinder,fillcolor="#fff2d0"];mq[label="RabbitMQ\nEventos integración"];fb[label="Firebase Storage\nBinarios"];kc[label="Keycloak\nOIDC + tokens"];smtp[label="Correo/SMS\nCanal obligatorio"];}
+web -> gw[label="HTTPS"];
+web -> kc[style=dashed,label="login OIDC"];
+{s1 s2 s3 s4 s5 s6} -> pg[style=dashed];s6 -> mongo[style=dashed];
+{s1 s2 s3 s4 s5 s6} -> mq[style=dotted,label="Outbox/Inbox"];
+{s3 s4} -> fb[style=dashed];s1 -> kc[style=dashed];{s1 s6} -> smtp[style=dashed];
+
+}

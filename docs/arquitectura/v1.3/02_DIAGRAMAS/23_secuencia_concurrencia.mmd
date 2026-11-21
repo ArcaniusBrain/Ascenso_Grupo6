@@ -1,0 +1,20 @@
+sequenceDiagram
+  autonumber
+  participant A as Solicitud A
+  participant B as Solicitud B
+  participant S2 as S2 Reserva
+  participant P as PresupuestoPrograma
+  participant DB as PostgreSQL
+  par Reserva simultánea
+    A->>S2: Reservar(idempotencyKey A)
+    S2->>P: ReservarOferta(A)
+    P->>DB: Guardar versión v
+  and Otro intento
+    B->>S2: Reservar(idempotencyKey B)
+    S2->>P: ReservarOferta(B)
+    P->>DB: Guardar versión v
+  end
+  DB-->>S2: Solo una transacción vence
+  S2-->>A: Éxito si confirmó
+  S2-->>B: 409 o saldo insuficiente, después de recargar
+  Note over S2,DB: No se confía en la proyección NoSQL para decidir cupos

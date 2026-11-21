@@ -1,0 +1,17 @@
+digraph G { graph [label="ASCENSO | D-6: transacción atómica por handler y repositorio",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=component,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=LR;
+handler[label="Application Handler\ncargar / invocar / guardar"];
+domain[label="AggregateRoot\nsolo registra evento",fillcolor="#dbf4e8"];
+repo[label="«interface»\nIRepository",shape=ellipse,fillcolor="#fff2d7"];
+infra[label="Infra EF Core\nUnitOfWork + interceptor"];
+pg[label="PostgreSQL\nuna sola transacción",shape=cylinder];
+state[label="Estado del agregado",shape=box];audit[label="RegistroDecision inmutable",shape=box];out[label="Outbox",shape=box];bus[label="Worker RabbitMQ\ntras commit",shape=box];
+handler -> domain[label="regla"];
+handler -> repo[style=dashed,arrowhead=open,label="guardar"];
+infra -> repo[style=dashed,arrowhead=empty,label="realiza"];
+infra -> pg[label="commit"];
+pg -> {state audit out}[label="todo o nada"];
+out -> bus[label="publicar"];
+
+}

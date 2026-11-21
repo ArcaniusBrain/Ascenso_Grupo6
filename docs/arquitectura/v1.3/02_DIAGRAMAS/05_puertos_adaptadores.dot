@@ -1,0 +1,26 @@
+digraph G { graph [label="ASCENSO | Puertos y adaptadores — contratos verificables",labelloc=t,labeljust=l,fontname="Arial",fontsize=20,fontcolor="#102c49",bgcolor="white",pad=0.28,nodesep=0.55,ranksep=0.85,splines=polyline,compound=true]; node [shape=component,fontname="Arial",fontsize=12,style="filled,rounded",color="#1765a3",fillcolor="#edf6f9",fontcolor="#102c49",margin="0.20,0.14"]; edge [fontname="Arial",fontsize=10,color="#697a8c",arrowsize=0.75,penwidth=1.35];
+
+rankdir=LR;
+subgraph cluster_int{label="INTERIOR · APPLICATION / DOMAIN";color="#bfe7da";style=rounded;
+  use[label="«component»\nCasos de uso",fillcolor="#dcf4ee"];
+  rp[label="«interface»\nIPresupuestoProgramaRepository",shape=ellipse,fillcolor="#fff6dd"];
+  fbs[label="«interface»\nIAlmacenamientoArchivos",shape=ellipse,fillcolor="#fff6dd"];
+  nt[label="«interface»\nICanalNotificacion",shape=ellipse,fillcolor="#fff6dd"];
+  aca[label="«interface»\nIFuenteAcademica",shape=ellipse,fillcolor="#fff6dd"];
+  clk[label="«interface»\nIRelojNegocio",shape=ellipse,fillcolor="#fff6dd"];
+}
+subgraph cluster_ext{label="EXTERIOR · INFRASTRUCTURE";color="#bbd2e6";style=rounded;
+  ef[label="«component»\nRepositorio EF Core/PostgreSQL"];
+  fb[label="«component»\nAdaptador Firebase Storage"];
+  email[label="«component»\nCanal Correo / SMS"];
+  uni[label="«component»\nTraductor / Simulador Universidad"];
+  clock[label="«component»\nReloj del servidor"];
+}
+use -> {rp fbs nt aca clk} [style=dashed,arrowhead=open,label="requiere"];
+ef -> rp[style=dashed,arrowhead=empty,label="realiza"];
+fb -> fbs[style=dashed,arrowhead=empty,label="realiza"];
+email -> nt[style=dashed,arrowhead=empty,label="realiza"];
+uni -> aca[style=dashed,arrowhead=empty,label="realiza"];
+clock -> clk[style=dashed,arrowhead=empty,label="realiza"];
+
+}

@@ -1,0 +1,23 @@
+sequenceDiagram
+  autonumber
+  participant Job as Hangfire ExpirarOfertas
+  participant S4 as S4 Ofertas
+  participant MQ as RabbitMQ
+  participant S2 as S2 Fondos
+  participant S3 as S3 Postulacion
+  participant S6 as S6 Comunicaciones
+  Job->>S4: ExpirarOfertasVencidas (comando idempotente)
+  S4->>S4: Comprobar estado y fecha UTC-4
+  S4-->>MQ: OfertaExpirada.v1 via Outbox
+  par Liberacion segura
+    MQ-->>S2: Evento idempotente
+    S2->>S2: Liberar reserva sin duplicar
+  and Retiro y sugerencia
+    MQ-->>S3: Evento
+    S3->>S3: Retirada por oferta expirada
+    S3->>S3: Sugerir siguiente elegible
+    S3-->>MQ: SugerenciaListaEspera.v1 por Outbox
+  and Notificacion
+    MQ-->>S6: OfertaExpirada.v1 y SugerenciaListaEspera.v1
+    S6->>S6: Notificar sugerencia de S3
+  end

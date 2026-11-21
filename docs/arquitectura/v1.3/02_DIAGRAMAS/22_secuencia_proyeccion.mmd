@@ -1,0 +1,17 @@
+sequenceDiagram
+  autonumber
+  participant S4 as S4 Becas
+  participant PG as PostgreSQL
+  participant MQ as RabbitMQ
+  participant S6 as S6 Proyector
+  participant Mongo as MongoDB read store
+  participant UI as Panel React
+  S4->>PG: Guardar Beca + RegistroDecision + Outbox
+  PG-->>S4: Commit
+  S4->>MQ: Publicar evento desde Outbox
+  MQ-->>S6: BecaRevocada.v1 (al menos una vez)
+  S6->>Mongo: Idempotencia por eventId + upsert
+  S6-->>MQ: Ack solo tras persistir
+  S6-->>UI: SignalR aviso de cambio
+  UI->>S6: GET /api/v1/indicadores
+  S6-->>UI: Proyección + actualizadoEn

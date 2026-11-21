@@ -1,0 +1,41 @@
+﻿RF,Requisito,Prioridad,Contexto_arquitectonico,Colaboraciones,Estado,Base
+RF-01,Registro de postulantes,Debe tener,S3,S1 identidad,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-02,Publicación de convocatorias,Debe tener,S3,S2 programa/ciclo,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-03,Carga de documentos,Debe tener,S3,Firebase Storage,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-04,Verificación de elegibilidad,Debe tener,S3,S2 criterios; IFuenteAcademicaS3 con adaptador académico propio (sin dependencia S5),Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-05,Retiro voluntario,Debería tener,S3,RegistroDecision,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-06,Comité de evaluación,Debe tener,S3,S1 permisos,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-07,Rúbrica de evaluación,Debe tener,S3,S2 rúbrica; S3 copia aplicada,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-08,Puntuaciones y comentarios,Debe tener,S3,S2 rubrica aplicada,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-09,Consolidación y ranking,Debe tener,S3,S3 ranking a pedido; S2 disponibilidad viva,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-10,Empates y casos límite,Debe tener,S3,S2 cupos,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-11,Configuración de programas,Debe tener,S2,S1 autenticación,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-12,Presupuesto y cupos,Debe tener,S2,S4 reserva/renovación,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-13,Donantes y aportes,Debe tener,S2,S6 reportería,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-14,Universidades y convenios,Debe tener,S2,S5 fuentes universidad,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-15,Emisión de ofertas,Debe tener,S4,S2 reserva,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-16,Aceptación/rechazo de ofertas,Debe tener,S4,S2 confirmación; S1 identidad,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-17,Compromiso del becario,Debe tener,S4,Firebase documentos,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-18,Historial de becas,Debe tener,S4,S6 proyección historial_becas por programa y periodo; S3 solo consume por IConsultaBeneficiosPersona (HU-01.2),Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-19,Calendario de desembolsos,Debe tener,S4,S2 presupuesto,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-20,Registro y confirmación de desembolsos,Debe tener,S4,S1 OTP; S2 fondos,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-21,Suspensión temporal,Debe tener,S4,S6 avisos,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-22,Revocación,Debe tener,S4,S2 liberación,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-23,Reporte financiero por programa,Debería tener,S6,S2 aportes y fondos,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-24,Reportes académicos,Debe tener,S5,S2 calendario; S1 enlace,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-25,Condiciones de permanencia,Debe tener,S5,S4 acciones de beca,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-26,Renovación,Debe tener,S4,S2 reservas,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-27,Pausa o aplazamiento,Debería tener,S4,S5 validación académica,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-28,Historial del becario,Debe tener,S4,"S6 proyección para línea temporal, S4 eventos autoritativos",Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-29,Notificaciones automáticas,Debería tener,S6,Todos eventos,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-30,Recordatorios,Debería tener,S6,S2/S4/S5 fechas,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-31,Notificaciones al comité,Podría tener,S6,S3 comité,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-32,Mensajería,Debería tener,S6,SignalR/servicio notificaciones,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-33,Reporte de impacto,Debe tener,S6,S6 ConsentimientoDonante; proyección anonimizada; S4 eventos de becas,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-34,Reporte institucional,Debe tener,S6,S1 autorización,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-35,Registro de decisiones,Debe tener,Transversal (cada S + S6 lectura),Cada servicio + Outbox,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-36,Exportación para auditoría,Podría tener,S6,Datos S6 anonimizados,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-37,Usuarios y permisos,Debe tener,S1,Todos validan permisos,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-38,Calendario académico,Debe tener,S2,S4 reacciona al cambio,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-39,Conflictos de interés,Debería tener,S3,S3 invalidación de asignación,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2
+RF-40,Indicadores en tiempo real,Podría tener,S6,Eventos de todos los servicios,Asignación propuesta — sin implementación,PRD + HU Plan B final + DDD v3.2

@@ -1,0 +1,16 @@
+sequenceDiagram
+  autonumber
+  actor Direccion
+  participant S2 as S2 CalendarioAcademico
+  participant MQ as RabbitMQ
+  participant S4 as S4 Becas
+  participant DB as PostgreSQL
+  Direccion->>S2: MarcarPeriodoActual(codigoPeriodo)
+  S2->>DB: Commit periodo + Outbox
+  S2->>MQ: PeriodoMarcadoActual.v1
+  MQ->>S4: Evento
+  loop Paginado e idempotente por BecaId y Periodo
+    S4->>S4: Beca.IniciarNuevoPeriodo()
+    S4->>DB: Guardar con versión + RegistroDecision + Outbox
+  end
+  S4-->>MQ: Confirmar consumo

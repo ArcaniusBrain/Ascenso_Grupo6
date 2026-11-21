@@ -1,0 +1,11 @@
+digraph G { graph [label="ASCENSO | ETL histórico con presupuesto comprometido",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=box,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=LR;
+x[label="Excel / CSV histórico",shape=box];st[label="Staging normalizado",shape=box];dry[label="Dry run sin escribir\nreporte de errores",shape=box,fillcolor="#fff2d7"];
+load[label="Comandos idempotentes\nS2 → S1 → S3 → S4 → S5",shape=box];pg[label="PostgreSQL\nagregados + RegistroDecision",shape=cylinder];
+funds[label="S2 PresupuestoPrograma\nreconstruir comprometido por becas",shape=box,fillcolor="#dbf4e8"];
+projection[label="Reprocesar eventos\nproyecciones S6/MongoDB",shape=box];
+check[label="Conciliar aportes, compromisos,\ncupos, becas e indicadores\nCONTRA HOJAS",shape=box,fillcolor="#dbf4e8"];
+x -> st -> dry -> load -> pg -> funds -> projection -> check;
+
+}

@@ -1,0 +1,33 @@
+sequenceDiagram
+  autonumber
+  actor Uni as Universidad
+  participant IDP as Keycloak OIDC
+  participant Gate as YARP
+  participant S5 as API S5 Seguimiento
+  participant In as Recepcion Lotes S5
+  participant Out as Outbox S5
+  participant MQ as RabbitMQ
+  participant W as Worker S5
+  participant ACL as Mapa estudiantes S5
+  participant Repo as IReporteAcademicoRepository
+  Uni->>IDP: client_credentials de su universidad
+  IDP-->>Uni: token con scope universidad.reportes.crear
+  Uni->>Gate: POST lote con codigoEstudiante + token
+  Gate->>S5: Transferir solicitud validada
+  S5->>S5: Validar universidad, forma e idempotencyKey
+  S5->>In: Guardar recepción del lote
+  S5->>Out: Guardar evento LoteAcademicoRecibido en transacción
+  In-->>S5: Commit duradero
+  S5-->>Uni: 202 LoteAceptado con id seguimiento
+  Out-->>MQ: Publicar LoteAcademicoRecibido
+  MQ-->>W: Entregar a Inbox de worker
+  W->>ACL: Resolver universidad + codigoEstudiante
+  Note over ACL: Correspondencia BecaId pertenece a ACL de S5
+  ACL-->>W: BecaId interna o error de fila
+  W->>Repo: Guardar reporte, RegistroDecision y Outbox
+  Repo-->>W: Confirmación o error registrado
+  W->>In: Registrar resultado por fila, registrado o rechazado con motivo
+  Uni->>Gate: GET resultado del lote con loteId + token
+  Gate->>S5: Transferir consulta validada
+  S5->>In: Leer resultado del lote de esa universidad
+  S5-->>Uni: 200 ResultadoLote fila por fila

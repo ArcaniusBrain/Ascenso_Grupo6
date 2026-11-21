@@ -1,0 +1,37 @@
+sequenceDiagram
+  autonumber
+  actor Coord as Coordinador
+  participant S3 as S3 Seleccion
+  participant Out3 as Outbox S3
+  participant MQ as RabbitMQ
+  participant In4 as Inbox S4
+  participant H as EmitirOfertaHandler S4
+  participant API as API Becas S4
+  participant P as IReservaPresupuestoRemota
+  participant S2 as S2 Fondos privado
+  participant Repo as IOfertaRepository
+  participant Out4 as Outbox S4
+  S3->>Out3: Persistir PostulacionSeleccionada.v1
+  Out3-->>MQ: Publicar evento confirmado
+  MQ-->>In4: Entregar evento con reintentos
+  In4->>H: Actualizar seleccion idempotente
+  Coord->>API: POST /ofertas (postulacionId, operationId)
+  API->>H: Ejecutar con identidad del token
+  H->>H: Verificar seleccion y una oferta por postulacion+ciclo
+  H->>P: Reservar(programaId, postulacionId, cicloId, operationId)
+  P->>S2: POST reservas privado, scope fondos.reservar
+  S2->>S2: Calcular monto desde Programa.MontoPorPeriodo
+  S2-->>P: reservaId o rechazo
+  alt Sin reserva confirmada
+    H-->>API: 409 o 503 sin oferta
+  else Reserva confirmada
+    H->>Repo: Guardar Oferta, RegistroDecision y Outbox S4
+    alt Falla commit
+      H->>P: Compensar reserva idempotente
+      H-->>API: Error sin oferta
+    else Commit confirmado
+      Repo-->>H: Confirmado
+      H-->>API: 201 OfertaEmitidaRespuesta
+      Out4-->>MQ: Publicar OfertaEmitida.v1
+    end
+  end

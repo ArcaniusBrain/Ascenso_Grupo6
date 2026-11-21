@@ -1,5 +1,7 @@
 # ASCENSO · Lista de cambios para DDD v3.3 y Propuesta de Arquitectura v0.2
 
+> **Estado (21-nov-2026):** la **Parte B (ADR v0.2) quedó superada** por la arquitectura v1.3 ([`docs/arquitectura/`](../arquitectura/README.md)); lo que sigue abierto de ella está en [`pendientes-v1.3.md`](../arquitectura/pendientes-v1.3.md). De la **Parte A** siguen vigentes DDD-07 a DDD-15, que se trabajan en el cambio [`corregir-ddd-v3-3`](../../openspec/changes/corregir-ddd-v3-3/proposal.md); DDD-01 a DDD-04 ya no hacen falta (la v1.3 decidió MongoDB, Keycloak, Stateless y la partición, y la adenda S2/S4 cubre DDD-04).
+
 **Base revisada:** `DDD_V3.2.md` (04-nov-2026), `ASCENSO_Propuesta_Arquitectura_v0.1.pdf` (04-nov-2026) y `enlaces-mermaid-live-DDD_V3.2.html`.
 **Precedencia:** se mantiene la del propio DDD: mandan las HU Plan B (C1–C5, R1–R30); luego el DDD; luego el ADR.
 

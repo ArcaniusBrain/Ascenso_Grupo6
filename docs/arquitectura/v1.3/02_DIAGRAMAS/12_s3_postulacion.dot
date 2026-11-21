@@ -1,0 +1,20 @@
+digraph G { graph [label="S3 | Postulación y Evaluación: puertos, selección y eventos",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=component,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=LR;
+api[label="S3 API REST"];
+app[label="Application\nPostular, Verificar, Evaluar,\nConsolidar, GenerarRanking, SugerirEspera"];
+dom[label="Domain · 6 raíces\nCicloPostulacion, Postulante, Postulacion,\nComite, Evaluacion, ConflictoInteres",fillcolor="#dbf4e8"];
+repo[label="«interface»\n6 repositorios",shape=ellipse,fillcolor="#fff2d7"];
+aca[label="«interface»\nIFuenteAcademicaS3",shape=ellipse,fillcolor="#fff2d7"];
+benef[label="«interface»\nIConsultaBeneficiosPersona",shape=ellipse,fillcolor="#fff2d7"];
+fond[label="«interface»\nIDisponibilidadPrograma",shape=ellipse,fillcolor="#fff2d7"];
+infra[label="Infrastructure EF / ACL\nHTTP S4 + HTTP S2 + Firebase\nOutbox e Inbox"];
+s4[label="S4 · becas activas"];
+s2[label="S2 · disponibilidad"];
+fb[label="Firebase Storage"];
+bus[label="RabbitMQ\nconsume Beca*, publica Seleccionada"];
+api -> app;app -> dom;app -> {repo aca benef fond}[style=dashed,arrowhead=open];
+infra -> {repo aca benef fond}[style=dashed,arrowhead=empty];infra -> {s4 s2 fb}[style=dashed,label="adaptadores"];
+infra -> bus[style=dashed,label="Outbox/Inbox"];
+
+}

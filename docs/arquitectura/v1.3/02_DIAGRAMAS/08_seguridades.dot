@@ -1,0 +1,20 @@
+digraph G { graph [label="ASCENSO | 2FA de sesión, OTP de operación y autorización",labelloc=t,labeljust=l,fontname="Arial",fontsize=20,fontcolor="#102c49",bgcolor="white",pad=0.28,nodesep=0.55,ranksep=0.85,splines=polyline,compound=true]; node [shape=box,fontname="Arial",fontsize=12,style="filled,rounded",color="#1765a3",fillcolor="#edf6f9",fontcolor="#102c49",margin="0.20,0.14"]; edge [fontname="Arial",fontsize=10,color="#697a8c",arrowsize=0.75,penwidth=1.35];
+
+rankdir=LR;
+person[label="Persona / universidad",shape=box,fillcolor="#ddf4ef"];
+web[label="React + Next.js / Node.js"];
+idp[label="Keycloak OIDC\nProveedor adoptado"];
+gw[label="Gateway YARP + API"];
+iam[label="S1 Identidad y permisos"];
+auth[label="«interface»\nPolítica de autorización por recurso",shape=ellipse,fillcolor="#fff1db"];
+otp[label="OTP de operación\nusuario+recurso+acción"];
+use[label="Caso de uso sensible\nPago/Revocación"];
+person -> web -> idp[label="sesión + 2FA (R4)"];
+idp -> gw[label="token validado"];
+gw -> iam[label="claims + permisos"];
+iam -> auth[label="ámbitos por programa y universidad"];
+auth -> use[label="autoriza"];
+iam -> otp[label="emite/valida OTP"];
+use -> otp[style=dashed,label="requiere OTP antes de mutar"];
+
+}

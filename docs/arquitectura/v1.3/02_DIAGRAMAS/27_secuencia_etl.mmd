@@ -1,0 +1,24 @@
+sequenceDiagram
+  autonumber
+  actor Operador
+  participant ETL as Migrador
+  participant S2 as S2 Catalogo/Fondos
+  participant S1 as S1 Identidad
+  participant S3 as S3 Postulacion
+  participant S4 as S4 Becas
+  participant S5 as S5 Seguimiento
+  participant S6 as S6 Proyectores
+  Operador->>ETL: Importar Excel/CSV a staging
+  ETL->>ETL: Normalizar y dry run, sin escritura
+  ETL-->>Operador: Informe de validos y errores
+  Operador->>ETL: Autorizar lote
+  ETL->>S2: Catalogo, programas, aportes
+  ETL->>S1: Cuentas/tipos
+  ETL->>S3: Postulantes y postulaciones
+  ETL->>S4: Becas y pagos historicos
+  ETL->>S2: Reconstruir compromisos y cupos por becas migradas
+  ETL->>S5: Reportes academicos
+  ETL->>S6: Reprocesar eventos y reconstruir MongoDB
+  S6-->>ETL: Conteos proyectados
+  ETL->>ETL: Conciliar presupuesto, cupo, beneficiarios y panel
+  ETL-->>Operador: Acta conciliacion, discrepancias y resultado

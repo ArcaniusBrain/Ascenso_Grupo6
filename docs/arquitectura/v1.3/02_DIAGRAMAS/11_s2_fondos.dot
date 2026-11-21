@@ -1,0 +1,16 @@
+digraph G { graph [label="S2 | Catálogo y Fondos: dominio y fronteras técnicas",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=component,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=LR;
+api[label="API S2 (pública + privada)"];
+app[label="Application\nCrearPrograma, Reservar, Liberar,\nRegistrarAporte, PublicarCosto"];
+root[label="Domain\nCalendarioAcademico, UniversidadAliada,\nPrograma, Donante, PresupuestoPrograma",fillcolor="#dbf4e8"];
+repo[label="«interface»\n5 repositorios",shape=ellipse,fillcolor="#fff2d7"];
+infra[label="Infrastructure\nEF Core + Outbox + Inbox"];
+reco[label="Reconciliador de reservas\nconsulta estado S4",fillcolor="#fff2d7"];
+bus[label="RabbitMQ\nEventos S4 y S3"];
+s4[label="S4\nReservas privadas / comprobar oferta"];
+pg[label="PostgreSQL S2",shape=cylinder];
+api -> app;app -> root;app -> repo[style=dashed,arrowhead=open];infra -> repo[style=dashed,arrowhead=empty];infra -> pg;bus -> infra[style=dashed,label="consume eventos"];infra -> bus[style=dashed,label="publica Outbox"];reco -> app[label="comando"];
+reco -> s4[style=dashed,label="verifica antes de liberar"];s4 -> api[style=dashed,label="OAuth2 cliente S4"];
+
+}

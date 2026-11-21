@@ -1,0 +1,15 @@
+digraph G { graph [label="ASCENSO | Notificaciones y 9 procesos temporales",labelloc=t,labeljust=l,fontname="DejaVu Sans",fontsize=21,fontcolor="#123552",bgcolor="white",pad=0.35,nodesep=.4,ranksep=.7,splines=polyline,compound=true,overlap=false]; node [shape=box,fontname="DejaVu Sans",fontsize=11,style="filled,rounded",color="#19619a",fillcolor="#e8f3fb",fontcolor="#183b54",margin="0.20,0.14"]; edge [fontname="DejaVu Sans",fontsize=9,color="#607d8b",arrowsize=.75,penwidth=1.25];
+
+rankdir=LR;
+producer[label="Comandos S1–S6\nEventos en Outbox",shape=box];
+bus[label="RabbitMQ\nmensajes con Inbox",shape=box];
+s6[label="S6 · Comunicaciones\nRegistroEnvio",shape=box];
+mail[label="Correo\ncanal mínimo obligatorio",shape=box,fillcolor="#dbf4e8"];
+sms[label="SMS\ncanal según configuración",shape=box];
+signal[label="SignalR\ncliente conectado",shape=box];
+job[label="Hangfire / Scheduler\n9 trabajos",shape=box,fillcolor="#fff2d7"];
+cmd[label="Handlers idempotentes\nS2/S3/S4/S5/S6",shape=box];
+detail[label="Expirar ofertas; no renovar; vencer pausas;\naviso suspensión; cerrar lista espera;\nrecordatorios plazos; aviso comité;\nreporte tardío; reconciliar reservas",shape=note,fillcolor="#f6fbfe"];
+producer -> bus -> s6;s6 -> {mail sms signal};job -> cmd;job -> detail[style=dotted];cmd -> producer[style=dashed,label="registra eventos"];
+
+}

@@ -1,0 +1,17 @@
+sequenceDiagram
+  autonumber
+  actor Usuario
+  participant Web as React / Next.js
+  participant S1 as S1 Identidad
+  participant IDP as Keycloak OIDC
+  participant Canal as Canal correo/SMS
+  Usuario->>Web: Iniciar sesión
+  Web->>IDP: Autenticación OIDC
+  IDP->>S1: Requerir segundo factor según rol
+  S1->>Canal: Enviar desafío (R4)
+  Canal-->>Usuario: Código
+  Usuario->>Web: Ingresar código
+  Web->>S1: Validar desafío
+  S1-->>IDP: Afirmación de 2FA validado
+  IDP-->>Web: Token con autenticación suficiente
+  Note over S1,IDP: El mecanismo de integración exacto requiere PoC de Keycloak. No emitir token privilegiado antes de 2FA.
