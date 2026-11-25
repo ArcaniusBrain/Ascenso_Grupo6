@@ -28,13 +28,14 @@
 
 ---
 
-## ADR-27 · Despachador de casos de uso y eventos sin riesgo de licencia (C6 / ADR-B15)
+## ADR-27 · MediatR 12.5.0 fijado (Apache 2.0) sin licencia comercial (C6 / ADR-B15)
 
-- **Contexto:** A partir de la versión 13, MediatR adoptó doble licencia comercial. El equipo necesita una decisión limpia desde el primer proyecto de `building-blocks/` para evitar deuda legal o migraciones a mitad del semestre.
+- **Contexto:** A partir de la versión 13, MediatR adoptó doble licencia comercial. El DDD (§16.2) menciona MediatR para publicar eventos y despachar casos de uso en `.NET`, y el equipo necesita una versión segura y homogénea desde el primer proyecto de `building-blocks/`.
 - **Decisión:**
-  - **Opción adoptada:** implementar un **despachador ligero propio** (~60–80 líneas en `Ascenso.SharedKernel`) con interfaces `IComando<TResultado>`, `IConsulta<TResultado>`, `IManejadorComando<TComando, TResultado>`, `IManejadorConsulta<TConsulta, TResultado>` y `IManejador<TEvento>` (coherente con los tipos base del DDD §5), registrado por reflexión/DI nativo de `Microsoft.Extensions.DependencyInjection` y pipeline behaviors simples (validación, logging, correlación).
-  - **Alternativa aceptable si el equipo prefiere librería:** fijar explícitamente `MediatR` `12.5.0` (última versión Apache 2.0) en `Directory.Packages.props` con verificación en CI para prohibir upgrade a `>= 13.0.0`.
-- **Consecuencia:** Cero riesgo de licencia, código mínimo y totalmente transparente para pruebas y para la defensa académica.
+  - **Opción adoptada (25-nov-2026):** usar **`MediatR` `12.5.0`** (última versión bajo licencia **Apache 2.0**) fijado de forma exacta en `Directory.Packages.props` (Central Package Management, ADR-24) para los proyectos `*.Application`, y **`MediatR.Contracts` `2.0.1`** (solo interfaces, cero dependencias) en `Ascenso.SharedKernel` para `IEventoDeDominio`.
+  - Se incluye una prueba automatizada en CI que falla si la versión fijada de `MediatR` cambia a `>= 13.0.0`.
+  - **Alternativa documentada:** reemplazarlo por un despachador propio ligero si a futuro fuera necesario migrar fuera de la rama 12.x.
+- **Consecuencia:** Cumple el DDD §16.2 con el ecosistema estándar de `.NET`, sin riesgo de licencia comercial y con bloqueo automático en CI contra upgrades accidentales a v13+.
 
 ---
 

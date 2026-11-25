@@ -42,7 +42,7 @@ Respuestas completas en la [Ronda 5 de `respuestas_cliente.md`](../requisitos/re
 | C3 | ~~Versión de la raíz ante cambios en entidades internas~~ | **Cerrada (DDD-07 / ADR-25):** `Version: int` explícita en `RaizDeAgregado`, incrementada también al cambiar hijos |
 | C4 | ~~Eventos `Beca*` hacia S3 entre `EVENTOS_E_INTERFACES.md` y CSV~~ | **Cerrada:** alineados en `CATALOGO_EVENTOS_INTEGRACION.csv` y `EVENTOS_E_INTERFACES.md` (más `UsuarioRegistrado`) |
 | C5 | ~~Plazo para conciliar reservas sin vincular~~ | **Cerrada (ADR-26):** 30 min de gracia + consulta obligatoria `S2 → S4` (`GET /internal/v1/reservas/{reservaId}/vinculo`, falla cerrada) |
-| C6 | ~~MediatR (licencia v13+) vs despachador propio~~ | **Cerrada (ADR-27):** despachador ligero propio en `Ascenso.SharedKernel` (alternativa: MediatR `12.5.0` fijado) |
+| C6 | ~~MediatR (licencia v13+) vs despachador propio~~ | **Cerrada (ADR-27):** `MediatR 12.5.0` (Apache 2.0) fijado en `Directory.Packages.props` + `MediatR.Contracts 2.0.1` + check en CI contra `>= 13.0.0` |
 | C7 | ~~Arquitectura Frontend Next.js y sesión Keycloak~~ | **Cerrada (ADR-28):** Next.js App Router como BFF ligero con cookies `HttpOnly/Secure/SameSite=Lax`, nunca `localStorage` |
 | C8 | Proveedores de correo y SMS (prueba y demostración) | **Abierto** (ADR-20: por elegir en sprint de infraestructura; MailHog/SMTP local para dev) |
 | C9 | Repo público: decidir si pasa a privado | **Abierto** (decisión administrativa del equipo) |

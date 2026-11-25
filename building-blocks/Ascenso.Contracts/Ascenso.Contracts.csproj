@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ascenso.Contracts</RootNamespace>
+    <AssemblyName>Ascenso.Contracts</AssemblyName>
+  </PropertyGroup>
+</Project>

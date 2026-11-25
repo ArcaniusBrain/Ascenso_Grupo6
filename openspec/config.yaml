@@ -26,9 +26,9 @@ context: |
   4. Arquitectura v1.3 (documento rector): docs/arquitectura/v1.3/01_DOCUMENTO_MAESTRO/ARQUITECTURA_V1.0.md
      (ADR-01 a ADR-24 en su §13), anexos en ANEXOS_TECNICOS.md, matrices de trazabilidad en
      04_MATRICES/ (dueño de cada RF y HU), pruebas exigidas en 05_CALIDAD/.
-  5. Contratos de API y de eventos: docs/arquitectura/v1.3/03_CONTRATOS/ (openapi.yaml público,
-     openapi-interno.yaml entre servicios, EVENTOS_E_INTERFACES.md). Pasarán a contracts/ en la raíz
-     con el primer cambio de código.
+  5. Contratos de API y de eventos: contracts/ (única fuente activa: openapi.yaml público,
+     openapi-interno.yaml entre servicios, EVENTOS_E_INTERFACES.md, MATRIZ_PUERTOS.md,
+     SEGURIDAD_INTERSERVICIOS_V1.1.md). Respaldo histórico en docs/arquitectura/v1.3/03_CONTRATOS/.
   6. Decisiones técnicas correctivas post-v1.3: docs/arquitectura/ADR_CORRECTIVOS_V1.3.md
      y docs/arquitectura/pendientes-v1.3.md.
   El PRD original (docs/requisitos/prd.md) solo se usa cuando las fuentes anteriores no dicen nada.

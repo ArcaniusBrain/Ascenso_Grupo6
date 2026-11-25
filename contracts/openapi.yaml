@@ -1,0 +1,2571 @@
+openapi: 3.1.0
+info:
+  title: ASCENSO - API pública v1.3 (YARP, sin rutas internas)
+  version: 1.3.0
+  description: API pública para usuarios, universidades y consultas. Las reservas, su liberación, validación/consumo
+    de OTP y consultas autoritativas entre servicios están SOLO en openapi-interno.yaml, fuera del Gateway. Contratos
+    de diseño (sin implementación).
+servers:
+- url: https://ascenso.example.invalid
+  description: URL documental, no desplegada
+tags:
+- name: S1
+- name: S2
+- name: S3
+- name: S4
+- name: S5
+- name: S6
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Id:
+      type: string
+      format: uuid
+    CodigoPeriodo:
+      type: string
+      example: 2026-2
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        correlationId:
+          type: string
+          format: uuid
+      required:
+      - title
+      - status
+      - correlationId
+      additionalProperties: false
+    ChallengeRequest:
+      type: object
+      required:
+      - operacion
+      - resourceId
+      - canal
+      properties:
+        operacion:
+          type: string
+          enum:
+          - CONFIRMAR_PAGO
+          - REVOCAR_BECA
+          - MODIFICAR_DATOS_PAGO
+          - RESOLVER_PAGO
+          - APLICAR_CONSECUENCIA_REVOCATORIA
+        resourceId:
+          $ref: '#/components/schemas/Id'
+        canal:
+          type: string
+          enum:
+          - CORREO
+          - SMS
+    ChallengeResponse:
+      type: object
+      required:
+      - challengeId
+      - expiraEnUtc
+      properties:
+        challengeId:
+          $ref: '#/components/schemas/Id'
+        expiraEnUtc:
+          type: string
+          format: date-time
+      additionalProperties: false
+    OfertaRequest:
+      type: object
+      properties:
+        postulacionId:
+          $ref: '#/components/schemas/Id'
+        fechaLimite:
+          type: string
+          format: date
+        operationId:
+          $ref: '#/components/schemas/Id'
+      required:
+      - postulacionId
+      - fechaLimite
+      - operationId
+      description: El servidor S4 obtiene selección válida de S3, programa y ciclo por proyección certificada y
+        S2 calcula monto/cupos según C1. El navegador nunca envía PlanReserva.
+    PagoRequest:
+      type: object
+      required:
+      - desembolsoId
+      - otp
+      - operationId
+      properties:
+        desembolsoId:
+          $ref: '#/components/schemas/Id'
+        operationId:
+          $ref: '#/components/schemas/Id'
+        otp:
+          $ref: '#/components/schemas/OtpDeOperacion'
+    RevocacionRequest:
+      type: object
+      required:
+      - justificacion
+      - otp
+      - operationId
+      properties:
+        justificacion:
+          type: string
+          minLength: 3
+        operationId:
+          $ref: '#/components/schemas/Id'
+        otp:
+          $ref: '#/components/schemas/OtpDeOperacion'
+    PostulacionRequest:
+      type: object
+      required:
+      - cicloId
+      properties:
+        cicloId:
+          $ref: '#/components/schemas/Id'
+        documentos:
+          type: array
+          items:
+            type: string
+      description: El postulante se deriva exclusivamente del token autenticado.
+    EvaluacionRequest:
+      type: object
+      required:
+      - rubricaAplicadaId
+      - puntuaciones
+      properties:
+        rubricaAplicadaId:
+          $ref: '#/components/schemas/Id'
+        puntuaciones:
+          type: array
+          items:
+            type: object
+            properties:
+              criterioId:
+                $ref: '#/components/schemas/Id'
+              puntos:
+                type: number
+      description: El evaluador se deriva del token y se verifican asignación vigente y conflicto de interés.
+    ReporteAcademicoLote:
+      type: object
+      required:
+      - codigoPeriodo
+      - loteId
+      - reportes
+      properties:
+        codigoPeriodo:
+          type: string
+        loteId:
+          $ref: '#/components/schemas/Id'
+        reportes:
+          type: array
+          items:
+            type: object
+            properties:
+              codigoEstudiante:
+                type: string
+                minLength: 1
+                description: Identificador de la universidad; ACL lo resuelve a becaId interno.
+              promedio:
+                type: number
+              materiasAprobadas:
+                type: integer
+                minimum: 0
+              materiasReprobadas:
+                type: integer
+                minimum: 0
+              estadoMatricula:
+                type: string
+                minLength: 1
+                description: Texto libre enviado por la universidad (R37/A7). S5 conserva el texto original y lo clasifica internamente en EstadoMatricula (INSCRITO, RETIRADO, CONGELADO, EGRESADO o NO_RECONOCIDO, según ADR-29 / C10).
+            required:
+            - codigoEstudiante
+            - promedio
+            - materiasAprobadas
+            - materiasReprobadas
+            - estadoMatricula
+            additionalProperties: false
+          minItems: 1
+      description: El cliente universitario obtiene token mediante Keycloak client_credentials; la universidad se
+        obtiene de las claims, no solo de la URL.
+    ConsultaResponse:
+      type: object
+      properties:
+        actualizadoEnUtc:
+          type: string
+          format: date-time
+        datos:
+          type: object
+          additionalProperties: true
+    OtpDeOperacion:
+      type: object
+      additionalProperties: false
+      required:
+      - challengeId
+      - codigo
+      properties:
+        challengeId:
+          $ref: '#/components/schemas/Id'
+        codigo:
+          type: string
+          pattern: ^[0-9]{6,8}$
+          description: Longitud exacta fijada al implementarse; servidor valida R4.
+    OperacionConfirmada:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - estado
+      - correlationId
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        estado:
+          type: string
+        correlationId:
+          $ref: '#/components/schemas/Id'
+        version:
+          type: integer
+          minimum: 0
+    PostulacionCreada:
+      type: object
+      additionalProperties: false
+      required:
+      - postulacionId
+      - estado
+      properties:
+        postulacionId:
+          $ref: '#/components/schemas/Id'
+        estado:
+          type: string
+          enum:
+          - RECIBIDA
+    OfertaEmitidaRespuesta:
+      type: object
+      additionalProperties: false
+      required:
+      - ofertaId
+      - reservaId
+      - estado
+      properties:
+        ofertaId:
+          $ref: '#/components/schemas/Id'
+        reservaId:
+          $ref: '#/components/schemas/Id'
+        estado:
+          type: string
+          enum:
+          - PENDIENTE
+    PagoConfirmadoRespuesta:
+      type: object
+      additionalProperties: false
+      required:
+      - pagoId
+      - desembolsoId
+      - estado
+      properties:
+        pagoId:
+          $ref: '#/components/schemas/Id'
+        desembolsoId:
+          $ref: '#/components/schemas/Id'
+        estado:
+          type: string
+          enum:
+          - CONFIRMADO
+    LoteAceptado:
+      type: object
+      additionalProperties: false
+      required:
+      - loteId
+      - estado
+      - recibidos
+      properties:
+        loteId:
+          $ref: '#/components/schemas/Id'
+        estado:
+          type: string
+          enum:
+          - ACEPTADO
+        recibidos:
+          type: integer
+          minimum: 0
+    Indicadores:
+      type: object
+      required:
+      - actualizadoEnUtc
+      - indicadores
+      properties:
+        actualizadoEnUtc:
+          type: string
+          format: date-time
+        indicadores:
+          type: object
+          additionalProperties:
+            type: number
+    ConsultaRegistrada:
+      type: object
+      required:
+      - consultaId
+      - estado
+      properties:
+        consultaId:
+          $ref: '#/components/schemas/Id'
+        estado:
+          type: string
+          enum:
+          - ABIERTA
+    PublicarCicloCommand:
+      type: object
+      required:
+      - fechaPublicacion
+      properties:
+        fechaPublicacion:
+          type: string
+          format: date-time
+    AbrirEvaluacionCommand:
+      type: object
+      required:
+      - cierreRevision
+      properties:
+        cierreRevision:
+          type: string
+          format: date-time
+    CrearProgramaCommand:
+      type: object
+      required:
+      - nombre
+      - montoPorPeriodo
+      - moneda
+      properties:
+        nombre:
+          type: string
+          minLength: 3
+        montoPorPeriodo:
+          type: number
+          minimum: 0
+        moneda:
+          type: string
+          minLength: 3
+          maxLength: 3
+    RegistrarAporteCommand:
+      type: object
+      required:
+      - donanteId
+      - cantidad
+      - moneda
+      - codigoPeriodo
+      properties:
+        donanteId:
+          $ref: '#/components/schemas/Id'
+        cantidad:
+          type: number
+          exclusiveMinimum: 0
+        moneda:
+          type: string
+          minLength: 3
+          maxLength: 3
+        codigoPeriodo:
+          $ref: '#/components/schemas/CodigoPeriodo'
+    SeleccionarCommand:
+      type: object
+      required:
+      - codigoPeriodo
+      - correlationId
+      properties:
+        codigoPeriodo:
+          $ref: '#/components/schemas/CodigoPeriodo'
+        correlationId:
+          $ref: '#/components/schemas/Id'
+    JustificarCommand:
+      type: object
+      required:
+      - justificacion
+      properties:
+        justificacion:
+          type: string
+          minLength: 3
+    RenovarCommand:
+      type: object
+      required:
+      - codigoPeriodo
+      properties:
+        codigoPeriodo:
+          $ref: '#/components/schemas/CodigoPeriodo'
+    RegistrarConsultaCommand:
+      type: object
+      required:
+      - asunto
+      - mensaje
+      properties:
+        asunto:
+          type: string
+          minLength: 3
+        mensaje:
+          type: string
+          minLength: 1
+    DatosPagoCommand:
+      type: object
+      required:
+      - destinatario
+      - numeroCuenta
+      - otp
+      - operationId
+      properties:
+        destinatario:
+          type: string
+          minLength: 2
+        otp:
+          $ref: '#/components/schemas/OtpDeOperacion'
+        operationId:
+          $ref: '#/components/schemas/Id'
+        numeroCuenta:
+          type: string
+          minLength: 4
+          description: Se recibe sobre TLS; S4 cifra al persistir mediante su adaptador y jamás incluye el valor
+            en logs/respuestas.
+    AplicarConsecuenciaCommand:
+      type: object
+      description: HU-25.2. El servidor solo acepta consecuencias contempladas en la PoliticaConsecuencias vigente
+        del programa (422 en caso contrario). La suspensión reutiliza HU-21.1 y la revocación HU-22.1.
+      required:
+      - evaluacionCumplimientoId
+      - consecuencia
+      - siguientePaso
+      - justificacion
+      - operationId
+      properties:
+        evaluacionCumplimientoId:
+          $ref: '#/components/schemas/Id'
+        consecuencia:
+          type: string
+          enum:
+          - LLAMADO_ATENCION
+          - SUSPENSION
+          - REVOCACION
+          description: Enumeración Consecuencia del DDD v3.2.
+        siguientePaso:
+          type: string
+          minLength: 3
+          description: Texto que el becario verá como siguiente paso (RF-25).
+        justificacion:
+          type: string
+          minLength: 3
+        fechaRevision:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: Solo para SUSPENSION. Nula significa suspensión indefinida (HU-21.1).
+        otp:
+          allOf:
+          - $ref: '#/components/schemas/OtpDeOperacion'
+          description: Obligatorio solo cuando consecuencia es REVOCACION (HU-22.1); desafío con operacion APLICAR_CONSECUENCIA_REVOCATORIA.
+        operationId:
+          $ref: '#/components/schemas/Id'
+      allOf:
+      - if:
+          properties:
+            consecuencia:
+              const: REVOCACION
+          required:
+          - consecuencia
+        then:
+          required:
+          - otp
+    MarcarPeriodoCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - codigoPeriodo
+      - operationId
+      properties:
+        codigoPeriodo:
+          $ref: '#/components/schemas/CodigoPeriodo'
+        operationId:
+          $ref: '#/components/schemas/Id'
+      description: HU-38.2; periodo actual decidido en S2, no selección de oferta.
+    AceptarOfertaCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - operationId
+      properties:
+        operationId:
+          $ref: '#/components/schemas/Id'
+      description: HU-16.1; la identidad del becario se obtiene del token, y la oferta desde la ruta.
+    MarcarIncidenciaDesembolsoCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - tipo
+      - operationId
+      properties:
+        tipo:
+          type: string
+          enum:
+          - FALLIDO
+          - DEVUELTO
+        operationId:
+          $ref: '#/components/schemas/Id'
+      description: 'HU-20.2: conservar actor y fecha de la marca original, sin duplicarla.'
+    ResolverDesembolsoCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - descripcionResolucion
+      - fechaNuevoPago
+      - metodoNuevoPago
+      - destinatario
+      - otp
+      - operationId
+      properties:
+        descripcionResolucion:
+          type: string
+          minLength: 3
+        fechaNuevoPago:
+          type: string
+          format: date
+        metodoNuevoPago:
+          type: string
+          minLength: 2
+        destinatario:
+          type: string
+          minLength: 2
+        otp:
+          $ref: '#/components/schemas/OtpDeOperacion'
+        operationId:
+          $ref: '#/components/schemas/Id'
+      description: 'HU-20.2: nuevo pago para desembolso fallido/devuelto, límites por periodo y OTP RESOLVER_PAGO.'
+    IncidenciaRegistradaRespuesta:
+      type: object
+      additionalProperties: false
+      required:
+      - desembolsoId
+      - estado
+      - operationId
+      properties:
+        desembolsoId:
+          $ref: '#/components/schemas/Id'
+        estado:
+          type: string
+          enum:
+          - FALLIDO
+          - DEVUELTO
+        operationId:
+          $ref: '#/components/schemas/Id'
+    DesembolsoResueltoRespuesta:
+      type: object
+      additionalProperties: false
+      required:
+      - desembolsoId
+      - estado
+      - operationId
+      properties:
+        desembolsoId:
+          $ref: '#/components/schemas/Id'
+        estado:
+          type: string
+          enum:
+          - PAGADO
+        operationId:
+          $ref: '#/components/schemas/Id'
+    ResultadoLote:
+      type: object
+      additionalProperties: false
+      description: Resultado del envío por fila (HU-24.3, paso 7). Mientras el estado no sea PROCESADO, resultados
+        puede venir incompleto.
+      required:
+      - loteId
+      - estado
+      - recibidos
+      - registrados
+      - rechazados
+      - resultados
+      properties:
+        loteId:
+          $ref: '#/components/schemas/Id'
+        estado:
+          type: string
+          enum:
+          - ACEPTADO
+          - EN_PROCESO
+          - PROCESADO
+        recibidos:
+          type: integer
+          minimum: 0
+        registrados:
+          type: integer
+          minimum: 0
+        rechazados:
+          type: integer
+          minimum: 0
+        resultados:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - codigoEstudiante
+            - resultado
+            properties:
+              codigoEstudiante:
+                type: string
+                minLength: 1
+              resultado:
+                type: string
+                enum:
+                - REGISTRADO
+                - RECHAZADO
+              motivo:
+                type: string
+                description: Obligatorio cuando resultado es RECHAZADO.
+              tardio:
+                type: boolean
+                description: Recibido después de la fecha límite del periodo (UTC-4, HU-24.1).
+paths:
+  /api/v1/otp/challenges:
+    post:
+      tags:
+      - S1
+      summary: Crear desafío OTP para operación sensible
+      operationId: S1postapiv1otpchallenges
+      responses:
+        '200':
+          description: 'Desafío creado: identificador y vencimiento que luego exige OtpDeOperacion (R4).'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChallengeResponse'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChallengeRequest'
+  /api/v1/periodos/actual:
+    post:
+      tags:
+      - S2
+      summary: Marcar periodo académico actual
+      operationId: MarcarPeriodoActual
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarcarPeriodoCommand'
+  /api/v1/programas:
+    post:
+      tags:
+      - S2
+      summary: Crear programa sujeto a invariantes DDD
+      operationId: S2postapiv1programas
+      responses:
+        '201':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearProgramaCommand'
+  /api/v1/programas/{programaId}/aportes:
+    post:
+      tags:
+      - S2
+      summary: Registrar aporte de donante
+      operationId: S2postapiv1programasprogramaIdaportes
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: programaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrarAporteCommand'
+  /api/v1/postulaciones:
+    post:
+      tags:
+      - S3
+      summary: Registrar nueva postulación
+      operationId: S3postapiv1postulaciones
+      responses:
+        '201':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostulacionCreada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostulacionRequest'
+  /api/v1/postulaciones/{postulacionId}/verificar:
+    post:
+      tags:
+      - S3
+      summary: Verificar elegibilidad según políticas vigentes
+      operationId: S3postapiv1postulacionespostulacionIdverificar
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: postulacionId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JustificarCommand'
+  /api/v1/postulaciones/{postulacionId}/retirar:
+    post:
+      tags:
+      - S3
+      summary: Retirar postulación según transición válida
+      operationId: S3postapiv1postulacionespostulacionIdretirar
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: postulacionId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JustificarCommand'
+  /api/v1/postulaciones/{postulacionId}/evaluaciones:
+    post:
+      tags:
+      - S3
+      summary: Registrar puntuaciones de evaluación
+      operationId: S3postapiv1postulacionespostulacionIdevaluaciones
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluacionRequest'
+      parameters:
+      - in: path
+        name: postulacionId
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /api/v1/ciclos/{cicloId}/publicar:
+    post:
+      tags:
+      - S3
+      summary: Publicar ciclo/convocatoria
+      operationId: S3postapiv1cicloscicloIdpublicar
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: cicloId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicarCicloCommand'
+  /api/v1/ciclos/{cicloId}/abrir-evaluacion:
+    post:
+      tags:
+      - S3
+      summary: Abrir evaluación y fijar RubricaAplicada
+      operationId: S3postapiv1cicloscicloIdabrirevaluacion
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: cicloId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbrirEvaluacionCommand'
+  /api/v1/ciclos/{cicloId}/seleccion:
+    post:
+      tags:
+      - S3
+      summary: Confirmar selección tras consultar disponibilidad real S2
+      operationId: S3postapiv1cicloscicloIdseleccion
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: cicloId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SeleccionarCommand'
+  /api/v1/ofertas:
+    post:
+      tags:
+      - S4
+      summary: Emitir oferta después de reserva autoritativa S2
+      operationId: S4postapiv1ofertas
+      responses:
+        '201':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfertaEmitidaRespuesta'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfertaRequest'
+      description: Solo a partir de PostulacionSeleccionada.v1 validada y el monto calculado en S2; unicidad (postulacion,ciclo,ofertaPendiente).
+  /api/v1/ofertas/{ofertaId}/aceptar:
+    post:
+      tags:
+      - S4
+      summary: Aceptar oferta por ServicioAceptacionOferta (D-3)
+      operationId: AceptarOferta
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: ofertaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AceptarOfertaCommand'
+  /api/v1/ofertas/{ofertaId}/rechazar:
+    post:
+      tags:
+      - S4
+      summary: Rechazar oferta y emitir evento para liberar reserva
+      operationId: S4postapiv1ofertasofertaIdrechazar
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: ofertaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JustificarCommand'
+  /api/v1/becas/{becaId}/pagos:
+    post:
+      tags:
+      - S4
+      summary: Confirmar pago tras autorización y OTP
+      operationId: S4postapiv1becasbecaIdpagos
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagoConfirmadoRespuesta'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PagoRequest'
+      parameters:
+      - in: path
+        name: becaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /api/v1/becas/{becaId}/revocar:
+    post:
+      tags:
+      - S4
+      summary: Revocar beca con justificación y OTP
+      operationId: S4postapiv1becasbecaIdrevocar
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevocacionRequest'
+      parameters:
+      - in: path
+        name: becaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /api/v1/becas/{becaId}/renovaciones:
+    post:
+      tags:
+      - S4
+      summary: Solicitar renovación según ventana y plan financiero
+      operationId: S4postapiv1becasbecaIdrenovaciones
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: becaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenovarCommand'
+  /api/v1/becas/{becaId}/pausas:
+    post:
+      tags:
+      - S4
+      summary: Solicitar pausa con motivos permitidos
+      operationId: S4postapiv1becasbecaIdpausas
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: becaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JustificarCommand'
+  /api/v1/universidades/{universidadId}/reportes-academicos:
+    post:
+      tags:
+      - S5
+      summary: Recibir lote universitario idempotente
+      operationId: RecibirLoteAcademico
+      responses:
+        '202':
+          description: Lote recibido y encolado de forma duradera, procesado después en S5 (no confirmación final
+            por fila).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoteAceptado'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReporteAcademicoLote'
+      parameters:
+      - in: path
+        name: universidadId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      description: El 202 se devuelve tras persistir la recepción idempotente del lote y un Outbox local. Un worker
+        S5 procesa filas luego por Inbox; la ACL S5 mantiene la correspondencia (universidadId,codigoEstudiante)→BecaId
+        y registra los errores por fila. No se afirma que los reportes ya estén procesados. El resultado por fila
+        se consulta en /reportes-academicos/lotes/{loteId}.
+  /api/v1/universidades/{universidadId}/reportes-academicos/lotes/{loteId}:
+    get:
+      tags:
+      - S5
+      summary: Consultar el resultado de un lote universitario (HU-24.3, paso 7)
+      operationId: ConsultarResultadoLote
+      description: Devuelve qué reportes se registraron y cuáles se rechazaron, con su motivo. Solo la universidad
+        dueña del lote, según las claims del token.
+      responses:
+        '200':
+          description: Resultado del lote, fila por fila
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoLote'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: universidadId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: loteId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+  /api/v1/reportes/impacto:
+    get:
+      tags:
+      - S6
+      summary: Obtener indicadores de impacto anonimizados
+      operationId: S6getapiv1reportesimpacto
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsultaResponse'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+  /api/v1/indicadores:
+    get:
+      tags:
+      - S6
+      summary: Consultar panel CQRS con marca actualizadoEnUtc
+      operationId: S6getapiv1indicadores
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Indicadores'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+  /api/v1/consultas:
+    get:
+      tags:
+      - S6
+      summary: Consultar bandeja de mensajes autorizada
+      operationId: S6getapiv1consultas
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsultaRegistrada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+    post:
+      tags:
+      - S6
+      summary: Enviar una consulta sobre mi postulación o beca (HU-32.1)
+      operationId: RegistrarConsulta
+      responses:
+        '201':
+          description: Consulta registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsultaRegistrada'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrarConsultaCommand'
+  /api/v1/registro-decisiones:
+    get:
+      tags:
+      - S6
+      summary: Consultar traza proyectada sin modificar origen
+      operationId: S6getapiv1registrodecisiones
+      responses:
+        '200':
+          description: Resultado tipado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsultaResponse'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      security:
+      - BearerAuth: []
+  /api/v1/becas/{becaId}/datos-pago:
+    put:
+      tags:
+      - S4
+      summary: Modificar datos de pago con OTP
+      operationId: apiv1becasbecaIddatospagoPut
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: becaId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatosPagoCommand'
+      responses:
+        '200':
+          description: Operación aceptada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/becas/{becaId}/consecuencias:
+    post:
+      tags:
+      - S4
+      summary: Aplicar consecuencia por incumplimiento (HU-25.2); OTP solo al revocar
+      operationId: AplicarConsecuencia
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: becaId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AplicarConsecuenciaCommand'
+      responses:
+        '200':
+          description: Operación aceptada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacionConfirmada'
+        '400':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error estructurado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/desembolsos/{desembolsoId}/marcar-incidencia:
+    post:
+      tags:
+      - S4
+      summary: Marcar desembolso fallido o devuelto (HU-20.2)
+      operationId: MarcarIncidenciaDesembolso
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: desembolsoId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarcarIncidenciaDesembolsoCommand'
+      responses:
+        '200':
+          description: Resultado síncrono; S4 guarda agregado, RegistroDecision y Outbox en una transacción.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidenciaRegistradaRespuesta'
+        '400':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/desembolsos/{desembolsoId}/resolver:
+    post:
+      tags:
+      - S4
+      summary: Resolver con nuevo pago y OTP (HU-20.2)
+      operationId: ResolverDesembolso
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: desembolsoId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolverDesembolsoCommand'
+      responses:
+        '200':
+          description: Resultado síncrono; S4 guarda agregado, RegistroDecision y Outbox en una transacción.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesembolsoResueltoRespuesta'
+        '400':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Error RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'

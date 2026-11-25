@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ascenso.SharedKernel</RootNamespace>
+    <AssemblyName>Ascenso.SharedKernel</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MediatR.Contracts" />
+  </ItemGroup>
+</Project>
