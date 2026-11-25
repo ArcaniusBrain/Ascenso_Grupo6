@@ -1,0 +1,110 @@
+name: Guardrails de PR
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  guardrails:
+    name: Guardrails de PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verificar archivos prohibidos, secretos, OpenSpec y zonas críticas
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          set -euo pipefail
+
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRT "$BASE_SHA" "$HEAD_SHA")
+          echo "=== Archivos tocados en el PR ==="
+          echo "$CHANGED_FILES"
+
+          ERRORS=0
+
+          # 1. Bloquear archivos prohibidos (secretos, artefactos de build y overrides locales)
+          FORBIDDEN_REGEX='(^|/)(\.env($|\.(?!example$))|appsettings\.[^/]+\.local\.json$|secrets\.json$|.*\.(pfx|p12|key)$|.*-firebase-adminsdk-.*\.json$|serviceAccount.*\.json$|firebase-credentials.*\.json$|bin/|obj/|node_modules/|\.next/|TestResults/|CLAUDE\.local\.md$|GEMINI\.local\.md$|\.agents/|\.claude/|\.gemini/|\.cursor/|\.codex/)'
+          FORBIDDEN_HITS=$(echo "$CHANGED_FILES" | grep -P "$FORBIDDEN_REGEX" || true)
+          if [ -n "$FORBIDDEN_HITS" ]; then
+            echo "::error::Se detectaron archivos prohibidos o secretos locales en el PR:"
+            echo "$FORBIDDEN_HITS"
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          # 2. Escanear líneas añadidas por claves privadas evidentes
+          SECRET_HITS=$(git diff -U0 "$BASE_SHA" "$HEAD_SHA" -- ':(exclude).github/workflows/pr-guardrails.yml' | grep -E '^\+.*BEGIN (RSA |EC |OPENSSH |DSA )?PRIVATE KEY' || true)
+          if [ -n "$SECRET_HITS" ]; then
+            echo "::error::Se detectó una clave privada en el diff del PR. Revócala de inmediato y elimínala del historial."
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          # 3. Exigir OpenSpec cuando se modifica código o contratos (ADR-23)
+          TOUCHES_CODE=$(echo "$CHANGED_FILES" | grep -E '^(services|building-blocks|contracts|gateway|frontend)/' || true)
+          TOUCHES_OPENSPEC=$(echo "$CHANGED_FILES" | grep -E '^openspec/' || true)
+          HAS_EXEMPT_LABEL=$(echo ",$PR_LABELS," | grep -i ',sin-openspec,' || true)
+
+          if [ -n "$TOUCHES_CODE" ] && [ -z "$TOUCHES_OPENSPEC" ] && [ -z "$HAS_EXEMPT_LABEL" ]; then
+            echo "::error::Este PR modifica código o contratos pero no incluye ningún cambio en openspec/ (ADR-23). Crea o archiva el cambio OpenSpec correspondiente (o usa la etiqueta 'sin-openspec' solo para hotfixes menores justificados)."
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          # 4. Proteger licencia MediatR < 13.0.0 (ADR-27)
+          if echo "$CHANGED_FILES" | grep -qx 'Directory.Packages.props'; then
+            MEDIATR_VER=$(grep -oP 'Include="MediatR"\s+Version="\K[^"]+' Directory.Packages.props || true)
+            if [ -n "$MEDIATR_VER" ]; then
+              MAJOR=$(echo "$MEDIATR_VER" | cut -d. -f1)
+              if [ "$MAJOR" -ge 13 ]; then
+                echo "::error::Directory.Packages.props fija MediatR en $MEDIATR_VER (>= 13.0.0), prohibido por ADR-27 (licencia comercial)."
+                ERRORS=$((ERRORS + 1))
+              fi
+            fi
+          fi
+
+          # 5. Validar descripción mínima y referencia de trazabilidad en el PR
+          CLEAN_BODY=$(printf '%s' "$PR_BODY" | perl -0777 -pe 's/<!--.*?-->//gs' | tr -d '[:space:]')
+          if [ "${#CLEAN_BODY}" -lt 20 ]; then
+            echo "::error::Completa la descripción del Pull Request (plantilla) explicando qué cambia y cómo se probó."
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          if ! printf '%s\n%s' "$PR_TITLE" "$PR_BODY" | grep -Eiq '(HU-[0-9]+|RF-[0-9]+|ADR-[0-9]+|DDD|R[0-9]{1,2}|C[0-9]{1,2}|openspec/|#[0-9]+)'; then
+            echo "::error::El título o la descripción del PR deben citar al menos una referencia (HU-xx, RF-xx, ADR-xx, DDD, openspec/ o #issue)."
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          # 6. Resumen visible en GitHub cuando se tocan zonas críticas compartidas
+          CRITICAL_HITS=$(echo "$CHANGED_FILES" | grep -E '^(building-blocks/|contracts/|Directory\.Packages\.props$|Directory\.Build\.props$|Ascenso\.sln$|deploy/postgres/init-schemas\.sql$|\.github/)' || true)
+          {
+            echo "## Resumen de Guardrails de PR"
+            if [ -n "$CRITICAL_HITS" ]; then
+              echo ""
+              echo "> [!WARNING]"
+              echo "> **Este PR modifica archivos críticos compartidos por todo el equipo.** Requiere revisión estricta y acuerdo antes de fusionar:"
+              echo ""
+              echo '```text'
+              echo "$CRITICAL_HITS"
+              echo '```'
+            else
+              echo ""
+              echo "No se modificaron archivos críticos compartidos (\`building-blocks/\`, \`contracts/\`, \`Directory.*.props\`, \`init-schemas.sql\`, \`.github/\`)."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "Guardrails fallidos con $ERRORS error(es)."
+            exit 1
+          fi
+
+          echo "Todos los guardrails de PR pasaron correctamente."
