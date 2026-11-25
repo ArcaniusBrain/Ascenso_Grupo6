@@ -53,7 +53,12 @@ classDiagram
       +CedulaTitular: Cedula
       +Banco: string
       +TipoCuenta: string
-      +Numero: string
+      +Numero: NumeroCuentaCifrado
+    }
+    class NumeroCuentaCifrado {
+      <<Value Object>>
+      +ValorCifrado: string
+      +Enmascarado() string
     }
   }
   namespace Agregado_VentanaRenovacion {
@@ -133,6 +138,7 @@ classDiagram
   Oferta "1" *-- "1" CondicionesPermanencia : copia de lo ofrecido
   BeneficiosPersona "1" *-- "*" BeneficioVigente : becas de la persona
   DatosPago "1" *-- "1" CuentaBancaria : cuenta
+  CuentaBancaria "1" *-- "1" NumeroCuentaCifrado : número cifrado
   Beca "1" *-- "1..*" TramoBeca : tramos por periodo
   Beca "1" *-- "0..1" Compromiso : compromiso
   Beca "1" *-- "*" Suspension : suspensiones y pausas
@@ -146,6 +152,7 @@ classDiagram
   style BeneficioVigente fill:#bbdefb,stroke:#1565c0,color:#000000
   style DatosPago fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style CuentaBancaria fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style NumeroCuentaCifrado fill:#c8e6c9,stroke:#2e7d32,color:#000000
   style VentanaRenovacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style Beca fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style TramoBeca fill:#bbdefb,stroke:#1565c0,color:#000000

@@ -77,7 +77,7 @@ classDiagram
   Entidad~TId~ ..> IEventoDeDominio : registra
   IManejador~TEvento~ ..> IEventoDeDominio : maneja
   note for Entidad "Igual a otra si tiene el mismo Id (lámina 23). Toda entidad interna hereda de aquí."
-  note for RaizDeAgregado "Toda raíz hereda de aquí. Version: la base la compara al guardar (lámina 31)."
+  note for RaizDeAgregado "Toda raíz hereda de aquí. Toda operación que cambie el agregado, aunque solo toque una entidad interna, incrementa Version en la raíz. La base compara esa versión explícita al guardar (DDD-07, lámina 31)."
   note for Dinero "record inmutable: valida al nacer cantidad no negativa y moneda de 3 letras; no suma monedas distintas (lámina 25)."
   note for VentanaFechas "R20: UTC-4, el día de cierre se incluye hasta las 23:59. Única implementación."
   note for CodigoPeriodo "Así se referencia un periodo desde fuera de CalendarioAcademico, por ejemplo 2026-2."

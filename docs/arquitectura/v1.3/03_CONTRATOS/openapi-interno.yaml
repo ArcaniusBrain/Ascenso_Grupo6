@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: ASCENSO - API interservicios privada v1.2
-  version: 1.2.0
-  description: NO exponer por YARP. Solo malla privada, autenticación OAuth2 client_credentials y permisos granulares.
+  title: ASCENSO - API interservicios privada v1.3
+  version: 1.3.0
+  description: NO exponer por YARP. Solo malla privada, autenticación OAuth2 client_credentials y permisos granulares. Alineada con Ronda 5 (A1/R31 renovación al solicitar, A2/R32 reserva por duración completa) y ADR-26 (conciliación segura S2->S4).
 servers:
 - url: http://servicio-interno:8080
   description: Solo DNS privado Docker/Kubernetes
@@ -14,9 +14,10 @@ components:
         clientCredentials:
           tokenUrl: https://keycloak.internal/realms/ascenso/protocol/openid-connect/token
           scopes:
-            fondos.reservar: S4->S2 reservas
+            fondos.reservar: S4->S2 reservas de oferta y renovación
             fondos.liberar: S4->S2 compensación
             fondos.consultar: S3->S2 disponibilidad
+            ofertas.consultar-vinculo: S2->S4 conciliación segura de reservas sin vincular (ADR-26)
             otp.consumir: S4->S1 validación de OTP
             beneficios.consultar: S3->S4 confirmación beca activa
   schemas:
@@ -62,10 +63,67 @@ components:
         montoCalculado:
           type: number
           minimum: 0
+          description: En oferta nueva cubre toda la duración de la beca (montoPorPeriodo * duracionPeriodos, R32/A2). En renovación equivale al monto fijado al enviar la solicitud (R31/A1).
+        duracionPeriodos:
+          type: integer
+          minimum: 1
+          description: Cantidad de periodos comprometidos (toda la duración en oferta nueva; 1 en renovación).
         moneda:
           type: string
           minLength: 3
           maxLength: 3
+    ReservaRenovacionInternaCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - programaId
+      - becaId
+      - codigoPeriodo
+      - montoSolicitado
+      - moneda
+      - operationId
+      properties:
+        programaId:
+          $ref: '#/components/schemas/Id'
+        becaId:
+          $ref: '#/components/schemas/Id'
+        codigoPeriodo:
+          type: string
+          example: 2027-1
+        montoSolicitado:
+          type: number
+          exclusiveMinimum: 0
+          description: Monto fijado por estudiante al enviar la solicitud de renovación (C1, R31/A1).
+        moneda:
+          type: string
+          minLength: 3
+          maxLength: 3
+        operationId:
+          $ref: '#/components/schemas/Id'
+    EstadoVinculoReservaResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - reservaId
+      - existeVinculo
+      - consultadoEnUtc
+      properties:
+        reservaId:
+          $ref: '#/components/schemas/Id'
+        existeVinculo:
+          type: boolean
+          description: true si S4 tiene una Oferta o SolicitudRenovacion persistida asociada a reservaId; false confirma que la reserva es huérfana y puede liberarse de forma segura.
+        tipoVinculo:
+          type: string
+          enum:
+          - OFERTA
+          - SOLICITUD_RENOVACION
+          - NINGUNO
+        recursoId:
+          $ref: '#/components/schemas/Id'
+        consultadoEnUtc:
+          type: string
+          format: date-time
     LiberacionInternaCommand:
       type: object
       required:
@@ -162,7 +220,7 @@ components:
 paths:
   /internal/v1/fondos/reservas:
     post:
-      summary: Reservar importe/cupos calculados en S2, clave única por postulación y ciclo
+      summary: Reservar importe total (toda la duración de la beca, R32/A2) y cupos en S2, clave única por postulación y ciclo
       security:
       - ClienteServicio:
         - fondos.reservar
@@ -209,6 +267,55 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ReservaInternaCommand'
+  /internal/v1/fondos/reservas/renovaciones:
+    post:
+      summary: Reservar presupuesto al enviar solicitud de renovación en S2 (R31/A1), clave única por beca y periodo
+      security:
+      - ClienteServicio:
+        - fondos.reservar
+      responses:
+        '200':
+          description: Reserva de renovación creada o devuelta de forma idempotente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaInternaResponse'
+        '401':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Presupuesto insuficiente o reserva duplicada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error de validación de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: Servicio S2 no disponible (falla cerrada)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservaRenovacionInternaCommand'
   /internal/v1/fondos/reservas/{reservaId}/liberar:
     post:
       summary: Compensación segura e idempotente
@@ -402,3 +509,41 @@ paths:
         description: Identificador interno opaco, no cédula ni otro dato personal.
       description: S3 obtiene personaId en contexto autorizado; S4 consulta estado autoritativo, falla cerrada si
         no responde.
+  /internal/v1/reservas/{reservaId}/vinculo:
+    get:
+      summary: Conciliación segura S2->S4 para verificar existencia real de oferta o renovación antes de liberar reserva (ADR-26)
+      security:
+      - ClienteServicio:
+        - ofertas.consultar-vinculo
+      parameters:
+      - in: path
+        name: reservaId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      responses:
+        '200':
+          description: Estado autoritativo del vínculo en S4
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadoVinculoReservaResponse'
+        '401':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error de frontera privada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '503':
+          description: S4 no disponible; S2 no libera y reintenta en el próximo ciclo (falla segura)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      description: Solo invocado por el reconciliador de S2 tras superar el plazo de gracia (30 min). Si S4 no responde 200 con existeVinculo=false, S2 nunca libera la reserva.

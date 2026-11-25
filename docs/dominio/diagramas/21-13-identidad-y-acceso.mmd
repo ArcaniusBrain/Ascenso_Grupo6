@@ -24,6 +24,14 @@ classDiagram
       ACTIVO
       DESACTIVADO
     }
+    class TipoOperacionSensible {
+      <<Enumeración>>
+      CONFIRMAR_PAGO
+      RESOLVER_PAGO
+      MODIFICAR_DATOS_PAGO
+      REVOCAR_BECA
+      APLICAR_CONSECUENCIA_REVOCATORIA
+    }
   }
   namespace Agregado_TipoUsuario {
     class TipoUsuario {
@@ -45,6 +53,12 @@ classDiagram
       +PuedeEnviarPor(universidadId: UniversidadId) bool
       +Revocar() void
     }
+  }
+  class UsuarioRegistrado {
+    <<Evento de dominio>>
+    +UsuarioId: UsuarioId
+    +Cedula: Cedula
+    +Fecha: DateTimeOffset
   }
   class IUsuarioRepository {
     <<interface>>
@@ -68,17 +82,20 @@ classDiagram
   }
   Usuario --> CanalCodigo
   Usuario --> EstadoUsuario
+  Usuario ..> UsuarioRegistrado : registra
   Usuario ..> TipoUsuario : tipoUsuarioId
   ClienteApiUniversidad ..> UniversidadAliada : universidadId
   Usuario ..> UniversidadAliada : universidadId del enlace
   IUsuarioRepository ..> Usuario : guarda
   ITipoUsuarioRepository ..> TipoUsuario : guarda
   IClienteApiUniversidadRepository ..> ClienteApiUniversidad : guarda
-  note for Usuario "Protege: cédula única (R1); se desactiva, nunca se borra. La cuenta del postulante también es un Usuario (HU-01.1)."
+  note for Usuario "Protege: cédula única (R1); se desactiva, nunca se borra. S1 es la fuente de verdad de identidad y alcance; Keycloak guarda credenciales y 2FA. Al registrar un postulante publica UsuarioRegistrado para S3 (DDD-11, flujo 16.4f)."
   note for TipoUsuario "Catálogo configurable: un tipo nuevo no exige código (Anexo A HU-37.1)."
   style Usuario fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style CanalCodigo fill:#eeeeee,stroke:#757575,color:#000000
   style EstadoUsuario fill:#eeeeee,stroke:#757575,color:#000000
+  style TipoOperacionSensible fill:#eeeeee,stroke:#757575,color:#000000
+  style UsuarioRegistrado fill:#ffcc80,stroke:#e65100,color:#000000
   style TipoUsuario fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style ClienteApiUniversidad fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style IUsuarioRepository fill:#ffffff,stroke:#424242,color:#000000

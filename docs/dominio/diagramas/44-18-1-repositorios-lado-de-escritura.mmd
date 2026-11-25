@@ -22,7 +22,8 @@ classDiagram
   }
   class IServicioOtp {
     <<interface>>
-    +Validar(usuarioId: UsuarioId, codigo: string) bool
+    +SolicitarDesafio(usuarioId: UsuarioId, operacion: TipoOperacionSensible, recursoId: string, canal: CanalCodigo) ChallengeId
+    +ValidarYConsumir(usuarioId: UsuarioId, operacion: TipoOperacionSensible, recursoId: string, challengeId: ChallengeId, codigo: string) bool
   }
   ConfirmarPagoHandler --> IBecaRepository : usa
   ConfirmarPagoHandler --> IServicioOtp : usa

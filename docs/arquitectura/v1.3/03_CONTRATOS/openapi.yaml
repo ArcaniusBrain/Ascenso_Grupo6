@@ -185,8 +185,7 @@ components:
               estadoMatricula:
                 type: string
                 minLength: 1
-                description: Valor de la enumeración EstadoMatricula del DDD v3.2, que hoy solo define INSCRITO;
-                  el catálogo completo está por cerrar.
+                description: Texto libre enviado por la universidad (R37/A7). S5 conserva el texto original y lo clasifica internamente en EstadoMatricula (INSCRITO, RETIRADO, CONGELADO, EGRESADO o NO_RECONOCIDO, según ADR-29 / C10).
             required:
             - codigoEstudiante
             - promedio

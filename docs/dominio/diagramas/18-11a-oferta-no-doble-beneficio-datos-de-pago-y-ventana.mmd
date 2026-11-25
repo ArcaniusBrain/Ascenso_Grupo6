@@ -61,6 +61,7 @@ classDiagram
       -becarioId: PostulanteId
       +Registrar(cuenta: CuentaBancaria) void
       +Cambiar(cuenta: CuentaBancaria) void
+      +RegistrarConsulta(usuarioId: UsuarioId, motivo: string) void
     }
     class CuentaBancaria {
       <<Value Object>>
@@ -68,7 +69,12 @@ classDiagram
       +CedulaTitular: Cedula
       +Banco: string
       +TipoCuenta: string
-      +Numero: string
+      +Numero: NumeroCuentaCifrado
+    }
+    class NumeroCuentaCifrado {
+      <<Value Object>>
+      +ValorCifrado: string
+      +Enmascarado() string
     }
   }
   namespace Agregado_VentanaRenovacion {
@@ -147,6 +153,7 @@ classDiagram
   Oferta --> EstadoOferta
   BeneficiosPersona "1" *-- "*" BeneficioVigente : becas de la persona
   DatosPago "1" *-- "1" CuentaBancaria : cuenta
+  CuentaBancaria "1" *-- "1" NumeroCuentaCifrado : número cifrado
   Oferta ..> Postulacion : postulacionId
   Oferta ..> Programa : programaId
   VentanaRenovacion ..> Programa : programaId
@@ -164,6 +171,8 @@ classDiagram
   note for BeneficiosPersona "La regla C2 vive en la raíz (lámina 31): no dos becas COMPLETO activas; suma por periodo menor o igual al costo de matrícula."
   note for ServicioAceptacionOferta "Toca dos agregados y no pertenece a ninguno, como ServicioDeTransferencia de la lámina 36 (D-3)."
   note for Oferta "Protege: se acepta una sola vez y antes de la fecha límite (HU-16.1, R20)."
+  note for DatosPago "Toda consulta de los datos completos deja registro en bitácora de lectura en S4, distinta de RegistroDecision (DDD-12, HU-20.3, v1.3 §8.3)."
+  note for NumeroCuentaCifrado "Se guarda cifrado en reposo; solo se descifra para ejecutar el pago y en API se devuelve enmascarado (DDD-13, ADR-18)."
   style Oferta fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style CondicionesPermanencia fill:#c8e6c9,stroke:#2e7d32,color:#000000
   style EstadoOferta fill:#eeeeee,stroke:#757575,color:#000000
@@ -171,6 +180,7 @@ classDiagram
   style BeneficioVigente fill:#bbdefb,stroke:#1565c0,color:#000000
   style DatosPago fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style CuentaBancaria fill:#c8e6c9,stroke:#2e7d32,color:#000000
+  style NumeroCuentaCifrado fill:#c8e6c9,stroke:#2e7d32,color:#000000
   style VentanaRenovacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style OfertaFactory fill:#fff59d,stroke:#f9a825,color:#000000
   style ServicioAceptacionOferta fill:#e1bee7,stroke:#6a1b9a,color:#000000

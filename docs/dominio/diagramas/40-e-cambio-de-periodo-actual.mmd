@@ -17,10 +17,10 @@ sequenceDiagram
   EV->>M: Manejar(PeriodoMarcadoActual)
   M->>RB: ParaCambioDePeriodo(2027-1)
   RB-->>M: becaIds
-  loop Por cada beca, paginado e idempotente
+  loop Por cada beca Renovada, paginado e idempotente
     M->>RB: ObtenerPorId(becaId)
     RB-->>M: beca
     M->>B: IniciarNuevoPeriodo(2027-1)
     M->>RB: Guardar(beca)
   end
-  Note over M,B: Una transacción por beca, con su RegistroDecision y actor sistema
+  Note over M,B: Una transacción por beca, con RegistroDecision y actor sistema. Solo activa becas Renovada (RF-38); la inactivación por no renovar la dispara el cierre de ventana (DDD-08, R38)

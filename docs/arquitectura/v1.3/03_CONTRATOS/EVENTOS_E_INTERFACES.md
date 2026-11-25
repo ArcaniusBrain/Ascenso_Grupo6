@@ -19,13 +19,15 @@ Una nueva propiedad opcional mantiene compatibilidad; cambiar el significado o e
 
 | Evento de integración | S origen | S que consumen | Resultado local |
 |---|---|---|---|
+| `UsuarioRegistrado.v1` | S1 | S3, S6 | Crear `Postulante` de forma idempotente por `UsuarioId` (DDD-11), bienvenida |
 | `CicloPublicado.v1` | S3 | S2, S6 | Crear/actualizar cupo de ciclo, indicadores |
 | `PeriodoEvaluacionAbierto.v1` | S3 | S2, S6 | Bloqueo de rúbrica según DDD D-4, aviso |
 | `OfertaEmitida.v1` | S4 | S2, S3, S6 | Vincular reserva, marcar oferta, aviso |
 | `OfertaAceptada.v1` | S4 | S2, S3, S6 | Confirmar asignación, registrar otorgamiento, aviso |
 | `OfertaExpirada.v1` | S4 | S2, S3, S6 | Liberar fondos/cupo, retiro por expiración, sugerir espera |
-| `BecaRevocada.v1` | S4 | S2, S6 | Liberación eventual segura, informes |
-| `BecaInactivada.v1` | S4 | S6 | Actualizar panel; **no liberar cupo/presupuesto** |
+| `BecaActivada.v1` / `BecaSuspendida.v1` | S4 | S3, S6 | Proyección de estado en S3 (informativa; HU-01.2 siempre consulta S3→S4), avisos e indicadores |
+| `BecaRevocada.v1` | S4 | S2, S3, S6 | Liberación eventual segura en S2, proyección en S3, informes |
+| `BecaInactivada.v1` | S4 | S3, S6 | Actualizar proyección en S3 y panel en S6; **no liberar cupo/presupuesto** (R27) |
 | `PagoConfirmado.v1` | S4 | S2, S6 | Registro/indicadores financieros idempotentes |
 | `ReporteAcademicoRegistrado.v1` | S5 | S6 | Proyección de seguimiento |
 | `IncumplimientoDetectado.v1` | S5 | S4, S6 | Crear alerta, **no revocar automáticamente** |
@@ -46,11 +48,12 @@ Consulte `04_MATRICES/MAPEO_34_EVENTOS_DOMINIO.csv` para los 34 eventos del DDD.
 
 ## Reserva de presupuesto
 
-- Solicitar `POST /internal/v1/fondos/reservas` desde S4 (no público); solo identificadores de programa, postulación, ciclo y operación. S2 calcula el importe/periodos desde `Programa.MontoPorPeriodo` y el calendario vigente.
-- El S2 calcula y confirma de forma autoritativa `PresupuestoPrograma.ReservarOferta()`; igualdad del importe con el disponible sí es válida.
-- El S4 no confirma oferta si no tiene `reservaId` persistido.
-- En error, compensar sin duplicados. El recolector verifica si la oferta existe en S4 y no borra reservas solamente por timeout.
-- El dominio de S2 protege dinero y ambos cupos en una única actualización versionada.
+- **Oferta nueva (R32 / A2):** solicitar `POST /internal/v1/fondos/reservas` desde S4 (no público); solo identificadores de programa, postulación, ciclo y operación. S2 calcula el importe por **toda la duración de la beca** (`Programa.MontoPorPeriodo * Programa.DuracionPeriodos`) y el calendario vigente.
+- **Renovación (R31 / A1):** solicitar `POST /internal/v1/fondos/reservas/renovaciones` desde S4 al enviar la solicitud de renovación, con el monto asignado al estudiante en ese momento y clave única `(becaId, codigoPeriodo)`.
+- El S2 calcula y confirma de forma autoritativa `PresupuestoPrograma.ReservarOferta()` / `ReservarRenovacion()`; igualdad del importe con el disponible sí es válida.
+- El S4 no confirma oferta ni solicitud de renovación si no tiene `reservaId` persistido.
+- En error, compensar sin duplicados (`POST /internal/v1/fondos/reservas/{reservaId}/liberar`). El reconciliador de S2 espera 30 minutos de gracia y consulta `GET /internal/v1/reservas/{reservaId}/vinculo` en S4 (ADR-26); si S4 no responde o confirma vínculo existente, **no libera**.
+- El dominio de S2 protege dinero y ambos cupos en una única actualización versionada (`Version` explícita, ADR-25).
 
 ## Contrato HTTP
 
@@ -78,7 +81,7 @@ Consulte `04_MATRICES/MAPEO_34_EVENTOS_DOMINIO.csv` para los 34 eventos del DDD.
 
 - OTP: `POST /api/v1/otp/challenges` responde con `ChallengeResponse` (`challengeId` y `expiraEnUtc`), que es lo que después exige `OtpDeOperacion`.
 - HU-25.2: `AplicarConsecuenciaCommand` lleva la consecuencia elegida (`LLAMADO_ATENCION`, `SUSPENSION` o `REVOCACION`, enumeración `Consecuencia` del DDD), el siguiente paso y, para la suspensión, la fecha de revisión (nula significa indefinida, HU-21.1). El OTP solo es obligatorio al revocar (HU-22.1). El servidor rechaza una consecuencia que la política vigente del programa no contempla.
-- HU-24.3: cada reporte del lote lleva promedio, materias aprobadas, materias reprobadas y estado de matrícula. El resultado por fila (registrado o rechazado, con su motivo) se consulta en `GET /api/v1/universidades/{universidadId}/reportes-academicos/lotes/{loteId}`. El DDD v3.2 solo define `INSCRITO` en `EstadoMatricula`; el catálogo completo queda por cerrar con el equipo.
+- HU-24.3: cada reporte del lote lleva promedio, materias aprobadas, materias reprobadas y estado de matrícula en **texto libre** (R37/A7). S5 conserva el texto original y lo clasifica internamente en `INSCRITO`, `RETIRADO`, `CONGELADO`, `EGRESADO` o `NO_RECONOCIDO` (DDD v3.3, ADR-29/C10). El resultado por fila (registrado o rechazado, con su motivo) se consulta en `GET /api/v1/universidades/{universidadId}/reportes-academicos/lotes/{loteId}`.
 - HU-32.1: `POST /api/v1/consultas` usa `RegistrarConsultaCommand`, que antes no tenía ruta.
 - Se retira `ReservaResponse` del contrato público porque pertenece al contrato interno.
 - Eventos catalogados en `04_MATRICES/CATALOGO_EVENTOS_INTEGRACION.csv`: `CostoMatriculaVigente`, `SugerenciaListaEspera` y `LoteAcademicoRecibido`. Este último es interno de S5 y no sale por RabbitMQ hacia otros servicios.

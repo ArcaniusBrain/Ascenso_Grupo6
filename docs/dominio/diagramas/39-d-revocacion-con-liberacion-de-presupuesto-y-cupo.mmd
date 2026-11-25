@@ -9,13 +9,13 @@ sequenceDiagram
   participant RP as :IPresupuestoProgramaRepository
   participant PP as :PresupuestoPrograma
   UI->>H: Manejar(RevocarBeca)
-  H->>OTP: Validar(usuarioId, codigo)
-  OTP-->>H: true
   H->>RB: ObtenerPorId(becaId)
   RB-->>H: beca
+  H->>OTP: ValidarYConsumir(usuarioId, REVOCAR_BECA, becaId, challengeId, codigo)
+  OTP-->>H: true
   H->>B: Revocar(motivo, grave)
   H->>RB: Guardar(beca)
-  Note over H,B: Transacción 1: Beca, con su RegistroDecision y su Outbox
+  Note over H,B: Transacción 1 (S4): Beca (incrementa Version), RegistroDecision y Outbox. Si falla tras validar OTP, se pide código nuevo (R42)
   H->>EV: Publicar(beca.EventosPendientes)
   H-->>UI: ok
   EV->>M: Manejar(BecaRevocada)
@@ -23,4 +23,4 @@ sequenceDiagram
   RP-->>M: presupuesto
   M->>PP: LiberarBecaRevocada(montoNoDesembolsado)
   M->>RP: Guardar(presupuesto)
-  Note over M,PP: Transacción 2: liberar solo aumenta lo disponible, por eso puede ir después
+  Note over M,PP: Transacción 2 (S2): liberar solo aumenta lo disponible, por eso puede ir después

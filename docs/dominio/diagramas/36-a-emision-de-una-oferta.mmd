@@ -9,12 +9,12 @@ sequenceDiagram
   UI->>H: Manejar(EmitirOferta)
   H->>RP: ObtenerPorPrograma(programaId)
   RP-->>H: presupuesto
-  H->>PP: ReservarOferta(monto, cicloId)
+  H->>PP: ReservarOferta(montoTotalDuracion, cicloId)
   H->>RP: Guardar(presupuesto)
-  Note over H,PP: Transacción 1: solo PresupuestoPrograma
+  Note over H,PP: Transacción 1 (en S2): solo PresupuestoPrograma; monto cubre toda la duración de la beca (R32)
   H->>F: Emitir(postulacion, programa, ciclo, fechaLimite, carta)
   F-->>H: oferta
   H->>RO: Guardar(oferta)
-  Note over H,RO: Transacción 2: solo Oferta. Si falla, la aplicación invoca LiberarOferta (compensación, HU-15.1)
+  Note over H,RO: Transacción 2 (en S4): solo Oferta. Si falla, S4 compensa con LiberarOferta; si cae la red, S2 reconcilia consultando a S4 antes de liberar (HU-15.1, adenda S2/S4)
   H->>EV: Publicar(oferta.EventosPendientes)
   H-->>UI: ok

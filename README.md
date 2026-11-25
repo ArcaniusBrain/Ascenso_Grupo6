@@ -14,7 +14,7 @@ ASCENSO gestiona el ciclo completo de becas de la Fundación Ascenso: postulaci�
 | PRD del cliente | 17-sep-2026 | [`docs/requisitos/prd.md`](docs/requisitos/prd.md) |
 | Respuestas del cliente (C1–C5, R1–R44) | Rondas 1 a 5 | [`docs/requisitos/respuestas_cliente.md`](docs/requisitos/respuestas_cliente.md) |
 | Historias de usuario · Plan B (73 HU, 714 escenarios) | Final, 14-oct-2026 | [`docs/requisitos/historias-de-usuario/`](docs/requisitos/historias-de-usuario/README.md) |
-| Modelo de dominio (DDD) | v3.2 + adenda v3.3 (S2/S4) | [`docs/dominio/`](docs/dominio/DDD_v3.2.md) |
+| Modelo de dominio (DDD) | **v3.3**, 24-nov-2026 | [`docs/dominio/DDD_v3.3.md`](docs/dominio/DDD_v3.3.md) *(v3.2 conservada como histórico)* |
 | **Arquitectura de software** | **v1.3**, 20-nov-2026 | [`docs/arquitectura/`](docs/arquitectura/README.md) |
 | Pendientes después de la v1.3 | — | [`docs/arquitectura/pendientes-v1.3.md`](docs/arquitectura/pendientes-v1.3.md) |
 | Guía de OpenSpec del equipo | — | [`docs/guia-openspec.md`](docs/guia-openspec.md) |
@@ -49,7 +49,7 @@ Sigue la arquitectura v1.3, §12:
 ├── openspec/          Specs por capacidad y cambios (obligatorio)
 ├── docs/
 │   ├── requisitos/    PRD, respuestas del cliente, historias de usuario
-│   ├── dominio/       DDD v3.2, adenda v3.3, diagramas
+│   ├── dominio/       DDD v3.3 (vigente), v3.2 histórico, diagramas
 │   └── arquitectura/  Arquitectura v1.3 (vigente) e histórico
 ├── tools/             Scripts de apoyo (OpenSpec, diagramas, ETL)
 └── .github/           Validación automática, plantilla de pull request, responsables por carpeta

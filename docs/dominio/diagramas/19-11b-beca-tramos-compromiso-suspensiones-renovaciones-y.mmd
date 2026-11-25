@@ -22,6 +22,7 @@ classDiagram
       +SolicitarRenovacion(periodo: CodigoPeriodo, monto: Dinero) void
       +AprobarRenovacion(j: Justificacion) void
       +RechazarRenovacion(j: Justificacion) void
+      +InactivarPorNoRenovacion() void
       +IniciarNuevoPeriodo(periodo: CodigoPeriodo) void
       +SalirDeInactiva(aActiva: bool, j: Justificacion) void
       +Concluir(j: Justificacion) void
@@ -126,6 +127,7 @@ classDiagram
     class EstadoDesembolso {
       <<Enumeración>>
       PROGRAMADO
+      APLAZADO
       PAGADO
       CON_INCIDENCIA
       CANCELADO
@@ -268,7 +270,7 @@ classDiagram
   Beca ..> PagoFallido : registra
   Beca ..> PagoDevuelto : registra
   IBecaRepository ..> Beca : guarda
-  note for Beca "Protege: solo las transiciones de 15.2 (patrón State); lo pagado por periodo no supera su tramo; sin pagos sin compromiso exigido, ni en Suspendida, Revocada, Concluida o Inactiva para el periodo siguiente."
+  note for Beca "Protege: solo las transiciones de 15.2 (Stateless / patrón State); lo pagado por periodo no supera su tramo; sin pagos sin compromiso exigido ni en Suspendida, Revocada, Concluida o Inactiva para el periodo siguiente. Al suspender, los desembolsos en ese rango pasan a APLAZADO y vuelven a PROGRAMADO al reanudar (DDD-09, R12). El monto de renovación se fija al solicitar (R31); la inactivación por no renovar la dispara el cierre de ventana (DDD-08, R38)."
   note for TramoBeca "Identidad natural: su periodo dentro de la beca (C1)."
   style Beca fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style TramoBeca fill:#bbdefb,stroke:#1565c0,color:#000000

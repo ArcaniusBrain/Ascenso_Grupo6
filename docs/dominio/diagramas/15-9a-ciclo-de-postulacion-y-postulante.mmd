@@ -134,7 +134,7 @@ classDiagram
   ICicloPostulacionRepository ..> CicloPostulacion : guarda
   IPostulanteRepository ..> Postulante : guarda
   note for CicloPostulacion "Protege: apertura antes del cierre; invisible hasta publicarse; la rúbrica se congela al abrir la evaluación (R16, D-4)."
-  note for Postulante "Protege: una cuenta por cédula (R1); postula solo con todas las secciones completas (HU-01.1)."
+  note for Postulante "Protege: una cuenta por cédula (garantizada por S1 como fuente de verdad, R1, DDD-11); se crea de forma idempotente al consumir UsuarioRegistrado; postula solo con todas las secciones completas (HU-01.1)."
   style CicloPostulacion fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style CriterioElegibilidad fill:#c8e6c9,stroke:#2e7d32,color:#000000
   style DocumentoRequerido fill:#c8e6c9,stroke:#2e7d32,color:#000000

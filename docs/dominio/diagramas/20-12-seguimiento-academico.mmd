@@ -9,13 +9,18 @@ classDiagram
       -promedio: Promedio
       -materiasAprobadas: int
       -materiasReprobadas: int
-      -matricula: EstadoMatricula
+      -matricula: EstadoMatriculaClasificado
       -origen: OrigenReporte
       -autorId: UsuarioId
       -entregado: datetime
       -tardio: bool
-      +Registrar(becaId: BecaId, periodo: CodigoPeriodo, promedio: Promedio, origen: OrigenReporte, plazo: PlazoReporte, ahora: datetime)$ ReporteAcademico
+      +Registrar(becaId: BecaId, periodo: CodigoPeriodo, promedio: Promedio, matricula: EstadoMatriculaClasificado, origen: OrigenReporte, plazo: PlazoReporte, ahora: datetime)$ ReporteAcademico
       +EsTardio() bool
+    }
+    class EstadoMatriculaClasificado {
+      <<Value Object>>
+      +TextoOriginal: string
+      +Clasificacion: EstadoMatricula
     }
     class OrigenReporte {
       <<Enumeración>>
@@ -26,6 +31,10 @@ classDiagram
     class EstadoMatricula {
       <<Enumeración>>
       INSCRITO
+      RETIRADO
+      CONGELADO
+      EGRESADO
+      NO_RECONOCIDO
     }
   }
   namespace Agregado_PlazoReporte {
@@ -95,7 +104,8 @@ classDiagram
     <<Raíz · otro agregado>>
   }
   ReporteAcademico --> OrigenReporte
-  ReporteAcademico --> EstadoMatricula
+  ReporteAcademico "1" *-- "1" EstadoMatriculaClasificado : matrícula
+  EstadoMatriculaClasificado --> EstadoMatricula
   EvaluacionCumplimiento "1" *-- "*" ResultadoCondicion : resultados
   EvaluacionCumplimiento --> ResultadoGlobal
   ReporteAcademico ..> Beca : becaId
@@ -106,10 +116,11 @@ classDiagram
   IReporteAcademicoRepository ..> ReporteAcademico : guarda
   IPlazoReporteRepository ..> PlazoReporte : guarda
   IEvaluacionCumplimientoRepository ..> EvaluacionCumplimiento : guarda
-  note for ReporteAcademico "Protege: append-only; Registrar calcula si es tardío con el PlazoReporte (lámina 44: sin modelo anémico)."
-  note for EvaluacionCumplimiento "Protege: una por reporte. Incumplir la permanencia es incumplimiento grave (R19)."
-  note for EstadoMatricula "PENDIENTE: valores sin definir en el PRD y las HU."
+  note for ReporteAcademico "Protege: append-only; Registrar calcula si es tardío con el PlazoReporte (lámina 44). Prevalece la API si la universidad la tiene; el registro manual es el canal normal para el resto (R35). La ACL de S5 traduce codigoEstudiante a BecaId (v1.3, R40)."
+  note for EvaluacionCumplimiento "Protege: una por reporte. Consecuencias progresivas en orden: llamado de atención, suspensión y revocación (R41). Incumplir la permanencia es incumplimiento grave (R19)."
+  note for EstadoMatricula "R37 (A7) y C10: la universidad envía texto libre; S5 conserva TextoOriginal y asigna su clasificación interna."
   style ReporteAcademico fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style EstadoMatriculaClasificado fill:#c8e6c9,stroke:#2e7d32,color:#000000
   style OrigenReporte fill:#eeeeee,stroke:#757575,color:#000000
   style EstadoMatricula fill:#eeeeee,stroke:#757575,color:#000000
   style PlazoReporte fill:#0d47a1,stroke:#0d47a1,color:#ffffff

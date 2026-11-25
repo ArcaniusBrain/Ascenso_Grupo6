@@ -11,7 +11,7 @@ stateDiagram-v2
   NoElegible --> EnEvaluacion : AnularNoElegible()
   EnEvaluacion --> Otorgada : RegistrarOfertaAceptada()
   EnEvaluacion --> Retirada : RegistrarOfertaCerrada() [oferta rechazada o expirada]
-  EnEvaluacion --> Rechazada : PENDIENTE HU-10.2
+  EnEvaluacion --> Rechazada : Rechazar() [decisión manual del encargado, R34]
   Otorgada --> [*]
   Rechazada --> [*]
   Retirada --> [*]

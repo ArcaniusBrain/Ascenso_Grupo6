@@ -9,11 +9,16 @@ classDiagram
       -promedio: Promedio
       -materiasAprobadas: int
       -materiasReprobadas: int
-      -matricula: EstadoMatricula
+      -matricula: EstadoMatriculaClasificado
       -origen: OrigenReporte
       -autorId: UsuarioId
       -entregado: datetime
       -tardio: bool
+    }
+    class EstadoMatriculaClasificado {
+      <<Value Object>>
+      +TextoOriginal: string
+      +Clasificacion: EstadoMatricula
     }
   }
   namespace Agregado_PlazoReporte {
@@ -130,15 +135,18 @@ classDiagram
       <<Raíz de agregado>>
       +Id: ConsentimientoDonanteId
       -becarioId: PostulanteId
+      -donanteId: DonanteId
       -aceptado: datetime
     }
   }
+  ReporteAcademico "1" *-- "1" EstadoMatriculaClasificado : matrícula
   EvaluacionCumplimiento "1" *-- "*" ResultadoCondicion : resultados
   RegistroDecision "1" *-- "1" SujetoRef : sobre
   RegistroDecision "1" *-- "1" Actor : quién
   Consulta "1" *-- "*" Mensaje : mensajes
-  Consulta "1" *-- "1" SujetoConsulta : sobre
+  Consulta "1" *-- "0..1" SujetoConsulta : sobre
   style ReporteAcademico fill:#0d47a1,stroke:#0d47a1,color:#ffffff
+  style EstadoMatriculaClasificado fill:#c8e6c9,stroke:#2e7d32,color:#000000
   style PlazoReporte fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style EvaluacionCumplimiento fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style ResultadoCondicion fill:#c8e6c9,stroke:#2e7d32,color:#000000

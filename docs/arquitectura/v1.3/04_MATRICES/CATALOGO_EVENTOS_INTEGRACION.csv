@@ -1,4 +1,5 @@
 ﻿Evento de negocio,Publica,Interesados,Consecuencia,Precaución
+UsuarioRegistrado,S1,"S3, S6","Crear Postulante idempotente por UsuarioId (DDD-11), bienvenida","S1 es fuente de verdad de cédula única (R1); sin credenciales ni PII sensible innecesaria"
 ProgramaCreado,S2,S2,"Crear presupuesto, auditado",Interno/Integración versionado
 AporteRegistrado,S2,"S2, S6","Registrar aporte en presupuesto, reportería",Idempotente
 CicloPublicado,S3,"S2, S6",Registrar cupo de ciclo y visibilidad,Idempotente
@@ -9,8 +10,9 @@ PostulacionConsolidada,S3,S6,Proyección ranking,No decidir selección desde rea
 OfertaEmitida,S4,"S2, S3, S6","Vincular reserva, postulación y correo",Clave ofertaId
 OfertaAceptada,S4,"S2, S3, S6","Confirmar otorgamiento, beca y avisos",D-3 ya persistió ambas raíces S4
 OfertaRechazada / OfertaExpirada,S4,"S2, S3, S6","Liberar reserva, retirar, sugerir espera",Compensar de manera idempotente
-BecaRevocada,S4,"S2, S6","Liberación eventual segura, audit",No sobreliberar fondos
-BecaInactivada,S4,S6,Estado e indicadores,R27 cupo/presupuesto se conservan
+BecaActivada / BecaSuspendida,S4,"S3, S6","Proyección de estado en S3 (informativa), avisos e indicadores","HU-01.2 siempre valida por consulta síncrona S3->S4 (fail closed)"
+BecaRevocada,S4,"S2, S3, S6","Liberación eventual segura en S2, proyección en S3, audit",No sobreliberar fondos
+BecaInactivada,S4,"S3, S6","Proyección de estado en S3 e indicadores en S6",R27 cupo/presupuesto se conservan; no cuenta como activa (S6)
 PagoConfirmado / PagoFallido / PagoDevuelto,S4,"S2, S6",Registrar desembolso y estado,No duplicar ni reescribir pago previo
 ReporteAcademicoRegistrado,S5,"S5, S6","Evaluar cumplimiento, indicador",Proveniencia API/manual
 IncumplimientoDetectado,S5,"S4, S6",Coordinador decide consecuencia,No revocar sin decisión autorizada

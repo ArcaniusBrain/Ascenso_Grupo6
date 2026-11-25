@@ -8,7 +8,7 @@ stateDiagram-v2
   Suspendida --> Revocada : Revocar()
   Activa --> Renovada : AprobarRenovacion()
   Renovada --> Activa : IniciarNuevoPeriodo()
-  Activa --> Inactiva : IniciarNuevoPeriodo() [renovación rechazada o no solicitada]
+  Activa --> Inactiva : InactivarPorNoRenovacion() [cierre de ventana de renovación, R38]
   Inactiva --> Activa : SalirDeInactiva() [a Activa]
   Inactiva --> Concluida : SalirDeInactiva() [a Concluida]
   Inactiva --> Revocada : Revocar()

@@ -1,0 +1,26 @@
+sequenceDiagram
+  participant UI as :UI
+  participant H as :RegistrarPostulanteHandler
+  participant RU as :IUsuarioRepository
+  participant KC as :Keycloak
+  participant U as :Usuario
+  participant EV as :PublicadorEventos
+  participant M as :CrearPostulanteAlRegistrarse
+  participant RP as :IPostulanteRepository
+  participant P as :Postulante
+  UI->>H: Manejar(RegistrarPostulante)
+  H->>RU: ObtenerPorCedula(cedula)
+  RU-->>H: null
+  H->>KC: CrearCuenta(correo, clave)
+  KC-->>H: keycloakId
+  H->>U: new Usuario(cedula, contacto, POSTULANTE)
+  H->>RU: Guardar(usuario)
+  Note over H,U: Transacción 1 (S1): Usuario + Outbox (UsuarioRegistrado). S1 es fuente de verdad de identidad y cédula única (R1)
+  H->>EV: Publicar(usuario.EventosPendientes)
+  H-->>UI: ok (registro en curso)
+  EV->>M: Manejar(UsuarioRegistrado)
+  M->>RP: ObtenerPorUsuario(usuarioId)
+  RP-->>M: null
+  M->>P: new Postulante(usuarioId, cedula, contacto)
+  M->>RP: Guardar(postulante)
+  Note over M,P: Transacción 2 (S3): creación idempotente por UsuarioId (Inbox). Mientras no exista Postulante, la UI muestra "completando el registro" (DDD-11)

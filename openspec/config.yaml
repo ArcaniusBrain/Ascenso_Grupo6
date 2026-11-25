@@ -17,9 +17,10 @@ context: |
      (postulación rechazada si no se puede comprobar el doble beneficio, código de estudiante
      traducido por S5, consulta sin postulación obligatoria).
      Reglas técnicas por HU: anexo-a-reglas-tecnicas.md.
-  2. Modelo de dominio DDD: docs/dominio/DDD_v3.2.md (agregados, invariantes, eventos,
-     máquinas de estado, flujos de consistencia, decisiones D-1 a D-14), más la adenda
-     docs/dominio/DDD_v3.3_adenda_S2_S4.md (Programas y Fondos en S2, Becas en S4).
+  2. Modelo de dominio DDD: docs/dominio/DDD_v3.3.md (agregados, invariantes, eventos,
+     máquinas de estado, flujos de consistencia, decisiones D-1 a D-14, adenda S2/S4,
+     correcciones DDD-07 a DDD-15 y Ronda 5). Se conserva docs/dominio/DDD_v3.2.md como
+     línea base histórica citada por los PDF entregados.
   3. Lámina "Decisiones Arquitectónicas" del profesor (tecnologías obligatorias):
      docs/arquitectura/v1.3/06_FUENTES/DECISIONES_ARQUITECTONICAS_LAMINA_OBLIGATORIA_REFERENCIA.md.
   4. Arquitectura v1.3 (documento rector): docs/arquitectura/v1.3/01_DOCUMENTO_MAESTRO/ARQUITECTURA_V1.0.md
@@ -28,7 +29,8 @@ context: |
   5. Contratos de API y de eventos: docs/arquitectura/v1.3/03_CONTRATOS/ (openapi.yaml público,
      openapi-interno.yaml entre servicios, EVENTOS_E_INTERFACES.md). Pasarán a contracts/ en la raíz
      con el primer cambio de código.
-  6. Correcciones pendientes del dominio: openspec/changes/corregir-ddd-v3-3/.
+  6. Decisiones técnicas correctivas post-v1.3: docs/arquitectura/ADR_CORRECTIVOS_V1.3.md
+     y docs/arquitectura/pendientes-v1.3.md.
   El PRD original (docs/requisitos/prd.md) solo se usa cuando las fuentes anteriores no dicen nada.
 
   Arquitectura (resumen de la v1.3; el detalle está en el documento rector):

@@ -2,13 +2,13 @@
 CERRADO (lámina incluida),Microservicios obligatorios según la lámina del profesor; partición exacta S1–S6 es decisión del equipo,"Resumen Hallazgos A2 / borrador v0.1. Lámina original incluida en 06_FUENTES/Arquitectura_Obligatoria.jpeg.",Profesor / equipo,ADR-01/02,No bloquea la arquitectura v1.1
 CERRADO,MongoDB base de lectura CQRS adoptada por equipo 16-nov-2026,"DDD D-14 dice NoSQL, v0.1 dice PostgreSQL; conflicto explícito",Equipo y profesor,ADR-07,Sin bloqueo; DDD D-14
 P0,Aceptar D-3 dentro S4 y contrato de S2,Aceptación de Oferta y BeneficiosPersona en una transacción S4,Profesor / equipo,"D-3, ADR-03",Bloquea pruebas de invariantes transaccionales
-P0,Definir momento de reserva para renovación,Pendiente del cliente identificado en DDD 20.2,Cliente,HU-12.2,Bloquea parte de contratos de renovación
-P0,Alcance de reserva de oferta: periodo o duración,Pendiente del cliente DDD 20.2,Cliente,HU-15.1,Bloquea cálculo definitivo del importe
+CERRADO (Ronda 5 R31),Definir momento de reserva para renovación: al enviar la solicitud de renovación (A1),Ronda 5 del cliente (21-nov-2026) y DDD v3.3,Cliente,HU-12.2,Contratos S4->S2 actualizados en openapi-interno.yaml v1.3
+CERRADO (Ronda 5 R32),Alcance de reserva de oferta: cubre toda la duración de la beca (A2),Ronda 5 del cliente (21-nov-2026) y DDD v3.3,Cliente,HU-15.1,Cálculo de reserva actualizado en S2 y openapi-interno.yaml v1.3
 P1,Ratificar Keycloak o proveedor alternativo,Segundo factor correo o SMS R4 requiere prueba,Equipo,ADR-09,Implementación de identidad
 P1,Stateless vs patrón State manual,"DDD exige máquina, no implementación externa específica",Profesor,ADR-08,Pruebas de transiciones
-P1,Transición a Rechazada y revocación desde Otorgada/Renovada,Pendientes DDD 20,Cliente,HU-10.2 / HU-22.1,No inventar transiciones
-P1,Resolver fuente prevalente del reporte académico,API vs manual,Cliente,HU-24.2,Adaptador de S5
+CERRADO (Ronda 5 R33/R34),Transición a Rechazada (solo manual) y sin revocación desde Otorgada/Renovada (A3/A4),Ronda 5 del cliente (21-nov-2026) y DDD v3.3,Cliente,HU-10.2 / HU-22.1,Máquinas de estado 15.1 y 15.2 cerradas en DDD v3.3
+CERRADO (Ronda 5 R35),Fuente prevalente del reporte académico: prevalece API si la universidad la tiene; manual es canal normal (A5),Ronda 5 del cliente (21-nov-2026) y DDD v3.3,Cliente,HU-24.2,Adaptador de S5 alineado
 P1,Elección OIDC para clientes universidades,C5 y HU-24.3,Universidades/cliente,ADR-19,Seguridad del endpoint
-P1,Plazo reservas sin vincular,Compensación D-1,Equipo,ADR-03,Timeout de jobs
+CERRADO (ADR-26),Plazo reservas sin vincular: 30 min de gracia + conciliación obligatoria S2->S4 (falla cerrada),ADR-26 en ADR_CORRECTIVOS_V1.3.md y openapi-interno.yaml v1.3,Equipo,ADR-03 / ADR-26,Endpoint GET /internal/v1/reservas/{reservaId}/vinculo definido
 P2,"Proveedor correo/SMS, licencias y versiones exactas",Ningún paquete se fija sin verificación,Equipo,ADR-20/24,Configuración y CI
 P2,Formato de planillas históricas,Sin datos originales,Cliente,ADR-21,ETL concreto

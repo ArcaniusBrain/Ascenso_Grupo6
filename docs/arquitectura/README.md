@@ -29,8 +29,8 @@ Lo obligatorio según la lámina del profesor: microservicios conectados por API
 
 ## Relación con el resto de la documentación
 
-- **Precedencia:** historias de usuario (con C1–C5 y R1–R30) → DDD v3.2 → lámina del profesor → esta arquitectura.
-- **Dominio:** el DDD v3.2 no cambia; la ubicación de Programas y Fondos (S2) y de Becas (S4) en servicios distintos está en la [adenda DDD v3.3](../dominio/DDD_v3.3_adenda_S2_S4.md). Las correcciones de dominio que siguen abiertas son el cambio de OpenSpec [`corregir-ddd-v3-3`](../../openspec/changes/corregir-ddd-v3-3/proposal.md).
+- **Precedencia:** historias de usuario (con C1–C5 y R1–R44; en R39, R40 y R44 manda la v1.3) → [DDD v3.3](../dominio/DDD_v3.3.md) → lámina del profesor → esta arquitectura + [ADRs correctivos](ADR_CORRECTIVOS_V1.3.md).
+- **Dominio:** el modelo vigente es [`DDD_v3.3.md`](../dominio/DDD_v3.3.md) (incorpora la adenda S2/S4, DDD-07 a DDD-15 y Ronda 5); `DDD_v3.2.md` se conserva intacto porque los PDF de v1.3 lo citan.
 - **Contratos:** mientras no haya código, la fuente es `v1.3/03_CONTRATOS/`. El primer cambio de código los moverá a `contracts/` en la raíz (estructura de la v1.3, §12).
 
 ## Notas sobre esta copia del kit

@@ -26,6 +26,7 @@ classDiagram
       +RegistrarOfertaEmitida(ofertaId: OfertaId) void
       +RegistrarOfertaAceptada() void
       +RegistrarOfertaCerrada(motivo: MotivoRetiro) void
+      +Rechazar(decisorId: UsuarioId, j: Justificacion) void
       +Retirar() void
     }
     class DocumentoCargado {

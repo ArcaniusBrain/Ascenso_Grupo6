@@ -123,6 +123,7 @@ classDiagram
       <<Raíz de agregado>>
       +Id: ConsentimientoDonanteId
       -becarioId: PostulanteId
+      -donanteId: DonanteId
       -aceptado: datetime
       +Aceptar(ahora: datetime) void
     }
@@ -141,7 +142,7 @@ classDiagram
   class IConsentimientoDonanteRepository {
     <<interface>>
     +ObtenerPorId(id: ConsentimientoDonanteId) ConsentimientoDonante
-    +ObtenerPorBecario(postulanteId: PostulanteId) ConsentimientoDonante
+    +ObtenerPorBecarioYDonante(postulanteId: PostulanteId, donanteId: DonanteId) ConsentimientoDonante
     +Guardar(x: ConsentimientoDonante) void
   }
   class IEventoDeDominio {
@@ -154,15 +155,16 @@ classDiagram
   RegistroDecision --> TipoDecision
   RegistroDecision ..> IEventoDeDominio : forma persistida de
   Consulta "1" *-- "*" Mensaje : mensajes
-  Consulta "1" *-- "1" SujetoConsulta : sobre
+  Consulta "1" *-- "0..1" SujetoConsulta : sobre
   Consulta --> EstadoConsulta
   RegistroEnvio --> EstadoEnvio
   IConsultaRepository ..> Consulta : guarda
   IRegistroEnvioRepository ..> RegistroEnvio : guarda
   IConsentimientoDonanteRepository ..> ConsentimientoDonante : guarda
   note for RegistroDecision "No es agregado ni tiene repositorio: se guarda con el agregado que registró el evento (D-6). Append-only, ni Dirección lo edita (HU-35.1)."
+  note for Consulta "El contrato v1.3 no exige asociar obligatoriamente una postulación (decisión del equipo sobre R44/B6)."
   note for RegistroEnvio "Uno por destinatario, hito y anticipación: no duplica avisos (Anexo A HU-29.1, HU-30.1)."
-  note for ConsentimientoDonante "Lo da el propio becario; uno vigente (HU-33.2)."
+  note for ConsentimientoDonante "Lo da el propio becario; uno por becario y donante, irrevocable una vez aceptado (HU-33.2, R36)."
   style RegistroDecision fill:#d7ccc8,stroke:#5d4037,color:#000000
   style SujetoRef fill:#c8e6c9,stroke:#2e7d32,color:#000000
   style Actor fill:#c8e6c9,stroke:#2e7d32,color:#000000

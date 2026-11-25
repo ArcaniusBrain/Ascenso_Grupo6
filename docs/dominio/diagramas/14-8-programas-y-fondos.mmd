@@ -204,8 +204,8 @@ classDiagram
   IProgramaRepository ..> Programa : guarda
   IDonanteRepository ..> Donante : guarda
   IPresupuestoProgramaRepository ..> PresupuestoPrograma : guarda
-  note for PresupuestoPrograma "Único guardián (D-1). Protege: disponible = aportes - otorgado - ofertas pendientes - renovaciones pendientes, nunca negativo; cupos del programa y de cada ciclo."
-  note for Programa "Protege: pesos de la rúbrica suman 100 por ciento; rúbrica bloqueada tras abrir la evaluación; cada donante una vez."
+  note for PresupuestoPrograma "Único guardián en S2 (D-1). Protege: disponible = aportes - otorgado - ofertas pendientes - renovaciones pendientes, nunca negativo; cupos del programa y de cada ciclo. La reserva de oferta cubre toda la duración de la beca (R32) y la de renovación se hace al enviar la solicitud (R31)."
+  note for Programa "Protege: pesos de la rúbrica suman 100 por ciento; rúbrica bloqueada tras abrir la evaluación; cada donante una vez. Consecuencias progresivas: llamado de atención, suspensión, revocación (R41)."
   style Programa fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style Rubrica fill:#bbdefb,stroke:#1565c0,color:#000000
   style Criterio fill:#c8e6c9,stroke:#2e7d32,color:#000000

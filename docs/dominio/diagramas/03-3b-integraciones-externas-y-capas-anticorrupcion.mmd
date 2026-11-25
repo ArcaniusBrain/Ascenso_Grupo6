@@ -33,7 +33,7 @@ classDiagram
   class BEC["Gestión de Becas"] {
     <<Bounded Context · Soporte>>
   }
-  class IDP["Proveedor de identidad (ADR)"] {
+  class IDP["Keycloak (ADR-09)"] {
     <<Sistema externo>>
   }
   class IAM["Identidad y Acceso"] {
@@ -41,8 +41,8 @@ classDiagram
   }
   class IServicioOtp {
     <<interface>>
-    +Enviar(usuarioId: UsuarioId, canal: CanalCodigo) void
-    +Validar(usuarioId: UsuarioId, codigo: string) bool
+    +SolicitarDesafio(usuarioId: UsuarioId, operacion: TipoOperacionSensible, recursoId: string, canal: CanalCodigo) ChallengeId
+    +ValidarYConsumir(usuarioId: UsuarioId, operacion: TipoOperacionSensible, recursoId: string, challengeId: ChallengeId, codigo: string) bool
   }
   class MAIL["Proveedor de correo y SMS"] {
     <<Sistema externo>>

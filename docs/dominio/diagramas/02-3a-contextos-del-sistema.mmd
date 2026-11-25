@@ -47,17 +47,25 @@ classDiagram
   FON "U" --> "D" EVA : Customer / Supplier
   POS -- EVA : Partnership
   EVA "U" --> "D" BEC : Customer / Supplier
-  FON -- BEC : Partnership
+  FON -- BEC : Partnership (S2 y S4)
   BEC "U" --> "D" SEG : Customer / Supplier
   SEG "U" --> "D" BEC : Customer / Supplier
-  BEC "U" --> "D" TRZ : PL eventos
-  POS "U" --> "D" TRZ : PL eventos
-  EVA "U" --> "D" TRZ : PL eventos
-  SEG "U" --> "D" TRZ : PL eventos
-  TRZ "U" --> "D" COM : PL eventos
-  TRZ "U" --> "D" REP : PL eventos
+  BEC "U" --> "D" TRZ : registro local
+  POS "U" --> "D" TRZ : registro local
+  EVA "U" --> "D" TRZ : registro local
+  SEG "U" --> "D" TRZ : registro local
+  FON "U" --> "D" COM : PL eventos
+  POS "U" --> "D" COM : PL eventos
+  EVA "U" --> "D" COM : PL eventos
+  BEC "U" --> "D" COM : PL eventos
+  SEG "U" --> "D" COM : PL eventos
+  FON "U" --> "D" REP : PL eventos
+  POS "U" --> "D" REP : PL eventos
+  BEC "U" --> "D" REP : PL eventos
+  SEG "U" --> "D" REP : PL eventos
   SK .. FON : Shared Kernel
   note for SK "Lo comparten todos los contextos internos (lámina 17: Dinero entre Pedidos y Facturación)."
+  note for TRZ "No es intermediaria: cada contexto escribe su RegistroDecision en su propia transacción (D-6, DDD-14)."
   style CAT fill:#bbdefb,stroke:#1565c0,color:#000000
   style FON fill:#0d47a1,stroke:#0d47a1,color:#ffffff
   style POS fill:#bbdefb,stroke:#1565c0,color:#000000
