@@ -20,6 +20,8 @@ public sealed class IdentidadDbContext : DbContext
     public DbSet<TipoUsuario> TiposUsuario => Set<TipoUsuario>();
     public DbSet<ClienteApiUniversidad> ClientesApiUniversidad => Set<ClienteApiUniversidad>();
     public DbSet<DesafioSegundoFactor> DesafiosSegundoFactor => Set<DesafioSegundoFactor>();
+    public DbSet<DesafioOtpOperacion> DesafiosOtpOperacion => Set<DesafioOtpOperacion>();
+    public DbSet<BloqueoOtpOperacion> BloqueosOtpOperacion => Set<BloqueoOtpOperacion>();
 
     public IdentidadDbContext(DbContextOptions<IdentidadDbContext> options) : base(options)
     {
@@ -180,6 +182,45 @@ public sealed class IdentidadDbContext : DbContext
 
             builder.HasIndex(x => new { x.UsuarioId, x.ConsumidoEnUtc, x.InvalidadoEnUtc })
                 .HasDatabaseName("ix_desafios_2fa_usuario_activos");
+        });
+
+        modelBuilder.Entity<DesafioOtpOperacion>(builder =>
+        {
+            builder.ToTable("desafios_otp_operacion");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.UsuarioId).HasColumnName("usuario_id").IsRequired();
+            builder.Property(x => x.Operacion).HasColumnName("operacion").HasConversion<string>().HasMaxLength(60).IsRequired();
+            builder.Property(x => x.RecursoId).HasColumnName("recurso_id").HasMaxLength(120).IsRequired();
+            builder.Property(x => x.Canal).HasColumnName("canal").HasConversion<string>().HasMaxLength(20).IsRequired();
+            builder.Property(x => x.CodigoHash).HasColumnName("codigo_hash").HasMaxLength(128).IsRequired();
+            builder.Property(x => x.Salt).HasColumnName("salt").HasMaxLength(64).IsRequired();
+            builder.Property(x => x.CreadoEnUtc).HasColumnName("creado_en_utc").IsRequired();
+            builder.Property(x => x.ExpiraEnUtc).HasColumnName("expira_en_utc").IsRequired();
+            builder.Property(x => x.IntentosFallidos).HasColumnName("intentos_fallidos").IsRequired();
+            builder.Property(x => x.ConsumidoEnUtc).HasColumnName("consumido_en_utc");
+            builder.Property(x => x.OperationIdConsumidor).HasColumnName("operation_id_consumidor");
+            builder.Property(x => x.InvalidadoEnUtc).HasColumnName("invalidado_en_utc");
+            builder.ConfigurarVersionExplicita<DesafioOtpOperacion, Guid>();
+
+            builder.HasIndex(x => new { x.UsuarioId, x.Operacion, x.RecursoId, x.ConsumidoEnUtc, x.InvalidadoEnUtc })
+                .HasDatabaseName("ix_desafios_otp_terna_activos");
+        });
+
+        modelBuilder.Entity<BloqueoOtpOperacion>(builder =>
+        {
+            builder.ToTable("bloqueos_otp_operacion");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.UsuarioId).HasColumnName("usuario_id").IsRequired();
+            builder.Property(x => x.Operacion).HasColumnName("operacion").HasConversion<string>().HasMaxLength(60).IsRequired();
+            builder.Property(x => x.RecursoId).HasColumnName("recurso_id").HasMaxLength(120).IsRequired();
+            builder.Property(x => x.BloqueadoHastaUtc).HasColumnName("bloqueado_hasta_utc").IsRequired();
+            builder.ConfigurarVersionExplicita<BloqueoOtpOperacion, Guid>();
+
+            builder.HasIndex(x => new { x.UsuarioId, x.Operacion, x.RecursoId })
+                .IsUnique()
+                .HasDatabaseName("ix_bloqueos_otp_terna_unico");
         });
     }
 }

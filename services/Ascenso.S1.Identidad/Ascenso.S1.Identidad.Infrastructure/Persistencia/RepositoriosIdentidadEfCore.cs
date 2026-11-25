@@ -109,6 +109,55 @@ public sealed class DesafioSegundoFactorRepositoryEfCore(IdentidadDbContext db) 
     }
 }
 
+public sealed class DesafioOtpOperacionRepositoryEfCore(IdentidadDbContext db) : IDesafioOtpOperacionRepository
+{
+    public Task<DesafioOtpOperacion?> ObtenerPorIdAsync(Guid challengeId, CancellationToken cancellationToken = default) =>
+        db.DesafiosOtpOperacion.SingleOrDefaultAsync(x => x.Id == challengeId, cancellationToken);
+
+    public async Task<IReadOnlyList<DesafioOtpOperacion>> ObtenerActivosPorTernaAsync(
+        Guid usuarioId,
+        Ascenso.SharedKernel.Seguridad.TipoOperacionSensible operacion,
+        string recursoId,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizado = DesafioOtpOperacion.NormalizarRecurso(recursoId);
+        return await db.DesafiosOtpOperacion
+            .Where(x => x.UsuarioId == usuarioId
+                && x.Operacion == operacion
+                && x.RecursoId == normalizado
+                && x.ConsumidoEnUtc == null
+                && x.InvalidadoEnUtc == null)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task AgregarAsync(DesafioOtpOperacion desafio, CancellationToken cancellationToken = default)
+    {
+        db.DesafiosOtpOperacion.Add(desafio);
+        return Task.CompletedTask;
+    }
+}
+
+public sealed class BloqueoOtpOperacionRepositoryEfCore(IdentidadDbContext db) : IBloqueoOtpOperacionRepository
+{
+    public Task<BloqueoOtpOperacion?> ObtenerPorTernaAsync(
+        Guid usuarioId,
+        Ascenso.SharedKernel.Seguridad.TipoOperacionSensible operacion,
+        string recursoId,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizado = DesafioOtpOperacion.NormalizarRecurso(recursoId);
+        return db.BloqueosOtpOperacion.SingleOrDefaultAsync(
+            x => x.UsuarioId == usuarioId && x.Operacion == operacion && x.RecursoId == normalizado,
+            cancellationToken);
+    }
+
+    public Task AgregarAsync(BloqueoOtpOperacion bloqueo, CancellationToken cancellationToken = default)
+    {
+        db.BloqueosOtpOperacion.Add(bloqueo);
+        return Task.CompletedTask;
+    }
+}
+
 public sealed class UnidadTrabajoIdentidadEfCore(IdentidadDbContext db) : IUnidadTrabajoIdentidad
 {
     public Task GuardarCambiosAsync(CancellationToken cancellationToken = default) =>

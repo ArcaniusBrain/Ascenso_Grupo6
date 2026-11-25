@@ -1,11 +1,13 @@
 using Ascenso.Messaging.Outbox;
 using Ascenso.S1.Identidad.Application.CasosDeUso.Autenticacion;
+using Ascenso.S1.Identidad.Application.CasosDeUso.Otp;
 using Ascenso.S1.Identidad.Application.Puertos;
 using Ascenso.S1.Identidad.Domain.Repositorios;
 using Ascenso.S1.Identidad.Infrastructure.Keycloak;
 using Ascenso.S1.Identidad.Infrastructure.Notificaciones;
 using Ascenso.S1.Identidad.Infrastructure.Persistencia;
 using Ascenso.S1.Identidad.Infrastructure.Seguridad;
+using Ascenso.SharedKernel.Seguridad;
 using Ascenso.SharedKernel.Tiempo;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -57,7 +59,11 @@ public static class DependencyInjection
         services.AddScoped<ITipoUsuarioRepository, TipoUsuarioRepositoryEfCore>();
         services.AddScoped<IClienteApiUniversidadRepository, ClienteApiUniversidadRepositoryEfCore>();
         services.AddScoped<IDesafioSegundoFactorRepository, DesafioSegundoFactorRepositoryEfCore>();
+        services.AddScoped<IDesafioOtpOperacionRepository, DesafioOtpOperacionRepositoryEfCore>();
+        services.AddScoped<IBloqueoOtpOperacionRepository, BloqueoOtpOperacionRepositoryEfCore>();
         services.AddScoped<IUnidadTrabajoIdentidad, UnidadTrabajoIdentidadEfCore>();
+        services.AddScoped<IServicioOtp, ServicioOtpAplicacion>();
+        services.AddSingleton<ValidadorScopeInternoOtp>();
 
         services.AddHttpClient<IProveedorIdentidadKeycloak, ProveedorIdentidadKeycloakHttp>(client =>
         {

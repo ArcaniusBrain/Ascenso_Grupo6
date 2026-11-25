@@ -38,6 +38,27 @@ public interface IDesafioSegundoFactorRepository
     Task AgregarAsync(DesafioSegundoFactor desafio, CancellationToken cancellationToken = default);
 }
 
+public interface IDesafioOtpOperacionRepository
+{
+    Task<DesafioOtpOperacion?> ObtenerPorIdAsync(Guid challengeId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<DesafioOtpOperacion>> ObtenerActivosPorTernaAsync(
+        Guid usuarioId,
+        Ascenso.SharedKernel.Seguridad.TipoOperacionSensible operacion,
+        string recursoId,
+        CancellationToken cancellationToken = default);
+    Task AgregarAsync(DesafioOtpOperacion desafio, CancellationToken cancellationToken = default);
+}
+
+public interface IBloqueoOtpOperacionRepository
+{
+    Task<BloqueoOtpOperacion?> ObtenerPorTernaAsync(
+        Guid usuarioId,
+        Ascenso.SharedKernel.Seguridad.TipoOperacionSensible operacion,
+        string recursoId,
+        CancellationToken cancellationToken = default);
+    Task AgregarAsync(BloqueoOtpOperacion bloqueo, CancellationToken cancellationToken = default);
+}
+
 public interface IUnidadTrabajoIdentidad
 {
     Task GuardarCambiosAsync(CancellationToken cancellationToken = default);

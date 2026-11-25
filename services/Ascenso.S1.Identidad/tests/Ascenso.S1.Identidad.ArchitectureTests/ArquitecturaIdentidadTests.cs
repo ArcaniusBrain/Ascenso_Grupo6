@@ -72,7 +72,9 @@ public sealed class ArquitecturaIdentidadTests
             typeof(Usuario),
             typeof(TipoUsuario),
             typeof(ClienteApiUniversidad),
-            typeof(DesafioSegundoFactor)
+            typeof(DesafioSegundoFactor),
+            typeof(DesafioOtpOperacion),
+            typeof(BloqueoOtpOperacion)
         };
 
         foreach (var raiz in raicesEsperadas)
