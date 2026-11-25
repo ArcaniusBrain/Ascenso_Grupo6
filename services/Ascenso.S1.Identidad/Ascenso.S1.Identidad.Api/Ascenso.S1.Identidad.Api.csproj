@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Ascenso.S1.Identidad.Api</RootNamespace>
+    <AssemblyName>Ascenso.S1.Identidad.Api</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ascenso.S1.Identidad.Application\Ascenso.S1.Identidad.Application.csproj" />
+    <ProjectReference Include="..\Ascenso.S1.Identidad.Infrastructure\Ascenso.S1.Identidad.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

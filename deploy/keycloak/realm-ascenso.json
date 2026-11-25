@@ -1,0 +1,125 @@
+{
+  "realm": "ascenso",
+  "displayName": "ASCENSO — Fundación Ascenso",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "sslRequired": "none",
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "no-reply@ascenso.org",
+    "fromDisplayName": "ASCENSO — Fundación Ascenso",
+    "ssl": "false",
+    "starttls": "false",
+    "auth": "false"
+  },
+  "roles": {
+    "realm": [
+      { "name": "direccion", "description": "Dirección de la Fundación" },
+      { "name": "coordinador", "description": "Coordinador de programa" },
+      { "name": "evaluador", "description": "Evaluador interno o externo de comité" },
+      { "name": "finanzas", "description": "Administrador financiero" },
+      { "name": "enlace_universidad", "description": "Enlace de universidad aliada" },
+      { "name": "postulante", "description": "Postulante o becario" }
+    ]
+  },
+  "clientScopes": [
+    { "name": "fondos.reservar", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true" } },
+    { "name": "fondos.liberar", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true" } },
+    { "name": "fondos.consultar", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true" } },
+    { "name": "ofertas.consultar-vinculo", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true" } },
+    { "name": "otp.consumir", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true" } },
+    { "name": "beneficios.consultar", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true" } }
+  ],
+  "clients": [
+    {
+      "clientId": "ascenso-s1-identidad",
+      "name": "ASCENSO S1 Identidad y Acceso",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-s1-client-secret-change-in-server",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false
+    },
+    {
+      "clientId": "ascenso-web-bff",
+      "name": "ASCENSO Frontend Next.js BFF (ADR-28)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-bff-client-secret-change-in-server",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"]
+    },
+    {
+      "clientId": "ascenso-s2-fondos",
+      "name": "ASCENSO S2 Catálogo y Fondos (malla privada)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-s2-client-secret-change-in-server",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "defaultClientScopes": ["ofertas.consultar-vinculo"]
+    },
+    {
+      "clientId": "ascenso-s3-postulacion",
+      "name": "ASCENSO S3 Postulación y Evaluación (malla privada)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-s3-client-secret-change-in-server",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "defaultClientScopes": ["fondos.consultar", "beneficios.consultar"]
+    },
+    {
+      "clientId": "ascenso-s4-becas",
+      "name": "ASCENSO S4 Gestión de Becas (malla privada)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-s4-client-secret-change-in-server",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "defaultClientScopes": ["fondos.reservar", "fondos.liberar", "otp.consumir"]
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-ascenso-s1-identidad",
+      "enabled": true,
+      "serviceAccountClientId": "ascenso-s1-identidad",
+      "clientRoles": {
+        "realm-management": ["manage-users", "view-users", "query-users"]
+      }
+    },
+    {
+      "username": "laura.coordinadora@ascenso.org",
+      "email": "laura.coordinadora@ascenso.org",
+      "firstName": "Laura",
+      "lastName": "Coordinadora",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": ["coordinador"],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "AscensoDev2026!",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

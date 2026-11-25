@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ascenso.S1.Identidad.Application</RootNamespace>
+    <AssemblyName>Ascenso.S1.Identidad.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Ascenso.SharedKernel\Ascenso.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\Ascenso.Contracts\Ascenso.Contracts.csproj" />
+    <ProjectReference Include="..\Ascenso.S1.Identidad.Domain\Ascenso.S1.Identidad.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+  </ItemGroup>
+</Project>

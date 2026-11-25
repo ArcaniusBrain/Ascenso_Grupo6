@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Ascenso.S1.Identidad.ArchitectureTests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Ascenso.S1.Identidad.Domain\Ascenso.S1.Identidad.Domain.csproj" />
+    <ProjectReference Include="..\..\Ascenso.S1.Identidad.Application\Ascenso.S1.Identidad.Application.csproj" />
+    <ProjectReference Include="..\..\Ascenso.S1.Identidad.Infrastructure\Ascenso.S1.Identidad.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Ascenso.S1.Identidad.Api\Ascenso.S1.Identidad.Api.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

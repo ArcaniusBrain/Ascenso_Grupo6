@@ -50,6 +50,7 @@ Respuestas completas en la [Ronda 5 de `respuestas_cliente.md`](../requisitos/re
 | C11 | ~~Autoría y justificación de entrada/salida de *Inactiva* (Anexo B HU-35.1 #4)~~ | **Cerrada (25-nov-2026):** entrada automática firmada por `SISTEMA` con justificación automática no vacía (cierre de ventana o pausa vencida); salida decidida por coordinador con justificación obligatoria |
 | C12 | ~~Alcance de consulta del registro de decisiones (Anexo B HU-35.2 #1 y #2)~~ | **Cerrada (25-nov-2026):** Dirección (global), Coordinador (solo sus programas), Finanzas (solo decisiones financieras) y Becario/Postulante (solo su propio caso vía `PropietarioUsuarioId`) |
 | C13 | ~~Naturaleza de auditorías RF-36 (Anexo B HU-36.1 #5)~~ | **Cerrada (25-nov-2026):** auditorías internas y nominadas (no habrá auditorías externas anónimas de gran escala); modelo `RegistroDecision` preparado con `ProgramaId` y `PropietarioUsuarioId` |
+| C14 | ~~Reglas operativas 2FA y tipos de usuario RF-37 (Anexo B HU-37.1 #3/#4/#5/#7, HU-37.2 #1/#2)~~ | **Cerrada (25-nov-2026):** código 2FA de un solo uso y reenvío invalida el anterior (vigencia 15 min por R4b, configurable); Dirección crea enlace universitario; tipo sin acceso financiero/decisión exento de 2FA; tipo en uso no se borra; cambio de permisos/rol revoca sesión y exige nuevo login |
 
 ## D. Huecos de diseño y pruebas técnicas
 
@@ -58,5 +59,5 @@ Respuestas completas en la [Ronda 5 de `respuestas_cliente.md`](../requisitos/re
 | D1 | ~~Desembolso con fecha dentro de una suspensión (R12)~~ | **Cerrado** en `DDD_v3.3.md` (estado `Aplazado`, DDD-09) |
 | D2 | ~~Registro de cuenta entre S1 (Keycloak) y S3 (Postulante)~~ | **Cerrado** en `DDD_v3.3.md` (flujo `16.4f`, `UsuarioRegistrado`, DDD-11) y **ADR-30** |
 | D3 | Firebase Storage desde .NET: el SDK de administración no trae Storage; falta comprobar enlaces firmados con el emulador | **Pendiente:** prueba técnica (1 día, ADR-06) antes de implementar carga de documentos |
-| D4 | Segundo factor por correo/SMS en Keycloak | **Pendiente:** prueba técnica (ADR-09) antes de habilitar roles privilegiados |
+| D4 | ~~Segundo factor por correo/SMS en Keycloak~~ | **Cerrado (25-nov-2026, ADR-09):** PoC ejecutado en vivo contra `keycloak:26.0`, `mailpit:v1.21` y `postgres:16-alpine`; script reproducible en [`tools/poc/poc-keycloak-2fa.mjs`](../../tools/poc/poc-keycloak-2fa.mjs) y evidencia documentada en [`evidencias/POC_ADR09_KEYCLOAK_2FA.md`](evidencias/POC_ADR09_KEYCLOAK_2FA.md) |
 | D5 | Gestión de las claves de cifrado de los datos de pago | **Pendiente:** definir proveedor/rotación de claves (ADR-18; Data Protection / KMS / env local dev) |
