@@ -47,6 +47,9 @@ Respuestas completas en la [Ronda 5 de `respuestas_cliente.md`](../requisitos/re
 | C8 | Proveedores de correo y SMS (prueba y demostración) | **Abierto** (ADR-20: por elegir en sprint de infraestructura; MailHog/SMTP local para dev) |
 | C9 | Repo público: decidir si pasa a privado | **Abierto** (decisión administrativa del equipo) |
 | C10 | ~~Clasificación del estado de matrícula (A7)~~ | **Cerrada (ADR-29 / DDD v3.3):** `EstadoMatriculaClasificado` conserva texto original + enum `INSCRITO`, `RETIRADO`, `CONGELADO`, `EGRESADO`, `NO_RECONOCIDO` |
+| C11 | ~~Autoría y justificación de entrada/salida de *Inactiva* (Anexo B HU-35.1 #4)~~ | **Cerrada (25-nov-2026):** entrada automática firmada por `SISTEMA` con justificación automática no vacía (cierre de ventana o pausa vencida); salida decidida por coordinador con justificación obligatoria |
+| C12 | ~~Alcance de consulta del registro de decisiones (Anexo B HU-35.2 #1 y #2)~~ | **Cerrada (25-nov-2026):** Dirección (global), Coordinador (solo sus programas), Finanzas (solo decisiones financieras) y Becario/Postulante (solo su propio caso vía `PropietarioUsuarioId`) |
+| C13 | ~~Naturaleza de auditorías RF-36 (Anexo B HU-36.1 #5)~~ | **Cerrada (25-nov-2026):** auditorías internas y nominadas (no habrá auditorías externas anónimas de gran escala); modelo `RegistroDecision` preparado con `ProgramaId` y `PropietarioUsuarioId` |
 
 ## D. Huecos de diseño y pruebas técnicas
 

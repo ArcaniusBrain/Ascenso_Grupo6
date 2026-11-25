@@ -4,6 +4,19 @@
 
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 
+-- Función trigger compartida para garantizar inmutabilidad append-only en registro_decisiones (RF-35, HU-35.1, ADR-12).
+-- Cada servicio (S1..S6) vincula esta función mediante trigger BEFORE UPDATE OR DELETE en su migración inicial.
+CREATE OR REPLACE FUNCTION public.impedir_modificacion_registro_decisiones()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RAISE EXCEPTION 'El registro de decisiones no se puede modificar ni eliminar.'
+        USING ERRCODE = '55000';
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.impedir_modificacion_registro_decisiones() TO PUBLIC;
+
 DO $$
 DECLARE
     servicios TEXT[] := ARRAY[

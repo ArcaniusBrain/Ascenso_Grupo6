@@ -35,6 +35,7 @@ Una nueva propiedad opcional mantiene compatibilidad; cambiar el significado o e
 | `PostulacionSeleccionada.v1` | S3 | S4, S6 | Habilitar la emisión de la oferta con clave `(postulacionId, cicloId)` |
 | `CostoMatriculaVigente.v1` | S2 | S4 | Proyectar el costo vigente por universidad y periodo (C2) |
 | `SugerenciaListaEspera.v1` | S3 | S6 | Notificar al coordinador el siguiente elegible sugerido; S6 no decide |
+| `DecisionRegistrada.v1` | S1, S2, S3, S4, S5 | S6 | Proyectar de forma idempotente `registro_decisiones` (HU-35.2) y `linea_tiempo_beca` (HU-28.1) sin cruzar schemas (ADR-05, ADR-12) |
 
 Consulte `04_MATRICES/MAPEO_34_EVENTOS_DOMINIO.csv` para los 34 eventos del DDD. **No todos se exponen en RabbitMQ**; el dominio registra y el módulo decide si existe un hecho externo relevante.
 

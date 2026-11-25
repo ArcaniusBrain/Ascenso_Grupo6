@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Ascenso.SharedKernel\Ascenso.SharedKernel.csproj" />
+    <ProjectReference Include="..\Ascenso.Contracts\Ascenso.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

@@ -21,3 +21,4 @@ PostulacionSeleccionada,S3,"S4, S6","Habilita emisión por S4, clave idempotente
 CostoMatriculaVigente,S2,S4,Proyectar en S4 el costo vigente por universidad y periodo (C2),No confirmar un segundo beneficio sin dato vigente; versión por universidad y periodo
 SugerenciaListaEspera,S3,S6,Notificar al coordinador el siguiente elegible sugerido tras una oferta expirada o rechazada,S6 solo notifica; la sugerencia se calcula en S3 y no decide la selección
 LoteAcademicoRecibido,S5,S5,Procesar en segundo plano las filas del lote universitario (HU-24.3),Interno; idempotente por loteId
+DecisionRegistrada,"S1, S2, S3, S4, S5",S6,"Proyectar registro_decisiones (HU-35.2) y linea_tiempo_beca (HU-28.1) de forma idempotente vía Inbox","Emitido en la misma transacción que Agregado + RegistroDecision (D-6, ADR-12); UUIDs opacos sin cuentas bancarias ni PII prohibida"

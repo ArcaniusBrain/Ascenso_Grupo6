@@ -2240,8 +2240,52 @@ paths:
     get:
       tags:
       - S6
-      summary: Consultar traza proyectada sin modificar origen
+      summary: Consultar traza proyectada sin modificar origen (HU-35.2)
       operationId: S6getapiv1registrodecisiones
+      parameters:
+      - in: query
+        name: tipoSujeto
+        required: false
+        schema:
+          type: string
+          enum: [POSTULACION, BECA, POSTULANTE, PROGRAMA, DATOS_PAGO]
+      - in: query
+        name: sujetoId
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: programaId
+        required: false
+        schema:
+          $ref: '#/components/schemas/Id'
+      - in: query
+        name: desdeUtc
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: hastaUtc
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: pagina
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - in: query
+        name: tamanoPagina
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 200
+          default: 50
       responses:
         '200':
           description: Resultado tipado de la operación
