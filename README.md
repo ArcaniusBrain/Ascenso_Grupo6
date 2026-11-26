@@ -4,13 +4,14 @@ Proyecto semestral de **Desarrollo de Software** (Escuela de Ingeniería Inform�
 
 ASCENSO gestiona el ciclo completo de becas de la Fundación Ascenso: postulación, evaluación por comité, otorgamiento, desembolsos, seguimiento académico, renovación, comunicaciones, reportería y auditoría.
 
-> **Etapa actual: diseño cerrado, sin código.** La arquitectura v1.3 es la línea base adoptada por el equipo. El código empieza con el monorepo, el Shared Kernel y la integración continua (ver [Próximos pasos](#próximos-pasos)).
+> **Etapa actual: implementación activa en `.NET 10`.** Ya están en `main` la base del monorepo (`building-blocks/`, `deploy/`, CI), la trazabilidad inmutable (`RF-35`), **`S1` Identidad + 2FA + OTP** (`RF-37`) y **`S2` Calendario Académico** (`RF-38`). Consulta las **[Guías de Integración para el equipo](docs/guias-integracion/README.md)** para conectarte con lo ya construido.
 
 ## Documentación
 
 | Documento | Versión | Dónde |
 |---|---|---|
-| **Guía de inicio del equipo (empieza aquí)** | — | [`docs/guia-inicio-equipo.md`](docs/guia-inicio-equipo.md) |
+| **Guías de integración (qué hay en `main` y cómo usarlo)** | Vigente | [`docs/guias-integracion/README.md`](docs/guias-integracion/README.md) |
+| **Guía de inicio del equipo (preparar tu máquina)** | — | [`docs/guia-inicio-equipo.md`](docs/guia-inicio-equipo.md) |
 | PRD del cliente | 17-sep-2026 | [`docs/requisitos/prd.md`](docs/requisitos/prd.md) |
 | Respuestas del cliente (C1–C5, R1–R44) | Rondas 1 a 5 | [`docs/requisitos/respuestas_cliente.md`](docs/requisitos/respuestas_cliente.md) |
 | Historias de usuario · Plan B (73 HU, 714 escenarios) | Final, 14-oct-2026 | [`docs/requisitos/historias-de-usuario/`](docs/requisitos/historias-de-usuario/README.md) |
