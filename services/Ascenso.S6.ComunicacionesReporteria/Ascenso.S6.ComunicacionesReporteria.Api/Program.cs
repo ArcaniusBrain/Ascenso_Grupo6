@@ -5,6 +5,7 @@ using Ascenso.S6.ComunicacionesReporteria.Application.CasosDeUso.Consentimientos
 using Ascenso.S6.ComunicacionesReporteria.Application.CasosDeUso.ReportesImpacto;
 using Ascenso.S6.ComunicacionesReporteria.Application.Puertos;
 using Ascenso.S6.ComunicacionesReporteria.Infrastructure;
+using Ascenso.S6.ComunicacionesReporteria.Infrastructure.Persistencia;
 using Ascenso.SharedKernel.TiposBase;
 using MediatR;
 using Microsoft.AspNetCore.Diagnostics;
@@ -22,6 +23,15 @@ builder.Services.AddComunicacionesReporteriaService(builder.Configuration);
 builder.Services.AddHostedService<ProcesadorReportesImpactoWorker>();
 
 var app = builder.Build();
+
+if (args.Contains("--migrar", StringComparer.OrdinalIgnoreCase))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ComunicacionesDbContext>();
+    await db.Database.MigrateAsync();
+    Console.WriteLine($"S6 migrado correctamente (schema '{ComunicacionesDbContext.Schema}').");
+    return;
+}
 
 app.UseExceptionHandler(errorApp =>
 {
