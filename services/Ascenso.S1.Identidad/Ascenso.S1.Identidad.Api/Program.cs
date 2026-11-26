@@ -4,6 +4,7 @@ using Ascenso.S1.Identidad.Application.CasosDeUso.TiposUsuario;
 using Ascenso.S1.Identidad.Application.CasosDeUso.Usuarios;
 using Ascenso.S1.Identidad.Application.Puertos;
 using Ascenso.S1.Identidad.Infrastructure;
+using Ascenso.S1.Identidad.Infrastructure.Persistencia;
 using Ascenso.S1.Identidad.Infrastructure.Seguridad;
 using Ascenso.SharedKernel.Seguridad;
 using Ascenso.SharedKernel.TiposBase;
@@ -18,6 +19,16 @@ builder.Services.AddProblemDetails();
 builder.Services.AddIdentidadService(builder.Configuration);
 
 var app = builder.Build();
+
+if (args.Contains("--migrar", StringComparer.OrdinalIgnoreCase))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<IdentidadDbContext>();
+    await db.Database.MigrateAsync();
+    var sembrados = await SembradorIdentidadDesarrollo.SembrarTiposPredefinidosAsync(db);
+    Console.WriteLine($"S1 migrado correctamente (schema '{IdentidadDbContext.Schema}'). Tipos predefinidos creados: {sembrados}.");
+    return;
+}
 
 app.UseExceptionHandler(errorApp =>
 {

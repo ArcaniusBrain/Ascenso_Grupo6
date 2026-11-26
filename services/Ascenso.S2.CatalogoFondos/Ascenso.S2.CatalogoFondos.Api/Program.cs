@@ -9,6 +9,7 @@ using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Universidades;
 using Ascenso.S2.CatalogoFondos.Application.Puertos;
 using Ascenso.S2.CatalogoFondos.Domain.Agregados;
 using Ascenso.S2.CatalogoFondos.Infrastructure;
+using Ascenso.S2.CatalogoFondos.Infrastructure.Persistencia;
 using Ascenso.S2.CatalogoFondos.Infrastructure.Seguridad;
 using Ascenso.SharedKernel.TiposBase;
 using MediatR;
@@ -26,6 +27,15 @@ builder.Services.AddProblemDetails();
 builder.Services.AddCatalogoFondosService(builder.Configuration);
 
 var app = builder.Build();
+
+if (args.Contains("--migrar", StringComparer.OrdinalIgnoreCase))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<CatalogoFondosDbContext>();
+    await db.Database.MigrateAsync();
+    Console.WriteLine($"S2 migrado correctamente (schema '{CatalogoFondosDbContext.Schema}').");
+    return;
+}
 
 app.UseExceptionHandler(errorApp =>
 {
