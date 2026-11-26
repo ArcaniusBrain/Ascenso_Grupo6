@@ -187,3 +187,19 @@ export interface UniversidadDetalleDto extends UniversidadResumenDto {
   carreras: CarreraElegibleDto[];
   costosVigentes: CostoMatriculaRegistroDto[];
 }
+
+export interface CostoMatriculaPeriodoDto {
+  universidadId: string;
+  codigoPeriodo: string;
+  costoVigente: CostoMatriculaRegistroDto | null;
+  mensaje: string | null;
+  historial: CostoMatriculaRegistroDto[];
+}
+
+export interface InicioInscripcionesUniversidadDto {
+  universidadId: string;
+  codigoPeriodo: string;
+  fechaInicio: string | null;
+  inscripcionesIniciadas: boolean;
+  mensaje: string | null;
+}
