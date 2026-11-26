@@ -8,6 +8,8 @@ namespace Ascenso.S4.Becas.Infrastructure.Persistencia;
 
 public sealed class BecaDbContext(DbContextOptions<BecaDbContext> options) : DbContext(options)
 {
+    public const string Schema = "s4_becas";
+
     public DbSet<Beca> Becas => Set<Beca>();
     public DbSet<TramoBeca> TramosBeca => Set<TramoBeca>();
     public DbSet<ReferenciaPersona> ReferenciasPersonas => Set<ReferenciaPersona>();
@@ -18,7 +20,10 @@ public sealed class BecaDbContext(DbContextOptions<BecaDbContext> options) : DbC
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("s4");
+        if (Database.ProviderName?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            modelBuilder.HasDefaultSchema(Schema);
+        }
 
         modelBuilder.Entity<Beca>(builder =>
         {

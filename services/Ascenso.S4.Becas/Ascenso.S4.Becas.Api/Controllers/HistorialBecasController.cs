@@ -72,6 +72,7 @@ public sealed class HistorialBecasController(ISender sender) : ControllerBase
         return rolClaim.Trim().ToUpperInvariant() switch
         {
             "COORDINADOR" => RolHistorialBecas.Coordinador,
+            "DIRECCION" => RolHistorialBecas.Direccion,
             "BECARIO" => RolHistorialBecas.Becario,
             "POSTULANTE" => RolHistorialBecas.Postulante,
             _ => RolHistorialBecas.Otro

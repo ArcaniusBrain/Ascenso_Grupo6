@@ -11,11 +11,11 @@ public sealed class InicialS4Becas : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.EnsureSchema(name: "s4");
+        migrationBuilder.EnsureSchema(name: "s4_becas");
 
         migrationBuilder.CreateTable(
             name: "becas",
-            schema: "s4",
+            schema: "s4_becas",
             columns: table => new
             {
                 id = table.Column<Guid>(nullable: false),
@@ -31,7 +31,7 @@ public sealed class InicialS4Becas : Migration
 
         migrationBuilder.CreateTable(
             name: "tramos_beca",
-            schema: "s4",
+            schema: "s4_becas",
             columns: table => new
             {
                 id = table.Column<Guid>(nullable: false),
@@ -47,7 +47,7 @@ public sealed class InicialS4Becas : Migration
                 table.ForeignKey(
                     name: "FK_tramos_beca_becas_beca_id",
                     column: x => x.beca_id,
-                    principalSchema: "s4",
+                    principalSchema: "s4_becas",
                     principalTable: "becas",
                     principalColumn: "id",
                     onDelete: ReferentialAction.Cascade);
@@ -55,7 +55,7 @@ public sealed class InicialS4Becas : Migration
 
         migrationBuilder.CreateTable(
             name: "referencia_personas",
-            schema: "s4",
+            schema: "s4_becas",
             columns: table => new
             {
                 persona_id = table.Column<Guid>(nullable: false),
@@ -66,7 +66,7 @@ public sealed class InicialS4Becas : Migration
 
         migrationBuilder.CreateTable(
             name: "referencia_programas",
-            schema: "s4",
+            schema: "s4_becas",
             columns: table => new
             {
                 programa_id = table.Column<Guid>(nullable: false),
@@ -77,7 +77,7 @@ public sealed class InicialS4Becas : Migration
 
         migrationBuilder.CreateTable(
             name: "outbox_messages",
-            schema: "s4",
+            schema: "s4_becas",
             columns: table => new
             {
                 Id = table.Column<Guid>(nullable: false),
@@ -95,7 +95,7 @@ public sealed class InicialS4Becas : Migration
 
         migrationBuilder.CreateTable(
             name: "inbox_messages",
-            schema: "s4",
+            schema: "s4_becas",
             columns: table => new
             {
                 ConsumerName = table.Column<string>(maxLength: 200, nullable: false),
@@ -107,7 +107,7 @@ public sealed class InicialS4Becas : Migration
 
         migrationBuilder.CreateTable(
             name: "registro_decisiones",
-            schema: "s4",
+            schema: "s4_becas",
             columns: table => new
             {
                 id = table.Column<Guid>(nullable: false),
@@ -129,26 +129,26 @@ public sealed class InicialS4Becas : Migration
             },
             constraints: table => table.PrimaryKey("PK_registro_decisiones", x => x.id));
 
-        migrationBuilder.CreateIndex(name: "ix_becas_postulante", schema: "s4", table: "becas", column: "postulante_id");
-        migrationBuilder.CreateIndex(name: "ix_becas_programa", schema: "s4", table: "becas", column: "programa_id");
-        migrationBuilder.CreateIndex(name: "ix_tramos_beca_periodo", schema: "s4", table: "tramos_beca", column: "periodo");
-        migrationBuilder.CreateIndex(name: "ux_referencia_personas_cedula", schema: "s4", table: "referencia_personas", column: "cedula", unique: true);
-        migrationBuilder.CreateIndex(name: "ix_outbox_pendientes", schema: "s4", table: "outbox_messages", columns: ["ProcessedAtUtc", "OccurredAtUtc"]);
-        migrationBuilder.CreateIndex(name: "ix_registro_decisiones_sujeto", schema: "s4", table: "registro_decisiones", columns: ["tipo_sujeto", "sujeto_id"]);
-        migrationBuilder.CreateIndex(name: "ix_registro_decisiones_fecha", schema: "s4", table: "registro_decisiones", column: "ocurrido_en_utc");
-        migrationBuilder.CreateIndex(name: "ix_registro_decisiones_programa", schema: "s4", table: "registro_decisiones", column: "programa_id");
-        migrationBuilder.CreateIndex(name: "ix_registro_decisiones_propietario", schema: "s4", table: "registro_decisiones", column: "propietario_usuario_id");
-        migrationBuilder.CreateIndex(name: "ix_registro_decisiones_correlacion", schema: "s4", table: "registro_decisiones", column: "correlation_id");
+        migrationBuilder.CreateIndex(name: "ix_becas_postulante", schema: "s4_becas", table: "becas", column: "postulante_id");
+        migrationBuilder.CreateIndex(name: "ix_becas_programa", schema: "s4_becas", table: "becas", column: "programa_id");
+        migrationBuilder.CreateIndex(name: "ix_tramos_beca_periodo", schema: "s4_becas", table: "tramos_beca", column: "periodo");
+        migrationBuilder.CreateIndex(name: "ux_referencia_personas_cedula", schema: "s4_becas", table: "referencia_personas", column: "cedula", unique: true);
+        migrationBuilder.CreateIndex(name: "ix_outbox_pendientes", schema: "s4_becas", table: "outbox_messages", columns: ["ProcessedAtUtc", "OccurredAtUtc"]);
+        migrationBuilder.CreateIndex(name: "ix_registro_decisiones_sujeto", schema: "s4_becas", table: "registro_decisiones", columns: ["tipo_sujeto", "sujeto_id"]);
+        migrationBuilder.CreateIndex(name: "ix_registro_decisiones_fecha", schema: "s4_becas", table: "registro_decisiones", column: "ocurrido_en_utc");
+        migrationBuilder.CreateIndex(name: "ix_registro_decisiones_programa", schema: "s4_becas", table: "registro_decisiones", column: "programa_id");
+        migrationBuilder.CreateIndex(name: "ix_registro_decisiones_propietario", schema: "s4_becas", table: "registro_decisiones", column: "propietario_usuario_id");
+        migrationBuilder.CreateIndex(name: "ix_registro_decisiones_correlacion", schema: "s4_becas", table: "registro_decisiones", column: "correlation_id");
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(name: "tramos_beca", schema: "s4");
-        migrationBuilder.DropTable(name: "becas", schema: "s4");
-        migrationBuilder.DropTable(name: "referencia_personas", schema: "s4");
-        migrationBuilder.DropTable(name: "referencia_programas", schema: "s4");
-        migrationBuilder.DropTable(name: "outbox_messages", schema: "s4");
-        migrationBuilder.DropTable(name: "inbox_messages", schema: "s4");
-        migrationBuilder.DropTable(name: "registro_decisiones", schema: "s4");
+        migrationBuilder.DropTable(name: "tramos_beca", schema: "s4_becas");
+        migrationBuilder.DropTable(name: "becas", schema: "s4_becas");
+        migrationBuilder.DropTable(name: "referencia_personas", schema: "s4_becas");
+        migrationBuilder.DropTable(name: "referencia_programas", schema: "s4_becas");
+        migrationBuilder.DropTable(name: "outbox_messages", schema: "s4_becas");
+        migrationBuilder.DropTable(name: "inbox_messages", schema: "s4_becas");
+        migrationBuilder.DropTable(name: "registro_decisiones", schema: "s4_becas");
     }
 }

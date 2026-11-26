@@ -5,10 +5,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(ConsultarHistorialBecasHandler).Assembly));
 
-builder.Services.AddS4Infrastructure(_ => { });
+builder.Services.AddS4Infrastructure(builder.Configuration);
 
 var app = builder.Build();
 

@@ -13,6 +13,13 @@ public sealed class PoliticaAccesoHistorialBecasTests
     }
 
     [Fact]
+    public void Direccion_PuedeConsultarCualquierPersonaYAgregados()
+    {
+        Assert.True(PoliticaAccesoHistorialBecas.PuedeConsultarPorCedula(RolHistorialBecas.Direccion, "V-22222222", "V-12345678"));
+        Assert.True(PoliticaAccesoHistorialBecas.PuedeConsultarAgregado(RolHistorialBecas.Direccion));
+    }
+
+    [Fact]
     public void Becario_SoloPuedeConsultarSuPropiaCedulaYNoAgregados()
     {
         Assert.True(PoliticaAccesoHistorialBecas.PuedeConsultarPorCedula(RolHistorialBecas.Becario, "v-12345678", "V-12345678"));

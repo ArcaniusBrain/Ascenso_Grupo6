@@ -1,5 +1,6 @@
 using Ascenso.S4.Becas.Application.HistorialBecas;
 using Ascenso.S4.Becas.Domain.Becas;
+using Ascenso.SharedKernel.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ascenso.S4.Becas.Infrastructure.Persistencia;
@@ -64,16 +65,18 @@ public sealed class ConsultaHistorialBecasEfCore(BecaDbContext dbContext) : ICon
         string periodoNormalizado,
         CancellationToken cancellationToken)
     {
+        var codigo = new CodigoPeriodo(periodoNormalizado);
         var filas = await (
             from b in _db.Becas.AsNoTracking().Include(x => x.Tramos)
             join p in _db.ReferenciasPersonas.AsNoTracking() on b.PostulanteId equals p.PersonaId
             join pr in _db.ReferenciasProgramas.AsNoTracking() on b.ProgramaId equals pr.ProgramaId
+            where b.Tramos.Any(t => t.Periodo == codigo)
             select new { Beca = b, Persona = p, Programa = pr })
             .ToListAsync(cancellationToken);
 
         return filas
             .SelectMany(f => f.Beca.Tramos
-                .Where(t => t.Periodo.Valor == periodoNormalizado)
+                .Where(t => t.Periodo == codigo)
                 .Select(t => CrearDto(f.Beca, f.Persona, f.Programa, t)))
             .ToList();
     }

@@ -82,8 +82,9 @@ components:
           items:
             $ref: '#/components/schemas/BecaHistorialItem'
         mensaje:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
       additionalProperties: false
     ProblemDetails:
       type: object

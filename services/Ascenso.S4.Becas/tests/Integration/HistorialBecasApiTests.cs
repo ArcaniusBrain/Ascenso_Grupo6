@@ -86,6 +86,16 @@ public sealed class HistorialBecasApiTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ArranqueEnRuntimeSinOverrides_HealthRespondeOk()
+    {
+        await using var runtimeFactory = new WebApplicationFactory<Program>();
+        using var runtimeClient = runtimeFactory.CreateClient();
+
+        var resp = await runtimeClient.GetAsync("/health");
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+    }
+
+    [Fact]
     public async Task SinAutenticacion_Responde401()
     {
         var resp = await _client.GetAsync("/api/v1/becas/historial?cedula=V-10000001");
@@ -141,6 +151,18 @@ public sealed class HistorialBecasApiTests : IAsyncLifetime
         var resp = await _client.SendAsync(req);
 
         Assert.Equal(HttpStatusCode.Forbidden, resp.StatusCode);
+    }
+
+    [Fact]
+    public async Task Direccion_ConsultaPorCedulaYPorPrograma_Responde200()
+    {
+        using var reqPersona = CrearRequest("Direccion", "V-99999998", "/api/v1/becas/historial?cedula=V-10000001");
+        var respPersona = await _client.SendAsync(reqPersona);
+        Assert.Equal(HttpStatusCode.OK, respPersona.StatusCode);
+
+        using var reqPrograma = CrearRequest("Direccion", "V-99999998", "/api/v1/becas/historial?programaId=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        var respPrograma = await _client.SendAsync(reqPrograma);
+        Assert.Equal(HttpStatusCode.OK, respPrograma.StatusCode);
     }
 
     private static HttpRequestMessage CrearRequest(string rol, string cedula, string url)

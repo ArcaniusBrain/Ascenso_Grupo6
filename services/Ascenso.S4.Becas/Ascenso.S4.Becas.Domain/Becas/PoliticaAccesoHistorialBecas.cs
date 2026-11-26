@@ -5,6 +5,7 @@ namespace Ascenso.S4.Becas.Domain.Becas;
 public enum RolHistorialBecas
 {
     Coordinador,
+    Direccion,
     Becario,
     Postulante,
     Otro
@@ -17,7 +18,7 @@ public static class PoliticaAccesoHistorialBecas
 {
     public static bool PuedeConsultarPorCedula(RolHistorialBecas rol, string? cedulaActor, string cedulaConsultada)
     {
-        if (rol == RolHistorialBecas.Coordinador)
+        if (rol is RolHistorialBecas.Coordinador or RolHistorialBecas.Direccion)
         {
             return true;
         }
@@ -33,5 +34,5 @@ public static class PoliticaAccesoHistorialBecas
     }
 
     public static bool PuedeConsultarAgregado(RolHistorialBecas rol) =>
-        rol == RolHistorialBecas.Coordinador;
+        rol is RolHistorialBecas.Coordinador or RolHistorialBecas.Direccion;
 }

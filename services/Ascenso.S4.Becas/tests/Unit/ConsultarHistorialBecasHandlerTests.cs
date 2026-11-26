@@ -198,6 +198,28 @@ public sealed class ConsultarHistorialBecasHandlerTests
         Assert.False(inactiva.CuentaComoActiva);
     }
 
+    /// <summary>
+    /// Escenario: Dirección consulta el historial por persona y por programa.
+    /// </summary>
+    [Fact]
+    public async Task DireccionConsultaHistorialPorPersonaYPorPrograma()
+    {
+        var handler = CrearHandlerConDatosBase();
+
+        var porPersona = await handler.Handle(
+            new ConsultarHistorialBecasQuery(RolHistorialBecas.Direccion, "V-99999998", "V-10000001", null, null),
+            CancellationToken.None);
+
+        var porPrograma = await handler.Handle(
+            new ConsultarHistorialBecasQuery(RolHistorialBecas.Direccion, "V-99999998", null, BecasIngenieriaId, null),
+            CancellationToken.None);
+
+        Assert.True(porPersona.Autorizado);
+        Assert.Equal(2, porPersona.Items.Count);
+        Assert.True(porPrograma.Autorizado);
+        Assert.Equal(2, porPrograma.Items.Count);
+    }
+
     private static ConsultarHistorialBecasHandler CrearHandlerConDatosBase()
     {
         var personas = new List<PersonaReferenciaDto>
