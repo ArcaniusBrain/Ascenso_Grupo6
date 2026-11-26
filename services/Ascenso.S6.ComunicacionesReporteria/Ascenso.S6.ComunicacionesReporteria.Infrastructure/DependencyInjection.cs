@@ -1,7 +1,9 @@
 using Ascenso.Messaging.Outbox;
+using Ascenso.Messaging.Outbox.RabbitMq;
 using Ascenso.S6.ComunicacionesReporteria.Application.CasosDeUso.Consentimientos;
 using Ascenso.S6.ComunicacionesReporteria.Application.Puertos;
 using Ascenso.S6.ComunicacionesReporteria.Domain.Repositorios;
+using Ascenso.S6.ComunicacionesReporteria.Infrastructure.Mensajeria;
 using Ascenso.S6.ComunicacionesReporteria.Infrastructure.Persistencia;
 using Ascenso.S6.ComunicacionesReporteria.Infrastructure.Procesamiento;
 using Ascenso.SharedKernel.Tiempo;
@@ -50,6 +52,10 @@ public static class DependencyInjection
 
         services.AddSingleton<ColaReportesImpactoChannel>();
         services.AddSingleton<IColaProcesamientoReportesImpacto>(sp => sp.GetRequiredService<ColaReportesImpactoChannel>());
+
+        services.AddScoped<ProyectorEventosImpacto>();
+        services.AddOutboxRabbitMqDispatcher<ComunicacionesDbContext>(configuration, "s6-comunicaciones");
+        services.AddHostedService<ConsumidorEventosImpactoRabbitMqWorker>();
 
         return services;
     }
