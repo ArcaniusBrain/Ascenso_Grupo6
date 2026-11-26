@@ -3,9 +3,12 @@ using Ascenso.SharedKernel.TiposBase;
 namespace Ascenso.S2.CatalogoFondos.Application.Puertos;
 
 /// <summary>
-/// Identidad y rol efectivo del actor autenticado (resuelto desde JWT/YARP o cabeceras de prueba).
+/// Identidad, rol efectivo y programas asignados opcionales del actor autenticado (resuelto desde JWT/YARP o cabeceras de prueba).
 /// </summary>
-public sealed record ActorSolicitudCatalogo(Guid UsuarioId, string Rol);
+public sealed record ActorSolicitudCatalogo(
+    Guid UsuarioId,
+    string Rol,
+    IReadOnlyCollection<Guid>? ProgramasAsignados = null);
 
 /// <summary>
 /// Política de autorización para el calendario académico (HU-38.1 E8, HU-38.2 E5, Anexo B HU-38.1 #2, C15).

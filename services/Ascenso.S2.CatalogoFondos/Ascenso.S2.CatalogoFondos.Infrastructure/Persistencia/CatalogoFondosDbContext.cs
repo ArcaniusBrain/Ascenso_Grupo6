@@ -19,6 +19,9 @@ public sealed class CatalogoFondosDbContext : DbContext
     public DbSet<UniversidadAliada> UniversidadesAliadas => Set<UniversidadAliada>();
     public DbSet<CarreraElegible> CarrerasElegibles => Set<CarreraElegible>();
     public DbSet<CostoMatricula> CostosMatricula => Set<CostoMatricula>();
+    public DbSet<Programa> Programas => Set<Programa>();
+    public DbSet<RestriccionElegibilidad> RestriccionesElegibilidad => Set<RestriccionElegibilidad>();
+    public DbSet<AsociacionDonantePrograma> AsociacionesDonantesPrograma => Set<AsociacionDonantePrograma>();
     public DbSet<OperacionIdempotenteCatalogo> OperacionesIdempotentes => Set<OperacionIdempotenteCatalogo>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
@@ -216,6 +219,101 @@ public sealed class CatalogoFondosDbContext : DbContext
             builder.HasIndex(x => new { x.UniversidadAliadaId, x.Periodo, x.VersionRegistro })
                 .IsUnique()
                 .HasDatabaseName("ix_costos_matricula_universidad_periodo_version");
+        });
+
+        modelBuilder.Entity<Programa>(builder =>
+        {
+            builder.ToTable("programas");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(200).IsRequired();
+            builder.Property(x => x.NombreNormalizado).HasColumnName("nombre_normalizado").HasMaxLength(200).IsRequired();
+
+            builder.Property(x => x.PeriodoInicio)
+                .HasColumnName("periodo_inicio")
+                .HasConversion(p => p.Valor, s => new CodigoPeriodo(s))
+                .HasMaxLength(20)
+                .IsRequired();
+
+            builder.Property(x => x.CupoBecarios).HasColumnName("cupo_becarios").IsRequired();
+            builder.Property(x => x.DuracionPeriodos).HasColumnName("duracion_periodos").IsRequired();
+
+            builder.OwnsOne(x => x.MontoPorPeriodo, dinero =>
+            {
+                dinero.Property(d => d.Cantidad).HasColumnName("monto_por_periodo").HasPrecision(18, 2).IsRequired();
+                dinero.Property(d => d.Moneda).HasColumnName("moneda").HasMaxLength(3).IsRequired();
+            });
+            builder.Navigation(x => x.MontoPorPeriodo).IsRequired();
+
+            builder.Property(x => x.ModalidadPago)
+                .HasColumnName("modalidad_pago")
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            builder.Property(x => x.Alcance)
+                .HasColumnName("alcance")
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .IsRequired();
+
+            builder.Property(x => x.PermiteAcumulacion).HasColumnName("permite_acumulacion").IsRequired();
+            builder.Property(x => x.CreadoEnUtc).HasColumnName("creado_en_utc").IsRequired();
+            builder.ConfigurarVersionExplicita<Programa, Guid>();
+
+            builder.OwnsOne(x => x.Condiciones, cond =>
+            {
+                cond.Property(c => c.PromedioMinimo).HasColumnName("cond_promedio_minimo").HasPrecision(6, 2);
+                cond.Property(c => c.ExigeHorasServicio).HasColumnName("cond_exige_horas_servicio");
+                cond.Property(c => c.HorasServicio).HasColumnName("cond_horas_servicio");
+                cond.Property(c => c.ReportesExigidosTexto).HasColumnName("cond_reportes_exigidos").HasMaxLength(2000);
+                cond.Property(c => c.DuracionMaxPausaMeses).HasColumnName("cond_duracion_max_pausa_meses");
+                cond.Property(c => c.DescripcionRenovacion).HasColumnName("cond_descripcion_renovacion").HasMaxLength(2000);
+            });
+
+            builder.HasMany(x => x.Donantes)
+                .WithOne()
+                .HasForeignKey(d => d.ProgramaId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(x => x.Donantes).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(x => x.Restricciones)
+                .WithOne()
+                .HasForeignKey(r => r.ProgramaId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(x => x.Restricciones).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasIndex(x => x.NombreNormalizado)
+                .IsUnique()
+                .HasDatabaseName("ix_programas_nombre_unico");
+        });
+
+        modelBuilder.Entity<AsociacionDonantePrograma>(builder =>
+        {
+            builder.ToTable("programa_donantes");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.ProgramaId).HasColumnName("programa_id").IsRequired();
+            builder.Property(x => x.DonanteId).HasColumnName("donante_id").IsRequired();
+            builder.Property(x => x.AsociadoEnUtc).HasColumnName("asociado_en_utc").IsRequired();
+
+            builder.HasIndex(x => new { x.ProgramaId, x.DonanteId })
+                .IsUnique()
+                .HasDatabaseName("ix_programa_donantes_unico");
+        });
+
+        modelBuilder.Entity<RestriccionElegibilidad>(builder =>
+        {
+            builder.ToTable("programa_restricciones_elegibilidad");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.ProgramaId).HasColumnName("programa_id").IsRequired();
+            builder.Property(x => x.UniversidadId).HasColumnName("universidad_id").IsRequired();
+            builder.Property(x => x.NombreUniversidad).HasColumnName("nombre_universidad").HasMaxLength(200).IsRequired();
+            builder.Property(x => x.CarreraNombre).HasColumnName("carrera_nombre").HasMaxLength(200);
+
+            builder.HasIndex(x => new { x.ProgramaId, x.UniversidadId, x.CarreraNombre })
+                .HasDatabaseName("ix_programa_restricciones_universidad_carrera");
         });
     }
 }

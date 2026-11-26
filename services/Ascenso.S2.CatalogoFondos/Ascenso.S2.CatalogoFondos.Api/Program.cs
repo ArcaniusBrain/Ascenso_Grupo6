@@ -1,6 +1,8 @@
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Calendario;
+using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Programas;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Universidades;
 using Ascenso.S2.CatalogoFondos.Application.Puertos;
 using Ascenso.S2.CatalogoFondos.Domain.Agregados;
@@ -353,6 +355,169 @@ app.MapGet("/api/v1/universidades/{universidadId:guid}/inicios-inscripciones/{co
     return Results.Ok(resultado);
 });
 
+// ── Programas de becas (RF-11: HU-11.1 y HU-11.2) ─────────────────────────────
+app.MapGet("/api/v1/programas", async (HttpContext http, IMediator mediator, CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var lista = await mediator.Send(new ListarProgramasQuery(actor), ct);
+    return Results.Ok(lista);
+});
+
+app.MapPost("/api/v1/programas", async (
+    HttpContext http,
+    CrearProgramaRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var creado = await mediator.Send(
+        new CrearProgramaCommand(
+            actor,
+            body.Nombre,
+            body.PeriodoInicio,
+            body.CupoBecarios,
+            body.DuracionPeriodos,
+            body.MontoPorPeriodo,
+            body.Moneda,
+            body.ModalidadPago,
+            body.Alcance,
+            body.PermiteAcumulacion),
+        ct);
+
+    return Results.Created($"/api/v1/programas/{creado.Id}", creado);
+});
+
+app.MapGet("/api/v1/programas/{programaId:guid}", async (
+    Guid programaId,
+    HttpContext http,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var detalle = await mediator.Send(new ConsultarProgramaDetalleQuery(actor, programaId), ct);
+    return Results.Ok(detalle);
+});
+
+app.MapPut("/api/v1/programas/{programaId:guid}/configuracion-base", async (
+    Guid programaId,
+    HttpContext http,
+    ActualizarConfiguracionProgramaRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var actualizado = await mediator.Send(
+        new ActualizarConfiguracionBaseProgramaCommand(
+            actor,
+            programaId,
+            body.Nombre,
+            body.MontoPorPeriodo,
+            body.Moneda,
+            body.ModalidadPago,
+            body.Alcance,
+            body.PermiteAcumulacion),
+        ct);
+
+    return Results.Ok(actualizado);
+});
+
+app.MapPost("/api/v1/programas/{programaId:guid}/donantes", async (
+    Guid programaId,
+    HttpContext http,
+    AsociarDonanteProgramaRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var detalle = await mediator.Send(
+        new AsociarDonanteAProgramaCommand(actor, programaId, body.DonanteId),
+        ct);
+
+    return Results.Ok(detalle);
+});
+
+app.MapPut("/api/v1/programas/{programaId:guid}/elegibilidad", async (
+    Guid programaId,
+    HttpContext http,
+    ConfigurarElegibilidadRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var detalle = await mediator.Send(
+        new ConfigurarElegibilidadProgramaCommand(actor, programaId, body.Restricciones),
+        ct);
+
+    return Results.Ok(detalle);
+});
+
+app.MapPut("/api/v1/programas/{programaId:guid}/condiciones", async (
+    Guid programaId,
+    HttpContext http,
+    ConfigurarCondicionesRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var promedioTexto = body.PromedioMinimo switch
+    {
+        null => null,
+        { ValueKind: JsonValueKind.String } e => e.GetString(),
+        { ValueKind: JsonValueKind.Number } e => e.GetRawText(),
+        { ValueKind: JsonValueKind.Null } => null,
+        { } e => e.GetRawText()
+    };
+
+    var detalle = await mediator.Send(
+        new ConfigurarCondicionesProgramaCommand(
+            actor,
+            programaId,
+            promedioTexto,
+            body.ExigeHorasServicio,
+            body.HorasServicio,
+            body.ReportesExigidos,
+            body.DuracionMaxPausaMeses,
+            body.DescripcionRenovacion),
+        ct);
+
+    return Results.Ok(detalle);
+});
+
 app.Run();
 
 static IResult NoAutenticado(HttpContext http) =>
@@ -387,7 +552,18 @@ static ActorSolicitudCatalogo? ResolverActor(HttpContext http)
                   ? headerRol.ToString()
                   : string.Empty);
 
-    return new ActorSolicitudCatalogo(usuarioId.Value, rol);
+    List<Guid>? programasAsignados = null;
+    if (http.Request.Headers.TryGetValue("X-Actor-Programas", out var headerProgramas)
+        && !string.IsNullOrWhiteSpace(headerProgramas.ToString()))
+    {
+        programasAsignados = headerProgramas.ToString()
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(s => Guid.TryParse(s, out var g) ? g : Guid.Empty)
+            .Where(g => g != Guid.Empty)
+            .ToList();
+    }
+
+    return new ActorSolicitudCatalogo(usuarioId.Value, rol, programasAsignados);
 }
 
 static (int Status, string Title, string Code, string Detail) MapearExcepcionDeDominio(ExcepcionDeDominio ex) =>
@@ -395,11 +571,11 @@ static (int Status, string Title, string Code, string Detail) MapearExcepcionDeD
     {
         "NO_AUTENTICADO"
             => (StatusCodes.Status401Unauthorized, "No autenticado", ex.Codigo, ex.Message),
-        "ACCESO_DENEGADO_CALENDARIO" or "ACCESO_DENEGADO_UNIVERSIDADES"
+        "ACCESO_DENEGADO_CALENDARIO" or "ACCESO_DENEGADO_UNIVERSIDADES" or "ACCESO_DENEGADO_PROGRAMAS"
             => (StatusCodes.Status403Forbidden, "Acceso denegado", ex.Codigo, ex.Message),
-        "PERIODO_NO_ENCONTRADO" or "UNIVERSIDAD_NO_ENCONTRADA"
+        "PERIODO_NO_ENCONTRADO" or "UNIVERSIDAD_NO_ENCONTRADA" or "PROGRAMA_NO_ENCONTRADO" or "DONANTE_NO_ENCONTRADO"
             => (StatusCodes.Status404NotFound, "Recurso no encontrado", ex.Codigo, ex.Message),
-        "PERIODO_DUPLICADO" or "INICIO_INSCRIPCIONES_DUPLICADO" or "UNIVERSIDAD_DUPLICADA" or "CARRERA_DUPLICADA"
+        "PERIODO_DUPLICADO" or "INICIO_INSCRIPCIONES_DUPLICADO" or "UNIVERSIDAD_DUPLICADA" or "CARRERA_DUPLICADA" or "PROGRAMA_DUPLICADO" or "DONANTE_YA_ASOCIADO"
             => (StatusCodes.Status409Conflict, "Conflicto de negocio", ex.Codigo, ex.Message),
         _ => (StatusCodes.Status422UnprocessableEntity, "Regla de negocio incumplida", ex.Codigo, ex.Message)
     };
@@ -435,5 +611,36 @@ public sealed record RegistrarCostoMatriculaRequest(
 public sealed record RegistrarInicioInscripcionesUniversidadRequest(
     string CodigoPeriodo,
     DateOnly? FechaInicio);
+
+public sealed record CrearProgramaRequest(
+    string? Nombre,
+    string? PeriodoInicio,
+    int? CupoBecarios,
+    int? DuracionPeriodos,
+    decimal? MontoPorPeriodo,
+    string? Moneda,
+    ModalidadPago? ModalidadPago,
+    AlcancePrograma? Alcance,
+    bool PermiteAcumulacion = false);
+
+public sealed record ActualizarConfiguracionProgramaRequest(
+    string? Nombre,
+    decimal? MontoPorPeriodo,
+    string? Moneda,
+    ModalidadPago? ModalidadPago,
+    AlcancePrograma? Alcance,
+    bool PermiteAcumulacion = false);
+
+public sealed record AsociarDonanteProgramaRequest(Guid DonanteId);
+
+public sealed record ConfigurarElegibilidadRequest(IReadOnlyList<RestriccionUniversidadInput>? Restricciones);
+
+public sealed record ConfigurarCondicionesRequest(
+    JsonElement? PromedioMinimo,
+    bool ExigeHorasServicio,
+    int? HorasServicio,
+    IReadOnlyList<string>? ReportesExigidos,
+    int? DuracionMaxPausaMeses,
+    string? DescripcionRenovacion);
 
 public partial class Program;

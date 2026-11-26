@@ -124,14 +124,14 @@ public sealed class RegistroIdempotenciaComandosEfCore : IRegistroIdempotenciaCo
     }
 }
 
-public sealed class ConsultorElementosPeriodoPorDefecto : IConsultorElementosPeriodo
+public sealed class ConsultorElementosPeriodoEfCore : IConsultorElementosPeriodo
 {
-    /// <summary>
-    /// En este primer incremento de S2 (RF-38) aún no existen tablas de Programas (RF-11) ni proyecciones locales
-    /// de ciclos/renovaciones; cuando se incorpore RF-11 en S2, esta implementación consultará los elementos ligados.
-    /// </summary>
+    private readonly CatalogoFondosDbContext _db;
+
+    public ConsultorElementosPeriodoEfCore(CatalogoFondosDbContext db) => _db = db;
+
     public Task<int> ContarElementosLigadosAsync(CodigoPeriodo codigoPeriodo, CancellationToken ct = default) =>
-        Task.FromResult(0);
+        _db.Programas.CountAsync(p => p.PeriodoInicio == codigoPeriodo, ct);
 }
 
 public sealed class UnidadTrabajoCatalogoEfCore : IUnidadTrabajoCatalogo
@@ -174,4 +174,56 @@ public sealed class UniversidadAliadaRepositoryEfCore : IUniversidadAliadaReposi
     {
         await _db.UniversidadesAliadas.AddAsync(universidad, ct);
     }
+}
+
+public sealed class ProgramaRepositoryEfCore : IProgramaRepository
+{
+    private readonly CatalogoFondosDbContext _db;
+
+    public ProgramaRepositoryEfCore(CatalogoFondosDbContext db) => _db = db;
+
+    public Task<Programa?> ObtenerPorIdAsync(Guid id, CancellationToken ct = default) =>
+        _db.Programas
+            .Include(p => p.Donantes)
+            .Include(p => p.Restricciones)
+            .FirstOrDefaultAsync(p => p.Id == id, ct);
+
+    public Task<bool> ExisteNombreNormalizadoAsync(
+        string nombreNormalizado,
+        Guid? excluirProgramaId = null,
+        CancellationToken ct = default) =>
+        _db.Programas.AnyAsync(
+            p => p.NombreNormalizado == nombreNormalizado
+                 && (!excluirProgramaId.HasValue || p.Id != excluirProgramaId.Value),
+            ct);
+
+    public async Task<IReadOnlyList<Programa>> ListarTodosAsync(CancellationToken ct = default) =>
+        await _db.Programas
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+    public Task<int> ContarPorPeriodoAsync(CodigoPeriodo codigoPeriodo, CancellationToken ct = default) =>
+        _db.Programas.CountAsync(p => p.PeriodoInicio == codigoPeriodo, ct);
+
+    public async Task AgregarAsync(Programa programa, CancellationToken ct = default)
+    {
+        await _db.Programas.AddAsync(programa, ct);
+    }
+}
+
+public sealed class ConsultorDonantesYAportesPorDefecto : IConsultorDonantesYAportes
+{
+    private static readonly IReadOnlyDictionary<Guid, AportesDonanteEnPrograma> Vacio =
+        new Dictionary<Guid, AportesDonanteEnPrograma>();
+
+    public Task<bool> ExistenDonantesRegistradosAsync(CancellationToken ct = default) =>
+        Task.FromResult(false);
+
+    public Task<DonanteRegistradoInfo?> ObtenerDonanteAsync(Guid donanteId, CancellationToken ct = default) =>
+        Task.FromResult<DonanteRegistradoInfo?>(null);
+
+    public Task<IReadOnlyDictionary<Guid, AportesDonanteEnPrograma>> ObtenerAportesPorProgramaAsync(
+        Guid programaId,
+        CancellationToken ct = default) =>
+        Task.FromResult(Vacio);
 }
