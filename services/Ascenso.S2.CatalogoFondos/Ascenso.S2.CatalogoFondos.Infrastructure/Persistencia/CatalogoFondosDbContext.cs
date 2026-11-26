@@ -22,6 +22,8 @@ public sealed class CatalogoFondosDbContext : DbContext
     public DbSet<Programa> Programas => Set<Programa>();
     public DbSet<RestriccionElegibilidad> RestriccionesElegibilidad => Set<RestriccionElegibilidad>();
     public DbSet<AsociacionDonantePrograma> AsociacionesDonantesPrograma => Set<AsociacionDonantePrograma>();
+    public DbSet<Donante> Donantes => Set<Donante>();
+    public DbSet<Aporte> Aportes => Set<Aporte>();
     public DbSet<OperacionIdempotenteCatalogo> OperacionesIdempotentes => Set<OperacionIdempotenteCatalogo>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
@@ -314,6 +316,77 @@ public sealed class CatalogoFondosDbContext : DbContext
 
             builder.HasIndex(x => new { x.ProgramaId, x.UniversidadId, x.CarreraNombre })
                 .HasDatabaseName("ix_programa_restricciones_universidad_carrera");
+        });
+
+        modelBuilder.Entity<Donante>(builder =>
+        {
+            builder.ToTable("donantes");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(200).IsRequired();
+            builder.Property(x => x.NombreNormalizado).HasColumnName("nombre_normalizado").HasMaxLength(200).IsRequired();
+
+            builder.Property(x => x.Tipo)
+                .HasColumnName("tipo")
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .IsRequired();
+
+            builder.OwnsOne(x => x.Contacto, contacto =>
+            {
+                contacto.Property(c => c.Correo)
+                    .HasColumnName("contacto_correo")
+                    .HasMaxLength(200);
+
+                contacto.Property(c => c.Telefono)
+                    .HasColumnName("contacto_telefono")
+                    .HasMaxLength(40);
+            });
+            builder.Navigation(x => x.Contacto).IsRequired();
+
+            builder.Property(x => x.RegistradoEnUtc).HasColumnName("registrado_en_utc").IsRequired();
+            builder.ConfigurarVersionExplicita<Donante, Guid>();
+
+            builder.HasMany(x => x.Aportes)
+                .WithOne()
+                .HasForeignKey(a => a.DonanteId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(x => x.Aportes).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasIndex(x => x.NombreNormalizado)
+                .IsUnique()
+                .HasDatabaseName("ix_donantes_nombre_unico");
+        });
+
+        modelBuilder.Entity<Aporte>(builder =>
+        {
+            builder.ToTable("aportes");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.DonanteId).HasColumnName("donante_id").IsRequired();
+            builder.Property(x => x.ProgramaId).HasColumnName("programa_id").IsRequired();
+
+            builder.Property(x => x.Periodo)
+                .HasColumnName("codigo_periodo")
+                .HasConversion(p => p.Valor, s => new CodigoPeriodo(s))
+                .HasMaxLength(20)
+                .IsRequired();
+
+            builder.OwnsOne(x => x.Monto, dinero =>
+            {
+                dinero.Property(d => d.Cantidad).HasColumnName("monto").HasPrecision(18, 2).IsRequired();
+                dinero.Property(d => d.Moneda).HasColumnName("moneda").HasMaxLength(3).IsRequired();
+            });
+            builder.Navigation(x => x.Monto).IsRequired();
+
+            builder.Property(x => x.RegistradoEnUtc).HasColumnName("registrado_en_utc").IsRequired();
+
+            // Ledger append-only (HU-13.2): índices no únicos para consulta por donante/periodo y suma por programa.
+            builder.HasIndex(x => new { x.DonanteId, x.Periodo })
+                .HasDatabaseName("ix_aportes_donante_periodo");
+
+            builder.HasIndex(x => x.ProgramaId)
+                .HasDatabaseName("ix_aportes_programa");
         });
     }
 }

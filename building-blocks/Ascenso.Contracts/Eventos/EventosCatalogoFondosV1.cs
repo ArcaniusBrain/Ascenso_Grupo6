@@ -12,3 +12,13 @@ public sealed record CostoMatriculaVigenteV1(
     string Moneda,
     int VersionRegistro,
     DateTimeOffset VigenteDesdeUtc);
+
+public sealed record AporteRegistradoV1(
+    Guid AporteId,
+    Guid DonanteId,
+    string NombreDonante,
+    Guid ProgramaId,
+    string CodigoPeriodo,
+    decimal Monto,
+    string Moneda,
+    DateTimeOffset RegistradoEnUtc);

@@ -661,6 +661,143 @@ components:
           maxLength: 3
         codigoPeriodo:
           $ref: '#/components/schemas/CodigoPeriodo'
+    ContactoDonanteDto:
+      type: object
+      properties:
+        correo:
+          type:
+          - string
+          - 'null'
+        telefono:
+          type:
+          - string
+          - 'null'
+    RegistrarDonanteRequest:
+      type: object
+      required:
+      - nombre
+      - tipo
+      - contacto
+      properties:
+        nombre:
+          type: string
+        tipo:
+          type: string
+          enum:
+          - ORGANIZACION
+          - PERSONA
+        contacto:
+          $ref: '#/components/schemas/ContactoDonanteDto'
+    DonanteResumenDto:
+      type: object
+      required:
+      - id
+      - nombre
+      - tipo
+      - contacto
+      - cantidadAportes
+      - totalAportado
+      - version
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        nombre:
+          type: string
+        tipo:
+          type: string
+          enum:
+          - ORGANIZACION
+          - PERSONA
+        contacto:
+          $ref: '#/components/schemas/ContactoDonanteDto'
+        cantidadAportes:
+          type: integer
+        totalAportado:
+          type: number
+        version:
+          type: integer
+    RegistrarAporteDesdeDonanteRequest:
+      type: object
+      required:
+      - programaId
+      - cantidad
+      - codigoPeriodo
+      properties:
+        programaId:
+          $ref: '#/components/schemas/Id'
+        cantidad:
+          type: number
+          exclusiveMinimum: 0
+        moneda:
+          type:
+          - string
+          - 'null'
+        codigoPeriodo:
+          $ref: '#/components/schemas/CodigoPeriodo'
+    AporteDto:
+      type: object
+      required:
+      - id
+      - donanteId
+      - nombreDonante
+      - programaId
+      - nombrePrograma
+      - codigoPeriodo
+      - monto
+      - moneda
+      - registradoEnUtc
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        donanteId:
+          $ref: '#/components/schemas/Id'
+        nombreDonante:
+          type: string
+        programaId:
+          $ref: '#/components/schemas/Id'
+        nombrePrograma:
+          type: string
+        codigoPeriodo:
+          $ref: '#/components/schemas/CodigoPeriodo'
+        monto:
+          type: number
+        moneda:
+          type: string
+        registradoEnUtc:
+          type: string
+          format: date-time
+    HistorialAportesDonanteDto:
+      type: object
+      required:
+      - donanteId
+      - nombreDonante
+      - tipoDonante
+      - totalAportado
+      - aportes
+      properties:
+        donanteId:
+          $ref: '#/components/schemas/Id'
+        nombreDonante:
+          type: string
+        tipoDonante:
+          type: string
+          enum:
+          - ORGANIZACION
+          - PERSONA
+        codigoPeriodoFiltro:
+          type:
+          - string
+          - 'null'
+        totalAportado:
+          type: number
+        mensajeSinAportes:
+          type:
+          - string
+          - 'null'
+        aportes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AporteDto'
     SeleccionarCommand:
       type: object
       required:
@@ -2671,6 +2808,215 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RegistrarAporteCommand'
+  /api/v1/donantes:
+    get:
+      tags:
+      - S2
+      summary: Listar donantes registrados
+      operationId: S2getapiv1donantes
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de donantes registrados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DonanteResumenDto'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    post:
+      tags:
+      - S2
+      summary: Registrar donante organización o persona sin crear cuenta en la plataforma
+      operationId: S2postapiv1donantes
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrarDonanteRequest'
+      responses:
+        '201':
+          description: Donante registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonanteResumenDto'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/donantes/{donanteId}:
+    get:
+      tags:
+      - S2
+      summary: Consultar detalle de un donante
+      operationId: S2getapiv1donantesdonanteId
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: donanteId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Detalle del donante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonanteResumenDto'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/donantes/{donanteId}/aportes:
+    get:
+      tags:
+      - S2
+      summary: Consultar historial append-only de aportes de un donante con filtro opcional por periodo
+      operationId: S2getapiv1donantesdonanteIdaportes
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: donanteId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: codigoPeriodo
+        required: false
+        schema:
+          $ref: '#/components/schemas/CodigoPeriodo'
+      responses:
+        '200':
+          description: Historial de aportes del donante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistorialAportesDonanteDto'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    post:
+      tags:
+      - S2
+      summary: Registrar aporte de un donante a un programa en un periodo académico
+      operationId: S2postapiv1donantesdonanteIdaportes
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: donanteId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrarAporteDesdeDonanteRequest'
+      responses:
+        '201':
+          description: Aporte registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AporteDto'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/v1/postulaciones:
     post:
       tags:

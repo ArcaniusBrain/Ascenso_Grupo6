@@ -211,19 +211,87 @@ public sealed class ProgramaRepositoryEfCore : IProgramaRepository
     }
 }
 
-public sealed class ConsultorDonantesYAportesPorDefecto : IConsultorDonantesYAportes
+public sealed class DonanteRepositoryEfCore : IDonanteRepository
 {
-    private static readonly IReadOnlyDictionary<Guid, AportesDonanteEnPrograma> Vacio =
-        new Dictionary<Guid, AportesDonanteEnPrograma>();
+    private readonly CatalogoFondosDbContext _db;
+
+    public DonanteRepositoryEfCore(CatalogoFondosDbContext db) => _db = db;
+
+    public Task<Donante?> ObtenerPorIdAsync(Guid id, CancellationToken ct = default) =>
+        _db.Donantes
+            .Include(d => d.Aportes)
+            .FirstOrDefaultAsync(d => d.Id == id, ct);
+
+    public Task<bool> ExisteNombreNormalizadoAsync(
+        string nombreNormalizado,
+        Guid? excluirDonanteId = null,
+        CancellationToken ct = default) =>
+        _db.Donantes.AnyAsync(
+            d => d.NombreNormalizado == nombreNormalizado
+                 && (!excluirDonanteId.HasValue || d.Id != excluirDonanteId.Value),
+            ct);
+
+    public async Task<IReadOnlyList<Donante>> ListarTodosAsync(CancellationToken ct = default) =>
+        await _db.Donantes
+            .Include(d => d.Aportes)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+    public async Task AgregarAsync(Donante donante, CancellationToken ct = default)
+    {
+        await _db.Donantes.AddAsync(donante, ct);
+    }
+}
+
+public sealed class ConsultorDonantesYAportesEfCore : IConsultorDonantesYAportes
+{
+    private readonly CatalogoFondosDbContext _db;
+
+    public ConsultorDonantesYAportesEfCore(CatalogoFondosDbContext db) => _db = db;
 
     public Task<bool> ExistenDonantesRegistradosAsync(CancellationToken ct = default) =>
-        Task.FromResult(false);
+        _db.Donantes.AnyAsync(ct);
 
-    public Task<DonanteRegistradoInfo?> ObtenerDonanteAsync(Guid donanteId, CancellationToken ct = default) =>
-        Task.FromResult<DonanteRegistradoInfo?>(null);
+    public async Task<DonanteRegistradoInfo?> ObtenerDonanteAsync(Guid donanteId, CancellationToken ct = default)
+    {
+        var donante = await _db.Donantes
+            .AsNoTracking()
+            .Where(d => d.Id == donanteId)
+            .Select(d => new { d.Id, d.Nombre })
+            .FirstOrDefaultAsync(ct);
 
-    public Task<IReadOnlyDictionary<Guid, AportesDonanteEnPrograma>> ObtenerAportesPorProgramaAsync(
+        return donante is null ? null : new DonanteRegistradoInfo(donante.Id, donante.Nombre);
+    }
+
+    public async Task<IReadOnlyDictionary<Guid, AportesDonanteEnPrograma>> ObtenerAportesPorProgramaAsync(
         Guid programaId,
-        CancellationToken ct = default) =>
-        Task.FromResult(Vacio);
+        CancellationToken ct = default)
+    {
+        var aportes = await _db.Aportes
+            .AsNoTracking()
+            .Where(a => a.ProgramaId == programaId)
+            .ToListAsync(ct);
+
+        if (aportes.Count == 0)
+        {
+            return new Dictionary<Guid, AportesDonanteEnPrograma>();
+        }
+
+        var donanteIds = aportes.Select(a => a.DonanteId).Distinct().ToArray();
+        var nombres = await _db.Donantes
+            .AsNoTracking()
+            .Where(d => donanteIds.Contains(d.Id))
+            .ToDictionaryAsync(d => d.Id, d => d.Nombre, ct);
+
+        return aportes
+            .GroupBy(a => a.DonanteId)
+            .ToDictionary(
+                g => g.Key,
+                g => new AportesDonanteEnPrograma(
+                    g.Key,
+                    nombres.TryGetValue(g.Key, out var nombre) ? nombre : g.Key.ToString(),
+                    g.Sum(a => a.Monto.Cantidad),
+                    g.First().Monto.Moneda,
+                    g.Count()));
+    }
 }
