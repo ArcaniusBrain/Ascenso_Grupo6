@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <RootNamespace>Ascenso.S4.Becas.Domain</RootNamespace>
-    <AssemblyName>Ascenso.S4.Becas.Domain</AssemblyName>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\building-blocks\Ascenso.SharedKernel\Ascenso.SharedKernel.csproj" />
-  </ItemGroup>
-</Project>
