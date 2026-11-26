@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ascenso.S4.Becas.Application</RootNamespace>
+    <AssemblyName>Ascenso.S4.Becas.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ascenso.S4.Becas.Domain\Ascenso.S4.Becas.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+  </ItemGroup>
+</Project>
