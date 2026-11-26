@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ascenso.S6.ComunicacionesReporteria.Domain</RootNamespace>
+    <AssemblyName>Ascenso.S6.ComunicacionesReporteria.Domain</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Ascenso.SharedKernel\Ascenso.SharedKernel.csproj" />
+  </ItemGroup>
+</Project>

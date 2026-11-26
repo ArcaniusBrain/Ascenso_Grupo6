@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ascenso.S6.ComunicacionesReporteria.Application</RootNamespace>
+    <AssemblyName>Ascenso.S6.ComunicacionesReporteria.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Ascenso.Contracts\Ascenso.Contracts.csproj" />
+    <ProjectReference Include="..\Ascenso.S6.ComunicacionesReporteria.Domain\Ascenso.S6.ComunicacionesReporteria.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+  </ItemGroup>
+</Project>

@@ -1,7 +1,7 @@
-# S6 · Comunicaciones y Reportería
+# S6 · Comunicaciones y Reportería (`Ascenso.S6.ComunicacionesReporteria`)
 
-**RF:** RF-23, 29 a 34, 36, 40 (dueño de cada RF y HU: `docs/arquitectura/v1.3/04_MATRICES/`).
+**RF:** RF-23, 29 a 34, 36, 40 (schema aislado PostgreSQL: `s6_comunicaciones`).
 
-Notificaciones y recordatorios (`RegistroEnvio`), consultas, consentimiento de donantes, proyecciones CQRS en MongoDB, reportes, panel y hub SignalR.
+Base de 7 proyectos en `Ascenso.sln` con **`RF-33`** (`ConsentimientoDonante` irrevocable `R36/A6`, capa única `ServicioAnonimizacionImpacto` y generación asíncrona de reportes de impacto `HU-33.1`/`HU-33.2`), `Outbox`/`Inbox` y `RegistroDecision` append-only listos para los demás RF de comunicaciones y reportería del equipo.
 
-Todavía sin código. Estructura de proyectos y reglas de dependencias en [`../README.md`](../README.md).
+Guía completa de integración: [`docs/guias-integracion/05-s6-comunicaciones-reporteria.md`](../../docs/guias-integracion/05-s6-comunicaciones-reporteria.md).

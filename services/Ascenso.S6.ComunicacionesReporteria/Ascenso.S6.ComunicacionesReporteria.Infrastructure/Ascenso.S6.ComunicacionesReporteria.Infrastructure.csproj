@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ascenso.S6.ComunicacionesReporteria.Infrastructure</RootNamespace>
+    <AssemblyName>Ascenso.S6.ComunicacionesReporteria.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Ascenso.Messaging.Outbox\Ascenso.Messaging.Outbox.csproj" />
+    <ProjectReference Include="..\Ascenso.S6.ComunicacionesReporteria.Application\Ascenso.S6.ComunicacionesReporteria.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Ascenso.S6.ComunicacionesReporteria.Api</RootNamespace>
+    <AssemblyName>Ascenso.S6.ComunicacionesReporteria.Api</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ascenso.S6.ComunicacionesReporteria.Application\Ascenso.S6.ComunicacionesReporteria.Application.csproj" />
+    <ProjectReference Include="..\Ascenso.S6.ComunicacionesReporteria.Infrastructure\Ascenso.S6.ComunicacionesReporteria.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
