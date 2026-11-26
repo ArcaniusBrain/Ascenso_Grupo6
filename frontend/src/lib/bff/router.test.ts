@@ -65,10 +65,11 @@ describe("Enrutamiento BFF y protección de fronteras privadas (ADR-28)", () => 
 
   it("filtra la navegación según el rol del usuario", () => {
     const navBecario = filtrarNavegacionPorRoles(["BECARIO"]).map((x) => x.id);
-    expect(navBecario).toEqual(["inicio", "becas"]);
+    expect(navBecario).toEqual(["inicio", "consentimientos", "becas"]);
 
     const navDir = filtrarNavegacionPorRoles(["DIRECCION"]).map((x) => x.id);
     expect(navDir).toContain("programas");
+    expect(navDir).toContain("reportes-impacto");
     expect(navDir).toContain("usuarios");
     expect(navDir).toContain("calendario");
     expect(obtenerIniciales("Luis Herrera")).toBe("LH");

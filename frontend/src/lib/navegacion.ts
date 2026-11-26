@@ -33,8 +33,16 @@ export const SECCIONES_PLATAFORMA: ItemNavegacion[] = [
     etiqueta: "Donantes",
     href: "/donantes",
     rolesPermitidos: ["DIRECCION", "COORDINADOR", "FINANZAS", "ADMINISTRADOR"],
-    descripcion: "Registro de donantes, aportes y reportes de impacto anonimizados.",
-    rf: "RF-13 / RF-33",
+    descripcion: "Registro de donantes e historial inmutable de aportes por periodo.",
+    rf: "RF-13",
+  },
+  {
+    id: "reportes-impacto",
+    etiqueta: "Impacto",
+    href: "/reportes-impacto",
+    rolesPermitidos: ["DIRECCION", "COORDINADOR", "ADMINISTRADOR"],
+    descripcion: "Reportes de impacto a donantes anonimizados y con generación asíncrona.",
+    rf: "RF-33",
   },
   {
     id: "universidades",
@@ -59,6 +67,14 @@ export const SECCIONES_PLATAFORMA: ItemNavegacion[] = [
     rolesPermitidos: ["DIRECCION", "ADMINISTRADOR"],
     descripcion: "Tipos de usuario, permisos, cuentas internas y seguridad 2FA.",
     rf: "RF-37",
+  },
+  {
+    id: "consentimientos",
+    etiqueta: "Consentimientos",
+    href: "/consentimientos",
+    rolesPermitidos: ["BECARIO"],
+    descripcion: "Consentimiento explícito e irrevocable para presentación ante donantes.",
+    rf: "RF-33",
   },
   {
     id: "convocatorias",
