@@ -30,17 +30,20 @@ public sealed class CrearProgramaHandler : IRequestHandler<CrearProgramaCommand,
     private readonly ICalendarioAcademicoRepository _calendarioRepo;
     private readonly IUnidadTrabajoCatalogo _unidadTrabajo;
     private readonly IRelojNegocio _reloj;
+    private readonly ISincronizadorPresupuestoPrograma? _sincronizadorPresupuesto;
 
     public CrearProgramaHandler(
         IProgramaRepository programaRepo,
         ICalendarioAcademicoRepository calendarioRepo,
         IUnidadTrabajoCatalogo unidadTrabajo,
-        IRelojNegocio reloj)
+        IRelojNegocio reloj,
+        ISincronizadorPresupuestoPrograma? sincronizadorPresupuesto = null)
     {
         _programaRepo = programaRepo;
         _calendarioRepo = calendarioRepo;
         _unidadTrabajo = unidadTrabajo;
         _reloj = reloj;
+        _sincronizadorPresupuesto = sincronizadorPresupuesto;
     }
 
     public async Task<ProgramaResumenDto> Handle(CrearProgramaCommand request, CancellationToken cancellationToken)
@@ -92,6 +95,11 @@ public sealed class CrearProgramaHandler : IRequestHandler<CrearProgramaCommand,
 
         await _programaRepo.AgregarAsync(programa, cancellationToken);
         await _unidadTrabajo.GuardarCambiosAsync(cancellationToken);
+
+        if (_sincronizadorPresupuesto is not null)
+        {
+            await _sincronizadorPresupuesto.InicializarParaProgramaAsync(programa, _reloj.AhoraUtc, cancellationToken);
+        }
 
         return MapearResumen(programa);
     }

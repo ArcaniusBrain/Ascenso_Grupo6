@@ -2,7 +2,9 @@ using Ascenso.Messaging.Outbox;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Calendario;
 using Ascenso.S2.CatalogoFondos.Application.Puertos;
 using Ascenso.S2.CatalogoFondos.Domain.Repositorios;
+using Ascenso.S2.CatalogoFondos.Infrastructure.Integracion;
 using Ascenso.S2.CatalogoFondos.Infrastructure.Persistencia;
+using Ascenso.S2.CatalogoFondos.Infrastructure.Seguridad;
 using Ascenso.SharedKernel.Tiempo;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -47,11 +49,16 @@ public static class DependencyInjection
         services.AddScoped<IUniversidadAliadaRepository, UniversidadAliadaRepositoryEfCore>();
         services.AddScoped<IProgramaRepository, ProgramaRepositoryEfCore>();
         services.AddScoped<IDonanteRepository, DonanteRepositoryEfCore>();
+        services.AddScoped<IPresupuestoProgramaRepository, PresupuestoProgramaRepositoryEfCore>();
         services.AddScoped<IEscritorOutboxCatalogo, EscritorOutboxCatalogoEfCore>();
         services.AddScoped<IRegistroIdempotenciaComandos, RegistroIdempotenciaComandosEfCore>();
         services.AddScoped<IConsultorElementosPeriodo, ConsultorElementosPeriodoEfCore>();
         services.AddScoped<IConsultorDonantesYAportes, ConsultorDonantesYAportesEfCore>();
+        services.AddScoped<IEjecutorConcurrenciaPresupuesto, EjecutorConcurrenciaPresupuestoEfCore>();
+        services.AddScoped<ISincronizadorPresupuestoPrograma, SincronizadorPresupuestoProgramaEfCore>();
         services.AddScoped<IUnidadTrabajoCatalogo, UnidadTrabajoCatalogoEfCore>();
+        services.AddSingleton<ValidadorScopeInternoFondos>();
+        services.AddHttpClient<IConsultorVinculoReservaS4, ConsultorVinculoReservaS4Http>();
 
         return services;
     }

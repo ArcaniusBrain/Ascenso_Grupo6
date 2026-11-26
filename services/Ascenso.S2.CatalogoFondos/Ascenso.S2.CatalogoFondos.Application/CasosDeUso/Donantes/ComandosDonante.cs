@@ -93,6 +93,7 @@ public sealed class RegistrarAporteHandler
     private readonly IEscritorOutboxCatalogo _outbox;
     private readonly IUnidadTrabajoCatalogo _unidadTrabajo;
     private readonly IRelojNegocio _reloj;
+    private readonly ISincronizadorPresupuestoPrograma? _sincronizadorPresupuesto;
 
     public RegistrarAporteHandler(
         IDonanteRepository donanteRepo,
@@ -100,7 +101,8 @@ public sealed class RegistrarAporteHandler
         ICalendarioAcademicoRepository calendarioRepo,
         IEscritorOutboxCatalogo outbox,
         IUnidadTrabajoCatalogo unidadTrabajo,
-        IRelojNegocio reloj)
+        IRelojNegocio reloj,
+        ISincronizadorPresupuestoPrograma? sincronizadorPresupuesto = null)
     {
         _donanteRepo = donanteRepo;
         _programaRepo = programaRepo;
@@ -108,6 +110,7 @@ public sealed class RegistrarAporteHandler
         _outbox = outbox;
         _unidadTrabajo = unidadTrabajo;
         _reloj = reloj;
+        _sincronizadorPresupuesto = sincronizadorPresupuesto;
     }
 
     public async Task<AporteRegistradoResultadoDto> Handle(
@@ -175,6 +178,16 @@ public sealed class RegistrarAporteHandler
             ct: cancellationToken);
 
         await _unidadTrabajo.GuardarCambiosAsync(cancellationToken);
+
+        if (_sincronizadorPresupuesto is not null)
+        {
+            await _sincronizadorPresupuesto.AplicarAporteIdempotenteAsync(
+                aporte.Id,
+                programa.Id,
+                aporte.Monto,
+                ahoraUtc,
+                cancellationToken);
+        }
 
         var aporteDto = new AporteDto(
             aporte.Id,

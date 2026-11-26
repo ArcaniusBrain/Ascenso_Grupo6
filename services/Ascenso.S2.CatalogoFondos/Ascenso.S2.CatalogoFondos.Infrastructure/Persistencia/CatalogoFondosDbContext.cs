@@ -24,6 +24,9 @@ public sealed class CatalogoFondosDbContext : DbContext
     public DbSet<AsociacionDonantePrograma> AsociacionesDonantesPrograma => Set<AsociacionDonantePrograma>();
     public DbSet<Donante> Donantes => Set<Donante>();
     public DbSet<Aporte> Aportes => Set<Aporte>();
+    public DbSet<PresupuestoPrograma> PresupuestosPrograma => Set<PresupuestoPrograma>();
+    public DbSet<CupoCiclo> CuposCiclo => Set<CupoCiclo>();
+    public DbSet<ReservaPresupuesto> ReservasPresupuesto => Set<ReservaPresupuesto>();
     public DbSet<OperacionIdempotenteCatalogo> OperacionesIdempotentes => Set<OperacionIdempotenteCatalogo>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
@@ -387,6 +390,109 @@ public sealed class CatalogoFondosDbContext : DbContext
 
             builder.HasIndex(x => x.ProgramaId)
                 .HasDatabaseName("ix_aportes_programa");
+        });
+
+        modelBuilder.Entity<PresupuestoPrograma>(builder =>
+        {
+            builder.ToTable("presupuestos_programa");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.ProgramaId).HasColumnName("programa_id").IsRequired();
+            builder.Property(x => x.Moneda).HasColumnName("moneda").HasMaxLength(3).IsRequired();
+            builder.Property(x => x.Aportes).HasColumnName("aportes").HasPrecision(18, 2).IsRequired();
+            builder.Property(x => x.Otorgado).HasColumnName("otorgado").HasPrecision(18, 2).IsRequired();
+            builder.Property(x => x.OfertasPendientes).HasColumnName("ofertas_pendientes").HasPrecision(18, 2).IsRequired();
+            builder.Property(x => x.RenovacionesPendientes).HasColumnName("renovaciones_pendientes").HasPrecision(18, 2).IsRequired();
+            builder.Property(x => x.Desembolsado).HasColumnName("desembolsado").HasPrecision(18, 2).IsRequired();
+            builder.Property(x => x.CupoBecarios).HasColumnName("cupo_becarios").IsRequired();
+            builder.Property(x => x.CuposOcupados).HasColumnName("cupos_ocupados").IsRequired();
+            builder.Property(x => x.ActualizadoEnUtc).HasColumnName("actualizado_en_utc").IsRequired();
+            builder.ConfigurarVersionExplicita<PresupuestoPrograma, Guid>();
+
+            builder.HasMany(x => x.CuposCiclo)
+                .WithOne()
+                .HasForeignKey(c => c.PresupuestoProgramaId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(x => x.CuposCiclo).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(x => x.Reservas)
+                .WithOne()
+                .HasForeignKey(r => r.PresupuestoProgramaId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(x => x.Reservas).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasIndex(x => x.ProgramaId)
+                .IsUnique()
+                .HasDatabaseName("ix_presupuestos_programa_programa_unico");
+        });
+
+        modelBuilder.Entity<CupoCiclo>(builder =>
+        {
+            builder.ToTable("cupos_ciclo");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.PresupuestoProgramaId).HasColumnName("presupuesto_programa_id").IsRequired();
+            builder.Property(x => x.CicloId).HasColumnName("ciclo_id").IsRequired();
+            builder.Property(x => x.Limite).HasColumnName("limite").IsRequired();
+            builder.Property(x => x.Ocupados).HasColumnName("ocupados").IsRequired();
+
+            builder.HasIndex(x => new { x.PresupuestoProgramaId, x.CicloId })
+                .IsUnique()
+                .HasDatabaseName("ix_cupos_ciclo_presupuesto_ciclo_unico");
+        });
+
+        modelBuilder.Entity<ReservaPresupuesto>(builder =>
+        {
+            builder.ToTable("reservas_presupuesto");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.PresupuestoProgramaId).HasColumnName("presupuesto_programa_id").IsRequired();
+
+            builder.Property(x => x.Tipo)
+                .HasColumnName("tipo")
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsRequired();
+
+            builder.Property(x => x.Estado)
+                .HasColumnName("estado")
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .IsRequired();
+
+            builder.Property(x => x.ClaveNegocio).HasColumnName("clave_negocio").HasMaxLength(120).IsRequired();
+            builder.Property(x => x.OperationId).HasColumnName("operation_id").IsRequired();
+            builder.Property(x => x.PostulacionId).HasColumnName("postulacion_id");
+            builder.Property(x => x.CicloId).HasColumnName("ciclo_id");
+            builder.Property(x => x.BecaId).HasColumnName("beca_id");
+            builder.Property(x => x.CodigoPeriodo).HasColumnName("codigo_periodo").HasMaxLength(20).IsRequired();
+
+            builder.OwnsOne(x => x.Monto, dinero =>
+            {
+                dinero.Property(d => d.Cantidad).HasColumnName("monto").HasPrecision(18, 2).IsRequired();
+                dinero.Property(d => d.Moneda).HasColumnName("moneda").HasMaxLength(3).IsRequired();
+            });
+            builder.Navigation(x => x.Monto).IsRequired();
+
+            builder.Property(x => x.DuracionPeriodos).HasColumnName("duracion_periodos").IsRequired();
+            builder.Property(x => x.CreadaEnUtc).HasColumnName("creada_en_utc").IsRequired();
+            builder.Property(x => x.VinculadaEnUtc).HasColumnName("vinculada_en_utc");
+            builder.Property(x => x.CerradaEnUtc).HasColumnName("cerrada_en_utc");
+            builder.Property(x => x.MotivoLiberacion)
+                .HasColumnName("motivo_liberacion")
+                .HasConversion<string>()
+                .HasMaxLength(20);
+            builder.Property(x => x.RecursoVinculadoId).HasColumnName("recurso_vinculado_id");
+
+            builder.HasIndex(x => x.OperationId)
+                .IsUnique()
+                .HasDatabaseName("ix_reservas_presupuesto_operation_id_unico");
+
+            builder.HasIndex(x => new { x.PresupuestoProgramaId, x.ClaveNegocio })
+                .HasDatabaseName("ix_reservas_presupuesto_clave_negocio");
+
+            builder.HasIndex(x => new { x.Estado, x.CreadaEnUtc })
+                .HasDatabaseName("ix_reservas_presupuesto_estado_creada");
         });
     }
 }

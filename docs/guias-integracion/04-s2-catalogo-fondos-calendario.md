@@ -1,6 +1,6 @@
-# 04 · `S2` Catálogo y Fondos — Calendario (`RF-38`), Universidades (`RF-14`), Programas (`RF-11`) y Donantes/Aportes (`RF-13`)
+# 04 · `S2` Catálogo y Fondos — Completo (`RF-38`, `RF-14`, `RF-11`, `RF-13`, `RF-12`)
 
-El microservicio **`services/Ascenso.S2.CatalogoFondos/`** (schema `s2_catalogo_fondos`) incluye actualmente **`CalendarioAcademico`** (`RF-38`), **`UniversidadAliada`** (`RF-14`), **`Programa`** (`RF-11`) y **`Donante`/`Aporte`** (`RF-13`).
+El microservicio **`services/Ascenso.S2.CatalogoFondos/`** (schema `s2_catalogo_fondos`) está **100 % implementado** con los 5 agregados del servicio: **`CalendarioAcademico`** (`RF-38`), **`UniversidadAliada`** (`RF-14`), **`Programa`** (`RF-11`), **`Donante`/`Aporte`** (`RF-13`) y **`PresupuestoPrograma`** (`RF-12`).
 
 ---
 
@@ -53,6 +53,18 @@ El microservicio **`services/Ascenso.S2.CatalogoFondos/`** (schema `s2_catalogo_
 | `GET /api/v1/donantes/{donanteId}/aportes?codigoPeriodo=` | **`DIRECCION`, `COORDINADOR` y `FINANZAS`** *(bloqueado `403` a postulantes y becarios, `HU-13.2 E8`)* | Devuelve el historial **append-only** de aportes del donante con filtro opcional por periodo. Devuelve los mensajes explícitos `"Este donante no tiene aportes registrados."` o `"No hay aportes de este donante en el periodo {codigo}."`. |
 | `POST /api/v1/donantes/{donanteId}/aportes` | **`DIRECCION` y `COORDINADOR`** *(acotado a sus programas si se informa alcance, `C18`)* | Registra un aporte `> 0` en modo **append-only** contra cualquier periodo registrado (incluidos periodos anteriores cerrados), alimenta en vivo `GET /api/v1/programas/{programaId}` (`ConsultorDonantesYAportesEfCore`) y escribe **`AporteRegistrado.v1`** en `outbox_messages`. |
 | `POST /api/v1/programas/{programaId}/aportes` | **`DIRECCION` y `COORDINADOR`** | Ruta equivalente desde la vista del programa (`RegistrarAporteCommand` → `OperacionConfirmada`). |
+
+### E. Presupuesto, disponibilidad de cupos y frontera privada (`RF-12`: `HU-12.1`, `HU-12.2`, `ADR-26`)
+
+| Método y ruta | Quién puede llamarlo | Qué hace |
+|---|---|---|
+| `GET /api/v1/programas/{programaId}/presupuesto` | **`DIRECCION`, `COORDINADOR` y `FINANZAS`** *(bloqueado `403` a `BECARIO`, `POSTULANTE`, `EVALUADOR`, `ENLACE_UNIVERSIDAD`)* | Devuelve saldo materializado en `PresupuestoPrograma` (`Disponible = Aportes - Otorgado - OfertasPendientes - RenovacionesPendientes`), cupos del programa (becas `Inactiva` conservan cupo y presupuesto, `R27`) y `"Este programa no tiene aportes registrados."` si aportes = 0. |
+| `POST /internal/v1/fondos/reservas` *(privada, NO YARP)* | **Servicio `S4`** con OAuth2 `client_credentials` scope **`fondos.reservar`** | Calcula autoritativamente `MontoPorPeriodo * DuracionPeriodos` (`R32/A2`), reserva monto y 1 cupo atómicamente (`Version` `ADR-25`), idempotente por `operationId` y único por `(postulacionId, cicloId)`. |
+| `POST /internal/v1/fondos/reservas/renovaciones` *(privada, NO YARP)* | **Servicio `S4`** con scope **`fondos.reservar`** | Reserva al enviar la solicitud de renovación (`R31/A1`) con clave única `(becaId, codigoPeriodo)` sin consumir cupo nuevo; devuelve `409` si excede el disponible. |
+| `POST /internal/v1/fondos/reservas/{reservaId}/liberar` *(privada, NO YARP)* | **Servicio `S4`** con scope **`fondos.liberar`** | Libera de forma **idempotente** (`COMPENSACION`, `RECHAZO`, `EXPIRACION`, `REVOCACION`) sin doble liberación y escribe **`CupoLiberado.v1`** en `outbox_messages` cuando se libera cupo. |
+| `GET /internal/v1/fondos/{programaId}/disponibilidad` *(privada, NO YARP)* | **Servicio `S3`** con scope **`fondos.consultar`** | Consulta transaccional autoritativa `{ disponible, cupoDisponible }` para ranking (`HU-09.2`) y selección (`HU-10.1`). |
+
+> **Conciliación segura `S2 → S4` (`ADR-26`):** `ConciliarReservasHuerfanasCommand` evalúa solo reservas en estado `RESERVADA` con `> 30 min`, consulta `GET /internal/v1/reservas/{reservaId}/vinculo` (scope `ofertas.consultar-vinculo`, timeout 3 s, máx. 2 reintentos, circuit breaker), vincula si `existeVinculo = true`, libera solo si `existeVinculo = false` y **falla cerrada** (no libera) si `S4` no responde.
 
 ### Comportamientos críticos garantizados por `S2`
 - **Concurrencia (`HU-38.2 E6`, `ADR-25`):** si dos usuarios de Dirección marcan dos periodos distintos simultáneamente, exactamente uno confirma (`200 OK`) y el otro recibe **`409 Conflict`** (`ProblemDetails` con `code: "CONCURRENCIA_CONFLICTO"`). Nunca quedan dos periodos actuales.
@@ -120,14 +132,29 @@ Cada vez que Dirección o Coordinador registra un aporte financiero en `Donante`
   ```
 
 **Consumidores previstos:**
-- `S2` (`PresupuestoPrograma` en `RF-12`) para mantener el saldo presupuestario del programa.
+- `S2` (`PresupuestoPrograma` en `RF-12`, ya conectado de forma idempotente vía `InboxMessage`) para mantener el saldo presupuestario del programa.
 - `S6` (`RF-33`) para proyecciones financieras e informes de impacto a donantes.
+
+### D. `CupoLiberado.v1` (`RF-12`, `HU-12.1`, `HU-22.2`)
+Cada vez que se libera una reserva de oferta nueva o una beca revocada (y nunca ante `BecaInactivada`, `R27`), `S2` persiste atómicamente en `s2_catalogo_fondos.outbox_messages`:
+
+- **`EventType`:** `"CupoLiberado.v1"` (`SchemaVersion = 1`)
+- **Contrato C# (`Ascenso.Contracts.Eventos.CupoLiberadoV1`):**
+  ```csharp
+  public sealed record CupoLiberadoV1(
+      Guid ProgramaId,
+      Guid? CicloId,
+      Guid ReservaId,
+      string Motivo,
+      decimal MontoLiberado,
+      string Moneda,
+      DateTimeOffset LiberadoEnUtc);
+  ```
 
 ---
 
-## 3. Cómo se conecta con `S3` (Daniel y Diego), `S5` y próximos incrementos de `S2`
+## 3. Cómo se conecta con `S3` (Daniel y Diego), `S4` (Leonel y Sebas) y `S5`
 
-- **`S3` (Postulación y ciclos):** consulta `GET /api/v1/universidades` y `GET /api/v1/universidades/{id}` para validar universidades aliadas y carreras elegibles (`HU-01.1`), y consulta `GET /api/v1/universidades/{id}/inicios-inscripciones/{periodo}` para evaluar el cierre de disponibilidades/lista de espera por universidad a las `00:00` UTC-4 (`HU-02.2`, `HU-10.2`).
+- **`S3` (Postulación y ciclos):** consulta `GET /api/v1/universidades`, `GET /api/v1/universidades/{id}`, `GET /api/v1/universidades/{id}/inicios-inscripciones/{periodo}` y la frontera privada `GET /internal/v1/fondos/{programaId}/disponibilidad` (token `ascenso-s3-postulacion`, scope `fondos.consultar`).
+- **`S4` (Ofertas, renovaciones y becas):** consume la frontera privada `/internal/v1/fondos/reservas`, `/renovaciones` y `/{reservaId}/liberar` (token `ascenso-s4-becas`, scopes `fondos.reservar` y `fondos.liberar`), y debe exponer `GET /internal/v1/reservas/{reservaId}/vinculo` para la conciliación segura de `S2` (`ADR-26`, scope `ofertas.consultar-vinculo`).
 - **`S5` (Seguimiento académico):** lee `viaDatosAcademicos` (`API` | `MANUAL`) del convenio para saber por qué vía llega el reporte académico de cada universidad (`HU-24.2`, `HU-24.3`).
-- **Siguiente incremento planificado dentro de `services/Ascenso.S2.CatalogoFondos/`** (en este mismo servicio y schema `s2_catalogo_fondos`):
-  1. `RF-12` (`PresupuestoPrograma`, reservas/liberaciones atómicas `S4 → S2`, `S3 → S2` y conciliación `S2 → S4` `ADR-26`).

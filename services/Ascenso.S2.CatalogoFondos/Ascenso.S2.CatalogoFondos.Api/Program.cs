@@ -3,11 +3,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Calendario;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Donantes;
+using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Presupuesto;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Programas;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Universidades;
 using Ascenso.S2.CatalogoFondos.Application.Puertos;
 using Ascenso.S2.CatalogoFondos.Domain.Agregados;
 using Ascenso.S2.CatalogoFondos.Infrastructure;
+using Ascenso.S2.CatalogoFondos.Infrastructure.Seguridad;
 using Ascenso.SharedKernel.TiposBase;
 using MediatR;
 using Microsoft.AspNetCore.Diagnostics;
@@ -639,6 +641,116 @@ app.MapPost("/api/v1/programas/{programaId:guid}/aportes", async (
     return Results.Ok(resultado.Confirmacion);
 });
 
+// ── Presupuesto y disponibilidad de cupos (RF-12: HU-12.1 y HU-12.2) ──────────
+app.MapGet("/api/v1/programas/{programaId:guid}/presupuesto", async (
+    Guid programaId,
+    HttpContext http,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var presupuesto = await mediator.Send(new ConsultarPresupuestoProgramaQuery(actor, programaId), ct);
+    return Results.Ok(presupuesto);
+});
+
+// ── Frontera privada interservicios S4 -> S2 y S3 -> S2 (contracts/openapi-interno.yaml; NO exponer por YARP) ──
+app.MapPost("/internal/v1/fondos/reservas", async (
+    HttpContext http,
+    ReservaInternaCommandRequest body,
+    ValidadorScopeInternoFondos validador,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var authError = VerificarFronteraPrivada(http, validador, ValidadorScopeInternoFondos.ScopeReservar);
+    if (authError is not null)
+    {
+        return authError;
+    }
+
+    var respuesta = await mediator.Send(
+        new ReservarOfertaInternaCommand(
+            body.ProgramaId,
+            body.PostulacionId,
+            body.CicloId,
+            body.OperationId,
+            body.CodigoPeriodo),
+        ct);
+
+    return Results.Ok(respuesta);
+});
+
+app.MapPost("/internal/v1/fondos/reservas/renovaciones", async (
+    HttpContext http,
+    ReservaRenovacionInternaCommandRequest body,
+    ValidadorScopeInternoFondos validador,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var authError = VerificarFronteraPrivada(http, validador, ValidadorScopeInternoFondos.ScopeReservar);
+    if (authError is not null)
+    {
+        return authError;
+    }
+
+    var respuesta = await mediator.Send(
+        new ReservarRenovacionInternaCommand(
+            body.ProgramaId,
+            body.BecaId,
+            body.CodigoPeriodo,
+            body.MontoSolicitado,
+            body.Moneda,
+            body.OperationId),
+        ct);
+
+    return Results.Ok(respuesta);
+});
+
+app.MapPost("/internal/v1/fondos/reservas/{reservaId:guid}/liberar", async (
+    Guid reservaId,
+    HttpContext http,
+    LiberacionInternaCommandRequest body,
+    ValidadorScopeInternoFondos validador,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var authError = VerificarFronteraPrivada(http, validador, ValidadorScopeInternoFondos.ScopeLiberar);
+    if (authError is not null)
+    {
+        return authError;
+    }
+
+    var respuesta = await mediator.Send(
+        new LiberarReservaInternaCommand(
+            reservaId,
+            body.OperationId,
+            body.Motivo),
+        ct);
+
+    return Results.Ok(respuesta);
+});
+
+app.MapGet("/internal/v1/fondos/{programaId:guid}/disponibilidad", async (
+    Guid programaId,
+    HttpContext http,
+    ValidadorScopeInternoFondos validador,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var authError = VerificarFronteraPrivada(http, validador, ValidadorScopeInternoFondos.ScopeConsultar);
+    if (authError is not null)
+    {
+        return authError;
+    }
+
+    var disponibilidad = await mediator.Send(new ConsultarDisponibilidadInternaQuery(programaId), ct);
+    return Results.Ok(disponibilidad);
+});
+
 app.Run();
 
 static IResult NoAutenticado(HttpContext http) =>
@@ -687,16 +799,44 @@ static ActorSolicitudCatalogo? ResolverActor(HttpContext http)
     return new ActorSolicitudCatalogo(usuarioId.Value, rol, programasAsignados);
 }
 
+static IResult? VerificarFronteraPrivada(
+    HttpContext http,
+    ValidadorScopeInternoFondos validador,
+    string scopeRequerido)
+{
+    var auth = validador.ValidarAuthorizationHeader(http.Request.Headers.Authorization.ToString(), scopeRequerido);
+    if (auth.Estado == EstadoAutorizacionInternaFondos.NO_AUTENTICADO)
+    {
+        return Results.Problem(
+            title: "Error de frontera privada",
+            detail: auth.Motivo,
+            statusCode: StatusCodes.Status401Unauthorized,
+            instance: http.Request.Path);
+    }
+
+    if (auth.Estado == EstadoAutorizacionInternaFondos.PROHIBIDO)
+    {
+        return Results.Problem(
+            title: "Acceso denegado en frontera privada",
+            detail: auth.Motivo,
+            statusCode: StatusCodes.Status403Forbidden,
+            instance: http.Request.Path);
+    }
+
+    return null;
+}
+
 static (int Status, string Title, string Code, string Detail) MapearExcepcionDeDominio(ExcepcionDeDominio ex) =>
     ex.Codigo switch
     {
         "NO_AUTENTICADO"
             => (StatusCodes.Status401Unauthorized, "No autenticado", ex.Codigo, ex.Message),
-        "ACCESO_DENEGADO_CALENDARIO" or "ACCESO_DENEGADO_UNIVERSIDADES" or "ACCESO_DENEGADO_PROGRAMAS" or "ACCESO_DENEGADO_DONANTES"
+        "ACCESO_DENEGADO_CALENDARIO" or "ACCESO_DENEGADO_UNIVERSIDADES" or "ACCESO_DENEGADO_PROGRAMAS" or "ACCESO_DENEGADO_DONANTES" or "ACCESO_DENEGADO_PRESUPUESTO"
             => (StatusCodes.Status403Forbidden, "Acceso denegado", ex.Codigo, ex.Message),
-        "PERIODO_NO_ENCONTRADO" or "UNIVERSIDAD_NO_ENCONTRADA" or "PROGRAMA_NO_ENCONTRADO" or "DONANTE_NO_ENCONTRADO"
+        "PERIODO_NO_ENCONTRADO" or "UNIVERSIDAD_NO_ENCONTRADA" or "PROGRAMA_NO_ENCONTRADO" or "DONANTE_NO_ENCONTRADO" or "RESERVA_NO_ENCONTRADA"
             => (StatusCodes.Status404NotFound, "Recurso no encontrado", ex.Codigo, ex.Message),
         "PERIODO_DUPLICADO" or "INICIO_INSCRIPCIONES_DUPLICADO" or "UNIVERSIDAD_DUPLICADA" or "CARRERA_DUPLICADA" or "PROGRAMA_DUPLICADO" or "DONANTE_YA_ASOCIADO" or "DONANTE_DUPLICADO"
+            or "CUPO_INSUFICIENTE" or "CUPO_CICLO_INSUFICIENTE" or "PRESUPUESTO_INSUFICIENTE" or "RESERVA_DUPLICADA" or "RESERVA_YA_LIBERADA" or "RESERVA_CONFIRMADA_NO_LIBERABLE" or "CONCURRENCIA_PRESUPUESTO"
             => (StatusCodes.Status409Conflict, "Conflicto de negocio", ex.Codigo, ex.Message),
         _ => (StatusCodes.Status422UnprocessableEntity, "Regla de negocio incumplida", ex.Codigo, ex.Message)
     };
@@ -780,5 +920,24 @@ public sealed record RegistrarAporteProgramaRequest(
     decimal? Cantidad,
     string? Moneda,
     string? CodigoPeriodo);
+
+public sealed record ReservaInternaCommandRequest(
+    Guid ProgramaId,
+    Guid PostulacionId,
+    Guid CicloId,
+    Guid OperationId,
+    string? CodigoPeriodo = null);
+
+public sealed record ReservaRenovacionInternaCommandRequest(
+    Guid ProgramaId,
+    Guid BecaId,
+    string CodigoPeriodo,
+    decimal MontoSolicitado,
+    string Moneda,
+    Guid OperationId);
+
+public sealed record LiberacionInternaCommandRequest(
+    Guid OperationId,
+    MotivoLiberacionReserva Motivo);
 
 public partial class Program;
