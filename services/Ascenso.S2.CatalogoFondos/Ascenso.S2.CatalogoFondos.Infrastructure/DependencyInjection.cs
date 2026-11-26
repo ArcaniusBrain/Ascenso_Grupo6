@@ -44,6 +44,7 @@ public static class DependencyInjection
 
         services.AddScoped<ICalendarioAcademicoRepository, CalendarioAcademicoRepositoryEfCore>();
         services.AddScoped<IInicioInscripcionesRepository, InicioInscripcionesRepositoryEfCore>();
+        services.AddScoped<IUniversidadAliadaRepository, UniversidadAliadaRepositoryEfCore>();
         services.AddScoped<IEscritorOutboxCatalogo, EscritorOutboxCatalogoEfCore>();
         services.AddScoped<IRegistroIdempotenciaComandos, RegistroIdempotenciaComandosEfCore>();
         services.AddScoped<IConsultorElementosPeriodo, ConsultorElementosPeriodoPorDefecto>();

@@ -16,6 +16,9 @@ public sealed class CatalogoFondosDbContext : DbContext
     public DbSet<CalendarioAcademico> CalendariosAcademicos => Set<CalendarioAcademico>();
     public DbSet<PeriodoAcademico> PeriodosAcademicos => Set<PeriodoAcademico>();
     public DbSet<InicioInscripcionesPeriodo> IniciosInscripcionesPeriodo => Set<InicioInscripcionesPeriodo>();
+    public DbSet<UniversidadAliada> UniversidadesAliadas => Set<UniversidadAliada>();
+    public DbSet<CarreraElegible> CarrerasElegibles => Set<CarreraElegible>();
+    public DbSet<CostoMatricula> CostosMatricula => Set<CostoMatricula>();
     public DbSet<OperacionIdempotenteCatalogo> OperacionesIdempotentes => Set<OperacionIdempotenteCatalogo>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
@@ -110,6 +113,109 @@ public sealed class CatalogoFondosDbContext : DbContext
             builder.Property(x => x.CorrelationId).HasColumnName("correlation_id").IsRequired();
             builder.Property(x => x.Version).HasColumnName("version").IsRequired();
             builder.Property(x => x.ProcesadoEnUtc).HasColumnName("procesado_en_utc").IsRequired();
+        });
+
+        modelBuilder.Entity<UniversidadAliada>(builder =>
+        {
+            builder.ToTable("universidades_aliadas");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(200).IsRequired();
+            builder.Property(x => x.NombreNormalizado).HasColumnName("nombre_normalizado").HasMaxLength(200).IsRequired();
+            builder.Property(x => x.RegistradaEnUtc).HasColumnName("registrada_en_utc").IsRequired();
+            builder.ConfigurarVersionExplicita<UniversidadAliada, Guid>();
+
+            builder.OwnsOne(x => x.Convenio, convenio =>
+            {
+                convenio.Property(c => c.Terminos)
+                    .HasColumnName("convenio_terminos")
+                    .HasMaxLength(4000)
+                    .IsRequired();
+
+                convenio.Property(c => c.Via)
+                    .HasColumnName("convenio_via_datos_academicos")
+                    .HasConversion<string>()
+                    .HasMaxLength(20)
+                    .IsRequired();
+            });
+            builder.Navigation(x => x.Convenio).IsRequired();
+
+            builder.OwnsOne(x => x.ContactoDesignado, contacto =>
+            {
+                contacto.Property(c => c.NombreCompleto)
+                    .HasColumnName("contacto_nombre")
+                    .HasMaxLength(200)
+                    .IsRequired();
+
+                contacto.Property(c => c.Correo)
+                    .HasColumnName("contacto_correo")
+                    .HasMaxLength(200);
+
+                contacto.Property(c => c.Telefono)
+                    .HasColumnName("contacto_telefono")
+                    .HasMaxLength(40);
+            });
+            builder.Navigation(x => x.ContactoDesignado).IsRequired();
+
+            builder.HasMany(x => x.Carreras)
+                .WithOne()
+                .HasForeignKey(c => c.UniversidadAliadaId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(x => x.Carreras).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(x => x.Costos)
+                .WithOne()
+                .HasForeignKey(c => c.UniversidadAliadaId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(x => x.Costos).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasIndex(x => x.NombreNormalizado)
+                .IsUnique()
+                .HasDatabaseName("ix_universidades_aliadas_nombre_unico");
+        });
+
+        modelBuilder.Entity<CarreraElegible>(builder =>
+        {
+            builder.ToTable("carreras_elegibles");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.UniversidadAliadaId).HasColumnName("universidad_aliada_id").IsRequired();
+            builder.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(200).IsRequired();
+            builder.Property(x => x.NombreNormalizado).HasColumnName("nombre_normalizado").HasMaxLength(200).IsRequired();
+
+            builder.HasIndex(x => new { x.UniversidadAliadaId, x.NombreNormalizado })
+                .IsUnique()
+                .HasDatabaseName("ix_carreras_elegibles_universidad_nombre_unico");
+        });
+
+        modelBuilder.Entity<CostoMatricula>(builder =>
+        {
+            builder.ToTable("costos_matricula");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
+            builder.Property(x => x.UniversidadAliadaId).HasColumnName("universidad_aliada_id").IsRequired();
+
+            builder.Property(x => x.Periodo)
+                .HasColumnName("codigo_periodo")
+                .HasConversion(p => p.Valor, s => new CodigoPeriodo(s))
+                .HasMaxLength(20)
+                .IsRequired();
+
+            builder.OwnsOne(x => x.Costo, dinero =>
+            {
+                dinero.Property(d => d.Cantidad).HasColumnName("monto").HasPrecision(18, 2).IsRequired();
+                dinero.Property(d => d.Moneda).HasColumnName("moneda").HasMaxLength(3).IsRequired();
+            });
+            builder.Navigation(x => x.Costo).IsRequired();
+
+            builder.Property(x => x.VersionRegistro).HasColumnName("version_registro").IsRequired();
+            builder.Property(x => x.RegistradoEnUtc).HasColumnName("registrado_en_utc").IsRequired();
+
+            // Append-only (HU-14.2 Anexo A): SIN clave única sobre (universidad, periodo);
+            // cada corrección en el mismo periodo incrementa version_registro conservando el historial.
+            builder.HasIndex(x => new { x.UniversidadAliadaId, x.Periodo, x.VersionRegistro })
+                .IsUnique()
+                .HasDatabaseName("ix_costos_matricula_universidad_periodo_version");
         });
     }
 }

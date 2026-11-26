@@ -1,6 +1,9 @@
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Calendario;
+using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Universidades;
 using Ascenso.S2.CatalogoFondos.Application.Puertos;
+using Ascenso.S2.CatalogoFondos.Domain.Agregados;
 using Ascenso.S2.CatalogoFondos.Infrastructure;
 using Ascenso.SharedKernel.TiposBase;
 using MediatR;
@@ -10,6 +13,10 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddCatalogoFondosService(builder.Configuration);
 
@@ -163,6 +170,189 @@ app.MapPost("/api/v1/periodos/actual", async (
     return Results.Ok(confirmacion);
 });
 
+// ── Universidades aliadas, convenios, costos e inscripciones (RF-14: HU-14.1, HU-14.2, HU-14.3) ──
+app.MapGet("/api/v1/universidades", async (HttpContext http, IMediator mediator, CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var lista = await mediator.Send(new ListarUniversidadesQuery(actor), ct);
+    return Results.Ok(lista);
+});
+
+app.MapPost("/api/v1/universidades", async (
+    HttpContext http,
+    RegistrarUniversidadRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var creada = await mediator.Send(
+        new RegistrarUniversidadAliadaCommand(
+            actor,
+            body.Nombre,
+            body.TerminosConvenio,
+            body.ViaDatosAcademicos,
+            body.ContactoDesignado),
+        ct);
+
+    return Results.Created($"/api/v1/universidades/{creada.Id}", creada);
+});
+
+app.MapGet("/api/v1/universidades/{universidadId:guid}", async (
+    Guid universidadId,
+    HttpContext http,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var detalle = await mediator.Send(new ConsultarUniversidadDetalleQuery(actor, universidadId), ct);
+    return Results.Ok(detalle);
+});
+
+app.MapPut("/api/v1/universidades/{universidadId:guid}/convenio", async (
+    Guid universidadId,
+    HttpContext http,
+    ActualizarConvenioRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var actualizada = await mediator.Send(
+        new ActualizarConvenioUniversidadCommand(
+            actor,
+            universidadId,
+            body.Nombre,
+            body.TerminosConvenio,
+            body.ViaDatosAcademicos,
+            body.ContactoDesignado),
+        ct);
+
+    return Results.Ok(actualizada);
+});
+
+app.MapPost("/api/v1/universidades/{universidadId:guid}/carreras", async (
+    Guid universidadId,
+    HttpContext http,
+    AgregarCarreraRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var carrera = await mediator.Send(
+        new AgregarCarreraElegibleCommand(actor, universidadId, body.Nombre),
+        ct);
+
+    return Results.Created($"/api/v1/universidades/{universidadId}/carreras/{carrera.Id}", carrera);
+});
+
+app.MapPost("/api/v1/universidades/{universidadId:guid}/costos-matricula", async (
+    Guid universidadId,
+    HttpContext http,
+    RegistrarCostoMatriculaRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var costo = await mediator.Send(
+        new RegistrarCostoMatriculaCommand(actor, universidadId, body.CodigoPeriodo, body.Monto, body.Moneda),
+        ct);
+
+    return Results.Created(
+        $"/api/v1/universidades/{universidadId}/costos-matricula/{Uri.EscapeDataString(costo.CodigoPeriodo)}",
+        costo);
+});
+
+app.MapGet("/api/v1/universidades/{universidadId:guid}/costos-matricula/{codigoPeriodo}", async (
+    Guid universidadId,
+    string codigoPeriodo,
+    HttpContext http,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var resultado = await mediator.Send(
+        new ConsultarCostoMatriculaPeriodoQuery(actor, universidadId, codigoPeriodo),
+        ct);
+
+    return Results.Ok(resultado);
+});
+
+app.MapPost("/api/v1/universidades/{universidadId:guid}/inicios-inscripciones", async (
+    Guid universidadId,
+    HttpContext http,
+    RegistrarInicioInscripcionesUniversidadRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var inicio = await mediator.Send(
+        new RegistrarInicioInscripcionesUniversidadCommand(actor, universidadId, body.CodigoPeriodo, body.FechaInicio),
+        ct);
+
+    return Results.Created(
+        $"/api/v1/universidades/{universidadId}/inicios-inscripciones/{Uri.EscapeDataString(inicio.CodigoPeriodo)}",
+        inicio);
+});
+
+app.MapGet("/api/v1/universidades/{universidadId:guid}/inicios-inscripciones/{codigoPeriodo}", async (
+    Guid universidadId,
+    string codigoPeriodo,
+    HttpContext http,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var resultado = await mediator.Send(
+        new ConsultarInicioInscripcionesUniversidadQuery(actor, universidadId, codigoPeriodo),
+        ct);
+
+    return Results.Ok(resultado);
+});
+
 app.Run();
 
 static IResult NoAutenticado(HttpContext http) =>
@@ -205,11 +395,11 @@ static (int Status, string Title, string Code, string Detail) MapearExcepcionDeD
     {
         "NO_AUTENTICADO"
             => (StatusCodes.Status401Unauthorized, "No autenticado", ex.Codigo, ex.Message),
-        "ACCESO_DENEGADO_CALENDARIO"
+        "ACCESO_DENEGADO_CALENDARIO" or "ACCESO_DENEGADO_UNIVERSIDADES"
             => (StatusCodes.Status403Forbidden, "Acceso denegado", ex.Codigo, ex.Message),
-        "PERIODO_NO_ENCONTRADO"
+        "PERIODO_NO_ENCONTRADO" or "UNIVERSIDAD_NO_ENCONTRADA"
             => (StatusCodes.Status404NotFound, "Recurso no encontrado", ex.Codigo, ex.Message),
-        "PERIODO_DUPLICADO" or "INICIO_INSCRIPCIONES_DUPLICADO"
+        "PERIODO_DUPLICADO" or "INICIO_INSCRIPCIONES_DUPLICADO" or "UNIVERSIDAD_DUPLICADA" or "CARRERA_DUPLICADA"
             => (StatusCodes.Status409Conflict, "Conflicto de negocio", ex.Codigo, ex.Message),
         _ => (StatusCodes.Status422UnprocessableEntity, "Regla de negocio incumplida", ex.Codigo, ex.Message)
     };
@@ -222,5 +412,28 @@ public sealed record RegistrarInicioInscripcionesRequest(
     DateOnly? FechaInicio);
 
 public sealed record MarcarPeriodoRequest(string CodigoPeriodo, Guid OperationId);
+
+public sealed record RegistrarUniversidadRequest(
+    string? Nombre,
+    string? TerminosConvenio,
+    ViaDatosAcademicos ViaDatosAcademicos,
+    ContactoDesignadoDto? ContactoDesignado);
+
+public sealed record ActualizarConvenioRequest(
+    string? Nombre,
+    string? TerminosConvenio,
+    ViaDatosAcademicos ViaDatosAcademicos,
+    ContactoDesignadoDto? ContactoDesignado);
+
+public sealed record AgregarCarreraRequest(string? Nombre);
+
+public sealed record RegistrarCostoMatriculaRequest(
+    string CodigoPeriodo,
+    decimal Monto,
+    string? Moneda = "USD");
+
+public sealed record RegistrarInicioInscripcionesUniversidadRequest(
+    string CodigoPeriodo,
+    DateOnly? FechaInicio);
 
 public partial class Program;
