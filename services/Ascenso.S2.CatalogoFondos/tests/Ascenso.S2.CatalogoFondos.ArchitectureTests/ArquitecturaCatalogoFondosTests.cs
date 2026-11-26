@@ -72,7 +72,8 @@ public sealed class ArquitecturaCatalogoFondosTests
         {
             typeof(CalendarioAcademico),
             typeof(InicioInscripcionesPeriodo),
-            typeof(UniversidadAliada)
+            typeof(UniversidadAliada),
+            typeof(Programa)
         };
 
         foreach (var raiz in raicesEsperadas)

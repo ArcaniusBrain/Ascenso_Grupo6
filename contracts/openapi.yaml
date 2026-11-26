@@ -340,21 +340,308 @@ components:
           format: date-time
     CrearProgramaCommand:
       type: object
+      additionalProperties: false
       required:
       - nombre
+      - periodoInicio
+      - cupoBecarios
+      - duracionPeriodos
       - montoPorPeriodo
-      - moneda
+      - modalidadPago
+      - alcance
       properties:
         nombre:
           type: string
-          minLength: 3
+          minLength: 2
+        periodoInicio:
+          $ref: '#/components/schemas/CodigoPeriodo'
+        cupoBecarios:
+          type: integer
+          minimum: 1
+        duracionPeriodos:
+          type: integer
+          minimum: 1
         montoPorPeriodo:
           type: number
-          minimum: 0
+          exclusiveMinimum: 0
+        moneda:
+          type:
+          - string
+          - 'null'
+          default: USD
+        modalidadPago:
+          type: string
+          enum:
+          - MENSUAL
+          - SEMESTRAL
+          - DIRECTO_UNIVERSIDAD
+        alcance:
+          type: string
+          enum:
+          - COMPLETO
+          - PARCIAL
+        permiteAcumulacion:
+          type: boolean
+          default: false
+    ActualizarConfiguracionProgramaCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - nombre
+      - montoPorPeriodo
+      - modalidadPago
+      - alcance
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+        montoPorPeriodo:
+          type: number
+          exclusiveMinimum: 0
+        moneda:
+          type:
+          - string
+          - 'null'
+          default: USD
+        modalidadPago:
+          type: string
+          enum:
+          - MENSUAL
+          - SEMESTRAL
+          - DIRECTO_UNIVERSIDAD
+        alcance:
+          type: string
+          enum:
+          - COMPLETO
+          - PARCIAL
+        permiteAcumulacion:
+          type: boolean
+          default: false
+    AsociarDonanteProgramaCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - donanteId
+      properties:
+        donanteId:
+          $ref: '#/components/schemas/Id'
+    RestriccionUniversidadItemCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - universidadId
+      properties:
+        universidadId:
+          $ref: '#/components/schemas/Id'
+        carreras:
+          type: array
+          items:
+            type: string
+    ConfigurarElegibilidadProgramaCommand:
+      type: object
+      additionalProperties: false
+      properties:
+        restricciones:
+          type: array
+          items:
+            $ref: '#/components/schemas/RestriccionUniversidadItemCommand'
+    ConfigurarCondicionesProgramaCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - promedioMinimo
+      - exigeHorasServicio
+      properties:
+        promedioMinimo:
+          type:
+          - string
+          - number
+          description: Acepta valor numérico no negativo; valores no numéricos devuelven 422 con mensaje literal HU-11.2 E7.
+        exigeHorasServicio:
+          type: boolean
+        horasServicio:
+          type:
+          - integer
+          - 'null'
+        reportesExigidos:
+          type: array
+          items:
+            type: string
+        duracionMaxPausaMeses:
+          type:
+          - integer
+          - 'null'
+        descripcionRenovacion:
+          type:
+          - string
+          - 'null'
+    DonanteAporteResumenDto:
+      type: object
+      additionalProperties: false
+      required:
+      - donanteId
+      - nombreDonante
+      - totalAportado
+      - moneda
+      properties:
+        donanteId:
+          $ref: '#/components/schemas/Id'
+        nombreDonante:
+          type: string
+        totalAportado:
+          type: number
         moneda:
           type: string
-          minLength: 3
-          maxLength: 3
+        leyendaSinAportes:
+          type:
+          - string
+          - 'null'
+    RestriccionElegibilidadDto:
+      type: object
+      additionalProperties: false
+      required:
+      - universidadId
+      - nombreUniversidad
+      - carreras
+      properties:
+        universidadId:
+          $ref: '#/components/schemas/Id'
+        nombreUniversidad:
+          type: string
+        carreras:
+          type: array
+          items:
+            type: string
+        avisoSinCarreras:
+          type:
+          - string
+          - 'null'
+    CondicionesPermanenciaDto:
+      type: object
+      additionalProperties: false
+      required:
+      - promedioMinimo
+      - exigeHorasServicio
+      - leyendaHorasServicio
+      - reportesExigidos
+      - duracionMaxPausaMeses
+      - descripcionRenovacion
+      properties:
+        promedioMinimo:
+          type: number
+        exigeHorasServicio:
+          type: boolean
+        horasServicio:
+          type:
+          - integer
+          - 'null'
+        leyendaHorasServicio:
+          type: string
+        reportesExigidos:
+          type: array
+          items:
+            type: string
+        duracionMaxPausaMeses:
+          type: integer
+        descripcionRenovacion:
+          type: string
+    ProgramaResumenDto:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - nombre
+      - periodoInicio
+      - cupoBecarios
+      - duracionPeriodos
+      - montoPorPeriodo
+      - moneda
+      - modalidadPago
+      - alcance
+      - permiteAcumulacion
+      - version
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        nombre:
+          type: string
+        periodoInicio:
+          $ref: '#/components/schemas/CodigoPeriodo'
+        cupoBecarios:
+          type: integer
+        duracionPeriodos:
+          type: integer
+        montoPorPeriodo:
+          type: number
+        moneda:
+          type: string
+        modalidadPago:
+          type: string
+        alcance:
+          type: string
+        permiteAcumulacion:
+          type: boolean
+        version:
+          type: integer
+    ProgramaDetalleResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - nombre
+      - periodoInicio
+      - cupoBecarios
+      - duracionPeriodos
+      - montoPorPeriodo
+      - moneda
+      - modalidadPago
+      - alcance
+      - permiteAcumulacion
+      - presupuestoTotal
+      - donantes
+      - restricciones
+      - version
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        nombre:
+          type: string
+        periodoInicio:
+          $ref: '#/components/schemas/CodigoPeriodo'
+        cupoBecarios:
+          type: integer
+        duracionPeriodos:
+          type: integer
+        montoPorPeriodo:
+          type: number
+        moneda:
+          type: string
+        modalidadPago:
+          type: string
+        alcance:
+          type: string
+        permiteAcumulacion:
+          type: boolean
+        presupuestoTotal:
+          type: number
+        donantes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DonanteAporteResumenDto'
+        leyendaElegibilidad:
+          type:
+          - string
+          - 'null'
+        restricciones:
+          type: array
+          items:
+            $ref: '#/components/schemas/RestriccionElegibilidadDto'
+        condiciones:
+          oneOf:
+          - $ref: '#/components/schemas/CondicionesPermanenciaDto'
+          - type: 'null'
+        version:
+          type: integer
     RegistrarAporteCommand:
       type: object
       required:
@@ -1981,18 +2268,40 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/v1/programas:
-    post:
+    get:
       tags:
       - S2
-      summary: Crear programa sujeto a invariantes DDD
-      operationId: S2postapiv1programas
+      summary: Listar programas de becas registrados (HU-11.1)
+      operationId: ListarProgramasBecas
+      security:
+      - BearerAuth: []
       responses:
-        '201':
-          description: Resultado tipado de la operación
+        '200':
+          description: Lista de programas de becas
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperacionConfirmada'
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProgramaResumenDto'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    post:
+      tags:
+      - S2
+      summary: Crear programa sujeto a invariantes DDD (HU-11.1)
+      operationId: S2postapiv1programas
+      responses:
+        '201':
+          description: Programa de becas creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramaResumenDto'
         '400':
           description: Error estructurado RFC 9457
           content:
@@ -2043,6 +2352,255 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CrearProgramaCommand'
+  /api/v1/programas/{programaId}:
+    get:
+      tags:
+      - S2
+      summary: Consultar detalle completo de un programa de becas (HU-11.1, HU-11.2)
+      operationId: ConsultarProgramaBecas
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: programaId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      responses:
+        '200':
+          description: Detalle del programa con donantes, presupuesto total, elegibilidad y condiciones
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramaDetalleResponse'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/programas/{programaId}/configuracion-base:
+    put:
+      tags:
+      - S2
+      summary: Actualizar nombre, monto por periodo, modalidad y alcance del programa (HU-11.1)
+      operationId: ActualizarConfiguracionBasePrograma
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: programaId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActualizarConfiguracionProgramaCommand'
+      responses:
+        '200':
+          description: Configuración base actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramaResumenDto'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/programas/{programaId}/donantes:
+    post:
+      tags:
+      - S2
+      summary: Asociar un donante registrado al programa sin duplicar (HU-11.2)
+      operationId: AsociarDonantePrograma
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: programaId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AsociarDonanteProgramaCommand'
+      responses:
+        '200':
+          description: Programa actualizado con el donante asociado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramaDetalleResponse'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/programas/{programaId}/elegibilidad:
+    put:
+      tags:
+      - S2
+      summary: Configurar restricciones opcionales por universidad aliada y carreras elegibles (HU-11.2)
+      operationId: ConfigurarElegibilidadPrograma
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: programaId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurarElegibilidadProgramaCommand'
+      responses:
+        '200':
+          description: Elegibilidad configurada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramaDetalleResponse'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/programas/{programaId}/condiciones:
+    put:
+      tags:
+      - S2
+      summary: Configurar condiciones de permanencia, pausa máxima y renovación del programa (HU-11.2)
+      operationId: ConfigurarCondicionesPrograma
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: programaId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurarCondicionesProgramaCommand'
+      responses:
+        '200':
+          description: Condiciones registradas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramaDetalleResponse'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/v1/programas/{programaId}/aportes:
     post:
       tags:

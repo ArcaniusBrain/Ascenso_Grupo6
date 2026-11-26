@@ -1,6 +1,6 @@
-# 04 · `S2` Catálogo y Fondos — Calendario Académico (`RF-38`) y Universidades/Convenios (`RF-14`)
+# 04 · `S2` Catálogo y Fondos — Calendario (`RF-38`), Universidades (`RF-14`) y Programas (`RF-11`)
 
-El microservicio **`services/Ascenso.S2.CatalogoFondos/`** (schema `s2_catalogo_fondos`) incluye actualmente los dos agregados del **Catálogo Institucional**: **`CalendarioAcademico`** (`RF-38`) + **`InicioInscripcionesPeriodo`** y **`UniversidadAliada`** (`RF-14`).
+El microservicio **`services/Ascenso.S2.CatalogoFondos/`** (schema `s2_catalogo_fondos`) incluye actualmente **`CalendarioAcademico`** (`RF-38`), **`UniversidadAliada`** (`RF-14`) y **`Programa`** (`RF-11`).
 
 ---
 
@@ -30,6 +30,18 @@ El microservicio **`services/Ascenso.S2.CatalogoFondos/`** (schema `s2_catalogo_
 | `GET /api/v1/universidades/{universidadId}/costos-matricula/{codigoPeriodo}` | Cualquier usuario autenticado | Devuelve costo vigente + historial completo del periodo, o `200 OK` con `"Sin costo registrado para este periodo"` (`HU-14.2 E5`). |
 | `POST /api/v1/universidades/{universidadId}/inicios-inscripciones` | **`DIRECCION` y `COORDINADOR`** (`C16`) | Registra fecha única de inicio de inscripciones en UTC-4 (`00:00`) para un periodo registrado (`HU-14.3`). |
 | `GET /api/v1/universidades/{universidadId}/inicios-inscripciones/{codigoPeriodo}` | Cualquier usuario autenticado | Devuelve fecha e indicador `inscripcionesIniciadas` (UTC-4), o `200 OK` con `"Sin fecha de inicio de inscripciones registrada para este periodo"` (`inscripcionesIniciadas = false`). |
+
+### C. Programas de becas (`RF-11`: `HU-11.1` y `HU-11.2`)
+
+| Método y ruta | Quién puede llamarlo | Qué hace |
+|---|---|---|
+| `GET /api/v1/programas` | Cualquier usuario autenticado | Lista los programas registrados con cupo, duración, monto fijo por periodo, modalidad, alcance y `permiteAcumulacion`. |
+| `POST /api/v1/programas` | **`DIRECCION` y `COORDINADOR`** | Crea un programa ligado a un periodo `ABIERTO` con nombre único, cupo `> 0`, duración `> 0`, monto `> 0`, modalidad (`MENSUAL` \| `SEMESTRAL` \| `DIRECTO_UNIVERSIDAD`), alcance (`COMPLETO` \| `PARCIAL`) y `permiteAcumulacion` (forzado a `false` si `COMPLETO`, `C17`). |
+| `GET /api/v1/programas/{programaId}` | Cualquier usuario autenticado | Detalle completo: presupuesto total (`S8`), donantes con aportes separados (o `"Sin aportes registrados"`), restricciones universidad/carrera (o `"Sin restricción de universidad ni carrera"`) y condiciones estructuradas de permanencia/pausa/renovación. |
+| `PUT /api/v1/programas/{programaId}/configuracion-base` | **`DIRECCION` y `COORDINADOR` del programa** | Actualiza nombre (con corrección de mayúsculas/minúsculas), monto fijo, modalidad, alcance y acumulación. |
+| `POST /api/v1/programas/{programaId}/donantes` | **`DIRECCION` y `COORDINADOR` del programa** | Asocia un donante registrado sin duplicados (`409` con `"Este donante ya está asociado al programa."`). |
+| `PUT /api/v1/programas/{programaId}/elegibilidad` | **`DIRECCION` y `COORDINADOR` del programa** | Configura restricciones opcionales validadas contra `UniversidadAliada` y sus `CarrerasElegibles` (sin retroactividad sobre postulaciones ya enviadas, `C17`). |
+| `PUT /api/v1/programas/{programaId}/condiciones` | **`DIRECCION` y `COORDINADOR` del programa** | Registra promedio mínimo `>= 0`, horas de servicio `>= 0` (u opción `"Horas de servicio: no aplica"`), reportes exigidos, duración máxima de pausa (`>= 0`, `0` = sin pausas) y descripción de renovación. |
 
 ### Comportamientos críticos garantizados por `S2`
 - **Concurrencia (`HU-38.2 E6`, `ADR-25`):** si dos usuarios de Dirección marcan dos periodos distintos simultáneamente, exactamente uno confirma (`200 OK`) y el otro recibe **`409 Conflict`** (`ProblemDetails` con `code: "CONCURRENCIA_CONFLICTO"`). Nunca quedan dos periodos actuales.
@@ -86,6 +98,5 @@ Cada vez que Dirección o Coordinador registra o corrige un costo de matrícula 
 - **`S3` (Postulación y ciclos):** consulta `GET /api/v1/universidades` y `GET /api/v1/universidades/{id}` para validar universidades aliadas y carreras elegibles (`HU-01.1`), y consulta `GET /api/v1/universidades/{id}/inicios-inscripciones/{periodo}` para evaluar el cierre de disponibilidades/lista de espera por universidad a las `00:00` UTC-4 (`HU-02.2`, `HU-10.2`).
 - **`S5` (Seguimiento académico):** lee `viaDatosAcademicos` (`API` | `MANUAL`) del convenio para saber por qué vía llega el reporte académico de cada universidad (`HU-24.2`, `HU-24.3`).
 - **Siguientes incrementos planificados dentro de `services/Ascenso.S2.CatalogoFondos/`** (en este mismo servicio y schema `s2_catalogo_fondos`):
-  1. `RF-11` (`Programa` y reglas configurables de renovación/cumplimiento/postulación).
-  2. `RF-13` (`Donante` y `Aporte`).
-  3. `RF-12` (`PresupuestoPrograma`, reservas/liberaciones atómicas `S4 → S2`, `S3 → S2` y conciliación `S2 → S4` `ADR-26`).
+  1. `RF-13` (`Donante` y `Aporte` — conecta directo con `IConsultorDonantesYAportes`).
+  2. `RF-12` (`PresupuestoPrograma`, reservas/liberaciones atómicas `S4 → S2`, `S3 → S2` y conciliación `S2 → S4` `ADR-26`).
