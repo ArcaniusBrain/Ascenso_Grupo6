@@ -104,8 +104,8 @@ public sealed class ReportesImpactoApiTests
                 new AporteImpactoProyeccion { Id = Guid.NewGuid(), DonanteId = otroDonanteId, NombreDonante = "Patrocinador Ajeno", ProgramaId = progIngId, NombrePrograma = "Becas Ingeniería", CodigoPeriodo = "2026-1", MontoAportado = 8000m, Moneda = "USD" });
 
             db.ProyeccionBecarios.AddRange(
-                new BecarioImpactoProyeccion { Id = Guid.NewGuid(), BecarioId = carlosId, ProgramaId = progIngId, NombreCompleto = "Carlos Mendoza", Cedula = "V-20111222", Universidad = "UCAB", Carrera = "Ingeniería Informática", IngresoFamiliarSensible = 450m, ComposicionFamiliarSensible = "3 personas" },
-                new BecarioImpactoProyeccion { Id = Guid.NewGuid(), BecarioId = anaId, ProgramaId = progIngId, NombreCompleto = "Ana Gómez", Cedula = "V-20999888", Universidad = "UCAB", Carrera = "Ingeniería Civil", IngresoFamiliarSensible = 220m, ComposicionFamiliarSensible = "5 personas" });
+                new BecarioImpactoProyeccion { Id = Guid.NewGuid(), BecarioId = carlosId, ProgramaId = progIngId, NombreCompleto = "Carlos Mendoza", Cedula = "V-20111222", Universidad = "UCAB", Carrera = "Ingeniería Informática", IngresoFamiliarSensible = 450.73m, ComposicionFamiliarSensible = "3 personas" },
+                new BecarioImpactoProyeccion { Id = Guid.NewGuid(), BecarioId = anaId, ProgramaId = progIngId, NombreCompleto = "Ana Gómez", Cedula = "V-20999888", Universidad = "UCAB", Carrera = "Ingeniería Civil", IngresoFamiliarSensible = 220.49m, ComposicionFamiliarSensible = "5 personas" });
 
             db.ProyeccionDesembolsos.AddRange(
                 new DesembolsoImpactoProyeccion { Id = Guid.NewGuid(), ProgramaId = progIngId, CodigoPeriodo = "2026-1", Monto = 4000m, Moneda = "USD", Estado = EstadoDesembolsoProyectado.CONFIRMADO },
@@ -194,8 +194,10 @@ public sealed class ReportesImpactoApiTests
         // Verificación estricta anti-fuga sobre el JSON real entregado por HTTP
         Assert.DoesNotContain("Ana Gómez", jsonCrudo!);
         Assert.DoesNotContain("V-20999888", jsonCrudo!);
-        Assert.DoesNotContain("450", jsonCrudo!);
-        Assert.DoesNotContain("220", jsonCrudo!);
+        Assert.DoesNotContain("450.73", jsonCrudo!);
+        Assert.DoesNotContain("220.49", jsonCrudo!);
+        Assert.DoesNotContain("ingreso", jsonCrudo!, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("composicion", jsonCrudo!, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("3 personas", jsonCrudo!);
         Assert.DoesNotContain("5 personas", jsonCrudo!);
         Assert.DoesNotContain("Patrocinador Ajeno", jsonCrudo!);
