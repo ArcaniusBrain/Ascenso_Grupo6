@@ -71,7 +71,8 @@ public sealed class ArquitecturaCatalogoFondosTests
         var raicesEsperadas = new[]
         {
             typeof(CalendarioAcademico),
-            typeof(InicioInscripcionesPeriodo)
+            typeof(InicioInscripcionesPeriodo),
+            typeof(UniversidadAliada)
         };
 
         foreach (var raiz in raicesEsperadas)

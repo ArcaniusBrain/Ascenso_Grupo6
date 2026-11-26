@@ -143,3 +143,35 @@ public sealed class UnidadTrabajoCatalogoEfCore : IUnidadTrabajoCatalogo
     public Task<int> GuardarCambiosAsync(CancellationToken ct = default) =>
         _db.SaveChangesAsync(ct);
 }
+
+public sealed class UniversidadAliadaRepositoryEfCore : IUniversidadAliadaRepository
+{
+    private readonly CatalogoFondosDbContext _db;
+
+    public UniversidadAliadaRepositoryEfCore(CatalogoFondosDbContext db) => _db = db;
+
+    public Task<UniversidadAliada?> ObtenerPorIdAsync(Guid id, CancellationToken ct = default) =>
+        _db.UniversidadesAliadas
+            .Include(u => u.Carreras)
+            .Include(u => u.Costos)
+            .FirstOrDefaultAsync(u => u.Id == id, ct);
+
+    public Task<bool> ExisteNombreNormalizadoAsync(
+        string nombreNormalizado,
+        Guid? excluirUniversidadId = null,
+        CancellationToken ct = default) =>
+        _db.UniversidadesAliadas.AnyAsync(
+            u => u.NombreNormalizado == nombreNormalizado
+                 && (!excluirUniversidadId.HasValue || u.Id != excluirUniversidadId.Value),
+            ct);
+
+    public async Task<IReadOnlyList<UniversidadAliada>> ListarTodasAsync(CancellationToken ct = default) =>
+        await _db.UniversidadesAliadas
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+    public async Task AgregarAsync(UniversidadAliada universidad, CancellationToken ct = default)
+    {
+        await _db.UniversidadesAliadas.AddAsync(universidad, ct);
+    }
+}

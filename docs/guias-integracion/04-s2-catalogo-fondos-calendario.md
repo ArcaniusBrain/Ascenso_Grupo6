@@ -1,10 +1,12 @@
-# 04 · `S2` Catálogo y Fondos — Calendario Académico (`RF-38`, `HU-38.1` y `HU-38.2`)
+# 04 · `S2` Catálogo y Fondos — Calendario Académico (`RF-38`) y Universidades/Convenios (`RF-14`)
 
-El microservicio **`services/Ascenso.S2.CatalogoFondos/`** (schema `s2_catalogo_fondos`) ya está operativo en `main` con su primer agregado institucional: **`CalendarioAcademico`** + **`InicioInscripcionesPeriodo`**.
+El microservicio **`services/Ascenso.S2.CatalogoFondos/`** (schema `s2_catalogo_fondos`) incluye actualmente los dos agregados del **Catálogo Institucional**: **`CalendarioAcademico`** (`RF-38`) + **`InicioInscripcionesPeriodo`** y **`UniversidadAliada`** (`RF-14`).
 
 ---
 
-## 1. Contrato público disponible (`contracts/openapi.yaml`, tag `S2`)
+## 1. Contratos públicos disponibles (`contracts/openapi.yaml`, tag `S2`)
+
+### A. Calendario académico (`RF-38`: `HU-38.1` y `HU-38.2`)
 
 | Método y ruta | Quién puede llamarlo | Qué hace |
 |---|---|---|
@@ -15,6 +17,20 @@ El microservicio **`services/Ascenso.S2.CatalogoFondos/`** (schema `s2_catalogo_
 | `POST /api/v1/periodos/{codigoPeriodo}/inicios-inscripciones` | **Solo `DIRECCION`** | Registra la **única fecha de inicio de inscripciones** de una universidad en ese periodo (`DateOnly`, interpretada desde las **`00:00` UTC-4**, `R20`, `C4`, `C15`). Duplicado devuelve `409` conservando la fecha original. |
 | `POST /api/v1/periodos/actual` | **Solo `DIRECCION`** *(solo 2FA de sesión, sin OTP)* | Marca un periodo `ABIERTO` como el **único periodo actual**, persiste atómicamente `PeriodoMarcadoActual.v1` en `outbox_messages` e idempotencia por `operationId`. |
 
+### B. Universidades aliadas, convenios, costos e inscripciones (`RF-14`: `HU-14.1`, `HU-14.2`, `HU-14.3`)
+
+| Método y ruta | Quién puede llamarlo | Qué hace |
+|---|---|---|
+| `GET /api/v1/universidades` | Cualquier usuario autenticado (incluidos `POSTULANTE` y `BECARIO`) | Lista las universidades aliadas registradas para selección en `HU-01.1` y configuración de programas. |
+| `POST /api/v1/universidades` | **`DIRECCION` y `COORDINADOR`** *(bloqueado a `ENLACE_UNIVERSIDAD`)* | Registra universidad con nombre único (insensible a mayúsculas/espacios, `409` si se repite), términos del convenio, vía académica (`API` \| `MANUAL`) y contacto designado. |
+| `GET /api/v1/universidades/{universidadId}` | Cualquier usuario autenticado | Devuelve convenio, contacto, carreras elegibles (o `"Esta universidad no tiene carreras elegibles registradas."`) y costos vigentes por periodo. |
+| `PUT /api/v1/universidades/{universidadId}/convenio` | **`DIRECCION` y `COORDINADOR`** *(bloqueado a `ENLACE_UNIVERSIDAD`)* | Actualiza convenio, vía, contacto y permite corregir mayúsculas/minúsculas del nombre sin auto-colisión (`C16`). |
+| `POST /api/v1/universidades/{universidadId}/carreras` | **`DIRECCION` y `COORDINADOR`** | Agrega una carrera elegible aislada a esa universidad (`HU-14.1 E4`). |
+| `POST /api/v1/universidades/{universidadId}/costos-matricula` | **`DIRECCION` y `COORDINADOR`** | Registra o corrige un costo `> 0` (moneda ISO-3, `USD` por defecto) en modo **append-only** (`VersionRegistro++`, sin sobrescribir historial) y publica **`CostoMatriculaVigente.v1`** en `outbox_messages`. |
+| `GET /api/v1/universidades/{universidadId}/costos-matricula/{codigoPeriodo}` | Cualquier usuario autenticado | Devuelve costo vigente + historial completo del periodo, o `200 OK` con `"Sin costo registrado para este periodo"` (`HU-14.2 E5`). |
+| `POST /api/v1/universidades/{universidadId}/inicios-inscripciones` | **`DIRECCION` y `COORDINADOR`** (`C16`) | Registra fecha única de inicio de inscripciones en UTC-4 (`00:00`) para un periodo registrado (`HU-14.3`). |
+| `GET /api/v1/universidades/{universidadId}/inicios-inscripciones/{codigoPeriodo}` | Cualquier usuario autenticado | Devuelve fecha e indicador `inscripcionesIniciadas` (UTC-4), o `200 OK` con `"Sin fecha de inicio de inscripciones registrada para este periodo"` (`inscripcionesIniciadas = false`). |
+
 ### Comportamientos críticos garantizados por `S2`
 - **Concurrencia (`HU-38.2 E6`, `ADR-25`):** si dos usuarios de Dirección marcan dos periodos distintos simultáneamente, exactamente uno confirma (`200 OK`) y el otro recibe **`409 Conflict`** (`ProblemDetails` con `code: "CONCURRENCIA_CONFLICTO"`). Nunca quedan dos periodos actuales.
 - **Idempotencia (`HU-38.2 E8`):**
@@ -24,9 +40,10 @@ El microservicio **`services/Ascenso.S2.CatalogoFondos/`** (schema `s2_catalogo_
 
 ---
 
-## 2. Cómo se conecta con `S4` (Leonel y Sebas) y `S6`
+## 2. Eventos de integración que publica `S2` (para `S4` Leonel/Sebas y `S6`)
 
-Cuando Dirección cambia el periodo actual, `S2` guarda en `s2_catalogo_fondos.outbox_messages` el evento:
+### A. `PeriodoMarcadoActual.v1` (`RF-38`)
+Cuando Dirección cambia el periodo actual, `S2` guarda en `s2_catalogo_fondos.outbox_messages`:
 
 - **`EventType`:** `"PeriodoMarcadoActual.v1"` (`SchemaVersion = 1`)
 - **Contrato C# (`Ascenso.Contracts.Eventos.PeriodoMarcadoActualV1`):**
@@ -37,20 +54,38 @@ Cuando Dirección cambia el periodo actual, `S2` guarda en `s2_catalogo_fondos.o
       string? CodigoPeriodoAnterior);
   ```
 
-### Qué debe hacer el consumidor en `S4` (Inbox idempotente por `EventId`):
+**Qué debe hacer el consumidor en `S4` (Inbox idempotente por `EventId`):**
 1. Registrar `(ConsumerName, EventId)` en `s4_becas.inbox_messages` (`ADR-13`).
 2. Ejecutar por lotes idempotentes **`Beca.IniciarNuevoPeriodo(CodigoPeriodo)`** en segundo plano:
    - Activar las becas que estaban en estado `Renovada` para el nuevo `CodigoPeriodo`.
    - **NO interrumpir** solicitudes de renovación todavía en curso (`HU-38.2 E2/E4`).
    - **NO pasar becas `Activa → Inactiva`** al cambiar de periodo: esa transición tiene como **único disparador** el job de Hangfire en la fecha de cierre de ventana de renovación (`C2`, `DDD-08`, `R38`).
 
+### B. `CostoMatriculaVigente.v1` (`RF-14`, `HU-14.2`, `C2`)
+Cada vez que Dirección o Coordinador registra o corrige un costo de matrícula para `(UniversidadId, CodigoPeriodo)`, `S2` persiste el historial append-only y guarda en `s2_catalogo_fondos.outbox_messages`:
+
+- **`EventType`:** `"CostoMatriculaVigente.v1"` (`SchemaVersion = 1`)
+- **Contrato C# (`Ascenso.Contracts.Eventos.CostoMatriculaVigenteV1`):**
+  ```csharp
+  public sealed record CostoMatriculaVigenteV1(
+      Guid UniversidadId,
+      string CodigoPeriodo,
+      decimal Monto,
+      string Moneda,
+      int VersionRegistro,
+      DateTimeOffset VigenteDesdeUtc);
+  ```
+
+**Qué debe hacer el consumidor en `S4`:**
+- Proyectar la versión más alta (`VersionRegistro`) por `(UniversidadId, CodigoPeriodo)` en su tabla local para aplicar el **tope de la suma de becas por periodo** en la regla de no doble beneficio (`HU-01.2`, `HU-16.1`, `C2`).
+
 ---
 
-## 3. Cómo se conecta con `S3` (Daniel y Diego) y próximos incrementos de `S2`
+## 3. Cómo se conecta con `S3` (Daniel y Diego), `S5` y próximos incrementos de `S2`
 
-- **`S3` (Ciclos de postulación):** todo `CicloPostulacion` se liga a un `CodigoPeriodo` registrado en `S2` (`Ascenso.SharedKernel.ValueObjects.CodigoPeriodo`). Las fechas de inicio de inscripciones por universidad (`InicioInscripcionesPeriodo`) se evalúan a las `00:00` UTC-4 (`IRelojNegocio`).
+- **`S3` (Postulación y ciclos):** consulta `GET /api/v1/universidades` y `GET /api/v1/universidades/{id}` para validar universidades aliadas y carreras elegibles (`HU-01.1`), y consulta `GET /api/v1/universidades/{id}/inicios-inscripciones/{periodo}` para evaluar el cierre de disponibilidades/lista de espera por universidad a las `00:00` UTC-4 (`HU-02.2`, `HU-10.2`).
+- **`S5` (Seguimiento académico):** lee `viaDatosAcademicos` (`API` | `MANUAL`) del convenio para saber por qué vía llega el reporte académico de cada universidad (`HU-24.2`, `HU-24.3`).
 - **Siguientes incrementos planificados dentro de `services/Ascenso.S2.CatalogoFondos/`** (en este mismo servicio y schema `s2_catalogo_fondos`):
-  1. `RF-14` (`UniversidadAliada`, convenios y `CostoMatriculaVigenteV1` hacia `S4`).
-  2. `RF-11` (`Programa` y reglas configurables de renovación/cumplimiento/postulación).
-  3. `RF-13` (`Donante` y `Aporte`).
-  4. `RF-12` (`PresupuestoPrograma`, reservas/liberaciones atómicas `S4 → S2`, `S3 → S2` y conciliación `S2 → S4` `ADR-26`).
+  1. `RF-11` (`Programa` y reglas configurables de renovación/cumplimiento/postulación).
+  2. `RF-13` (`Donante` y `Aporte`).
+  3. `RF-12` (`PresupuestoPrograma`, reservas/liberaciones atómicas `S4 → S2`, `S3 → S2` y conciliación `S2 → S4` `ADR-26`).
