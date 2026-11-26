@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Ascenso.S2.CatalogoFondos.Api</RootNamespace>
+    <AssemblyName>Ascenso.S2.CatalogoFondos.Api</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ascenso.S2.CatalogoFondos.Application\Ascenso.S2.CatalogoFondos.Application.csproj" />
+    <ProjectReference Include="..\Ascenso.S2.CatalogoFondos.Infrastructure\Ascenso.S2.CatalogoFondos.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

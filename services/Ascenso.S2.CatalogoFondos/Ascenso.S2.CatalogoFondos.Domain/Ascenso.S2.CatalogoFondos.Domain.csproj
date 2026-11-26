@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ascenso.S2.CatalogoFondos.Domain</RootNamespace>
+    <AssemblyName>Ascenso.S2.CatalogoFondos.Domain</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Ascenso.SharedKernel\Ascenso.SharedKernel.csproj" />
+  </ItemGroup>
+</Project>

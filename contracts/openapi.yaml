@@ -492,6 +492,140 @@ components:
         operationId:
           $ref: '#/components/schemas/Id'
       description: HU-38.2; periodo actual decidido en S2, no selección de oferta.
+    AbrirPeriodoCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - codigoPeriodo
+      properties:
+        codigoPeriodo:
+          $ref: '#/components/schemas/CodigoPeriodo'
+      description: HU-38.1; registra un nuevo periodo académico en la secuencia (solo Dirección).
+    RegistrarInicioInscripcionesCommand:
+      type: object
+      additionalProperties: false
+      required:
+      - universidadId
+      - nombreUniversidad
+      - fechaInicio
+      properties:
+        universidadId:
+          $ref: '#/components/schemas/Id'
+        nombreUniversidad:
+          type: string
+          minLength: 2
+        fechaInicio:
+          type: string
+          format: date
+          description: Fecha de inicio de inscripciones interpretada desde las 00:00 UTC-4 (C4, R20).
+      description: HU-38.1 E10–E13; una única fecha por universidad y periodo (solo Dirección).
+    InicioInscripcionesDto:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - universidadId
+      - nombreUniversidad
+      - codigoPeriodo
+      - fechaInicio
+      - inscripcionesIniciadas
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        universidadId:
+          $ref: '#/components/schemas/Id'
+        nombreUniversidad:
+          type: string
+        codigoPeriodo:
+          $ref: '#/components/schemas/CodigoPeriodo'
+        fechaInicio:
+          type: string
+          format: date
+        inscripcionesIniciadas:
+          type: boolean
+    PeriodoResumenDto:
+      type: object
+      additionalProperties: false
+      required:
+      - codigo
+      - estado
+      - esActual
+      - registradoEnUtc
+      properties:
+        codigo:
+          $ref: '#/components/schemas/CodigoPeriodo'
+        estado:
+          type: string
+          enum:
+          - ABIERTO
+          - CERRADO
+        esActual:
+          type: boolean
+        registradoEnUtc:
+          type: string
+          format: date-time
+    ListaPeriodosResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - calendarioId
+      - version
+      - periodos
+      properties:
+        calendarioId:
+          $ref: '#/components/schemas/Id'
+        version:
+          type: integer
+          minimum: 0
+        periodoActual:
+          type:
+          - string
+          - 'null'
+        mensaje:
+          type:
+          - string
+          - 'null'
+        periodos:
+          type: array
+          items:
+            $ref: '#/components/schemas/PeriodoResumenDto'
+    PeriodoDetalleResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - codigo
+      - estado
+      - esActual
+      - esPeriodoAnterior
+      - registradoEnUtc
+      - cantidadElementosLigados
+      - iniciosInscripciones
+      properties:
+        codigo:
+          $ref: '#/components/schemas/CodigoPeriodo'
+        estado:
+          type: string
+          enum:
+          - ABIERTO
+          - CERRADO
+        esActual:
+          type: boolean
+        esPeriodoAnterior:
+          type: boolean
+        registradoEnUtc:
+          type: string
+          format: date-time
+        cantidadElementosLigados:
+          type: integer
+          minimum: 0
+        mensajeSinElementos:
+          type:
+          - string
+          - 'null'
+        iniciosInscripciones:
+          type: array
+          items:
+            $ref: '#/components/schemas/InicioInscripcionesDto'
     AceptarOfertaCommand:
       type: object
       additionalProperties: false
@@ -911,6 +1045,236 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ChallengeRequest'
+  /api/v1/periodos:
+    get:
+      tags:
+      - S2
+      summary: Consultar secuencia de periodos académicos (HU-38.1)
+      operationId: ListarPeriodosAcademicos
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Secuencia ordenada cronológicamente ascendente de periodos académicos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaPeriodosResponse'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    post:
+      tags:
+      - S2
+      summary: Registrar un nuevo periodo académico en la secuencia (HU-38.1, solo Dirección)
+      operationId: AbrirPeriodoAcademico
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbrirPeriodoCommand'
+      responses:
+        '201':
+          description: Periodo registrado y abierto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeriodoResumenDto'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/periodos/{codigoPeriodo}:
+    get:
+      tags:
+      - S2
+      summary: Consultar detalle de un periodo académico actual o anterior (HU-38.1)
+      operationId: ConsultarPeriodoAcademico
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: codigoPeriodo
+        required: true
+        schema:
+          $ref: '#/components/schemas/CodigoPeriodo'
+      responses:
+        '200':
+          description: Detalle del periodo académico con sus fechas de inicio de inscripciones por universidad
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeriodoDetalleResponse'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/periodos/{codigoPeriodo}/cerrar:
+    post:
+      tags:
+      - S2
+      summary: Cerrar un periodo académico que no sea el actual (HU-38.1, solo Dirección)
+      operationId: CerrarPeriodoAcademico
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: codigoPeriodo
+        required: true
+        schema:
+          $ref: '#/components/schemas/CodigoPeriodo'
+      responses:
+        '200':
+          description: Periodo cerrado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeriodoResumenDto'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/periodos/{codigoPeriodo}/inicios-inscripciones:
+    post:
+      tags:
+      - S2
+      summary: Registrar fecha única de inicio de inscripciones de una universidad en un periodo (HU-38.1 E10–E13, solo Dirección)
+      operationId: RegistrarInicioInscripcionesPeriodo
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: codigoPeriodo
+        required: true
+        schema:
+          $ref: '#/components/schemas/CodigoPeriodo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrarInicioInscripcionesCommand'
+      responses:
+        '201':
+          description: Fecha de inicio de inscripciones registrada en UTC-4
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InicioInscripcionesDto'
+        '400':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '403':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Error estructurado RFC 9457
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/v1/periodos/actual:
     post:
       tags:
