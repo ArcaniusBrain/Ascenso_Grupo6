@@ -22,3 +22,12 @@ public sealed record AporteRegistradoV1(
     decimal Monto,
     string Moneda,
     DateTimeOffset RegistradoEnUtc);
+
+public sealed record CupoLiberadoV1(
+    Guid ProgramaId,
+    Guid? CicloId,
+    Guid ReservaId,
+    string Motivo,
+    decimal MontoLiberado,
+    string Moneda,
+    DateTimeOffset LiberadoEnUtc);
