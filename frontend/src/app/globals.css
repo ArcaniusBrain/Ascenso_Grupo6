@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/*
+ * Sistema visual de ASCENSO — Fundación Ascenso
+ * Extraído fielmente de Figma (01 · Fundamentos, 02 · Componentes, 03 · Pantallas).
+ * Principios:
+ *  1. El color sube con el avance: azul al empezar, turquesa en proceso, verde al lograrlo.
+ *  2. Ámbar y rojo solo para avisos, errores y acciones irreversibles.
+ *  3. Una superficie por idea; sin sombras salvo en modales y acceso.
+ *  4. Un botón primario por vista.
+ */
+:root {
+  /* Escala Azul (inicio / marca) */
+  --azul-50: #eef4fb;
+  --azul-100: #d9e6f6;
+  --azul-200: #b3cded;
+  --azul-300: #84ade0;
+  --azul-400: #4f87cf;
+  --azul-500: #2b66b8;
+  --azul-600: #1f4f96;
+  --azul-700: #193f78;
+  --azul-800: #142f59;
+  --azul-900: #0e2140;
+
+  /* Escala Turquesa (en proceso) */
+  --turquesa-50: #e9f7f9;
+  --turquesa-100: #cdedf1;
+  --turquesa-200: #9ddae3;
+  --turquesa-300: #62c1cf;
+  --turquesa-400: #2fa4b6;
+  --turquesa-500: #17879a;
+  --turquesa-600: #116b7c;
+  --turquesa-700: #0e5563;
+  --turquesa-800: #0b404b;
+  --turquesa-900: #082c34;
+
+  /* Escala Verde (logrado / activo) */
+  --verde-50: #e8f7f0;
+  --verde-100: #c9ecdc;
+  --verde-200: #96d9bb;
+  --verde-300: #5cc198;
+  --verde-400: #2ea679;
+  --verde-500: #178a62;
+  --verde-600: #116e4f;
+  --verde-700: #0e573f;
+  --verde-800: #0b4130;
+  --verde-900: #082c21;
+
+  /* Escala Gris */
+  --gris-50: #f6f8fa;
+  --gris-100: #edf1f5;
+  --gris-200: #dde3ea;
+  --gris-300: #c3ccd6;
+  --gris-400: #94a0ae;
+  --gris-500: #6b7785;
+  --gris-600: #4c5764;
+  --gris-700: #353e49;
+  --gris-800: #222932;
+  --gris-900: #141a21;
+
+  /* Tokens semánticos de fondo */
+  --color-bg-surface: #ffffff;
+  --color-bg-subtle: #edf1f5;
+  --color-bg-muted: #f6f8fa;
+  --color-bg-disabled: #dde3ea;
+
+  --color-bg-brand: #1f4f96;
+  --color-bg-brand-hover: #193f78;
+  --color-bg-brand-strong: #0e2140;
+  --color-bg-brand-soft: #eef4fb;
+
+  --color-bg-accent: #17879a;
+  --color-bg-accent-strong: #0e5563;
+  --color-bg-accent-soft: #e9f7f9;
+
+  --color-bg-success: #178a62;
+  --color-bg-success-strong: #0e573f;
+  --color-bg-success-soft: #e8f7f0;
+
+  --color-bg-warning-soft: #fff5e0;
+  --color-bg-danger: #b93a2e;
+  --color-bg-danger-hover: #962e24;
+  --color-bg-danger-soft: #fdecea;
+
+  /* Tokens semánticos de texto e iconos */
+  --color-text-primary: #141a21;
+  --color-text-secondary: #4c5764;
+  --color-text-muted: #6b7785;
+  --color-text-disabled: #94a0ae;
+  --color-text-brand: #1f4f96;
+  --color-text-accent: #116b7c;
+  --color-text-success: #116e4f;
+  --color-text-warning: #a55f00;
+  --color-text-danger: #b93a2e;
+  --color-text-on-brand: #ffffff;
+  --color-text-on-brand-muted: #b3cded;
+
+  --color-icon-muted: #94a0ae;
+  --color-icon-brand: #1f4f96;
+  --color-icon-accent: #116b7c;
+  --color-icon-success: #116e4f;
+  --color-icon-warning: #a55f00;
+  --color-icon-danger: #b93a2e;
+  --color-icon-on-brand: #ffffff;
+
+  /* Bordes y radios */
+  --color-border-default: #dde3ea;
+  --color-border-strong: #c3ccd6;
+  --color-border-brand: #2b66b8;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-full: 999px;
+
+  /* Anillo de foco exacto de Figma (Foco/Anillo) */
+  --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px #2b66b8;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.ascenso-focus:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
