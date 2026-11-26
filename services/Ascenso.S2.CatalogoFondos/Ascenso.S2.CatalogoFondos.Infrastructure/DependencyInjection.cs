@@ -46,10 +46,11 @@ public static class DependencyInjection
         services.AddScoped<IInicioInscripcionesRepository, InicioInscripcionesRepositoryEfCore>();
         services.AddScoped<IUniversidadAliadaRepository, UniversidadAliadaRepositoryEfCore>();
         services.AddScoped<IProgramaRepository, ProgramaRepositoryEfCore>();
+        services.AddScoped<IDonanteRepository, DonanteRepositoryEfCore>();
         services.AddScoped<IEscritorOutboxCatalogo, EscritorOutboxCatalogoEfCore>();
         services.AddScoped<IRegistroIdempotenciaComandos, RegistroIdempotenciaComandosEfCore>();
         services.AddScoped<IConsultorElementosPeriodo, ConsultorElementosPeriodoEfCore>();
-        services.AddScoped<IConsultorDonantesYAportes, ConsultorDonantesYAportesPorDefecto>();
+        services.AddScoped<IConsultorDonantesYAportes, ConsultorDonantesYAportesEfCore>();
         services.AddScoped<IUnidadTrabajoCatalogo, UnidadTrabajoCatalogoEfCore>();
 
         return services;

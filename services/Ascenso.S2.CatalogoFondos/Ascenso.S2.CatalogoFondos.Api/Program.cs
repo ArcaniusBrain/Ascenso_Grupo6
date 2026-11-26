@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Calendario;
+using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Donantes;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Programas;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Universidades;
 using Ascenso.S2.CatalogoFondos.Application.Puertos;
@@ -518,6 +519,126 @@ app.MapPut("/api/v1/programas/{programaId:guid}/condiciones", async (
     return Results.Ok(detalle);
 });
 
+// ── Donantes y aportes (RF-13: HU-13.1 y HU-13.2) ─────────────────────────────
+app.MapGet("/api/v1/donantes", async (HttpContext http, IMediator mediator, CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var lista = await mediator.Send(new ListarDonantesQuery(actor), ct);
+    return Results.Ok(lista);
+});
+
+app.MapPost("/api/v1/donantes", async (
+    HttpContext http,
+    RegistrarDonanteRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var creado = await mediator.Send(
+        new RegistrarDonanteCommand(actor, body.Nombre, body.Tipo, body.Contacto),
+        ct);
+
+    return Results.Created($"/api/v1/donantes/{creado.Id}", creado);
+});
+
+app.MapGet("/api/v1/donantes/{donanteId:guid}", async (
+    Guid donanteId,
+    HttpContext http,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var detalle = await mediator.Send(new ConsultarDonanteDetalleQuery(actor, donanteId), ct);
+    return Results.Ok(detalle);
+});
+
+app.MapGet("/api/v1/donantes/{donanteId:guid}/aportes", async (
+    Guid donanteId,
+    string? codigoPeriodo,
+    HttpContext http,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var historial = await mediator.Send(
+        new ConsultarHistorialAportesDonanteQuery(actor, donanteId, codigoPeriodo),
+        ct);
+
+    return Results.Ok(historial);
+});
+
+app.MapPost("/api/v1/donantes/{donanteId:guid}/aportes", async (
+    Guid donanteId,
+    HttpContext http,
+    RegistrarAporteDesdeDonanteRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var resultado = await mediator.Send(
+        new RegistrarAporteCommand(
+            actor,
+            donanteId,
+            body.ProgramaId,
+            body.Cantidad,
+            body.Moneda,
+            body.CodigoPeriodo),
+        ct);
+
+    return Results.Created($"/api/v1/donantes/{donanteId}/aportes/{resultado.Aporte.Id}", resultado.Aporte);
+});
+
+app.MapPost("/api/v1/programas/{programaId:guid}/aportes", async (
+    Guid programaId,
+    HttpContext http,
+    RegistrarAporteProgramaRequest body,
+    IMediator mediator,
+    CancellationToken ct) =>
+{
+    var actor = ResolverActor(http);
+    if (actor is null)
+    {
+        return NoAutenticado(http);
+    }
+
+    var resultado = await mediator.Send(
+        new RegistrarAporteCommand(
+            actor,
+            body.DonanteId,
+            programaId,
+            body.Cantidad,
+            body.Moneda,
+            body.CodigoPeriodo),
+        ct);
+
+    return Results.Ok(resultado.Confirmacion);
+});
+
 app.Run();
 
 static IResult NoAutenticado(HttpContext http) =>
@@ -571,11 +692,11 @@ static (int Status, string Title, string Code, string Detail) MapearExcepcionDeD
     {
         "NO_AUTENTICADO"
             => (StatusCodes.Status401Unauthorized, "No autenticado", ex.Codigo, ex.Message),
-        "ACCESO_DENEGADO_CALENDARIO" or "ACCESO_DENEGADO_UNIVERSIDADES" or "ACCESO_DENEGADO_PROGRAMAS"
+        "ACCESO_DENEGADO_CALENDARIO" or "ACCESO_DENEGADO_UNIVERSIDADES" or "ACCESO_DENEGADO_PROGRAMAS" or "ACCESO_DENEGADO_DONANTES"
             => (StatusCodes.Status403Forbidden, "Acceso denegado", ex.Codigo, ex.Message),
         "PERIODO_NO_ENCONTRADO" or "UNIVERSIDAD_NO_ENCONTRADA" or "PROGRAMA_NO_ENCONTRADO" or "DONANTE_NO_ENCONTRADO"
             => (StatusCodes.Status404NotFound, "Recurso no encontrado", ex.Codigo, ex.Message),
-        "PERIODO_DUPLICADO" or "INICIO_INSCRIPCIONES_DUPLICADO" or "UNIVERSIDAD_DUPLICADA" or "CARRERA_DUPLICADA" or "PROGRAMA_DUPLICADO" or "DONANTE_YA_ASOCIADO"
+        "PERIODO_DUPLICADO" or "INICIO_INSCRIPCIONES_DUPLICADO" or "UNIVERSIDAD_DUPLICADA" or "CARRERA_DUPLICADA" or "PROGRAMA_DUPLICADO" or "DONANTE_YA_ASOCIADO" or "DONANTE_DUPLICADO"
             => (StatusCodes.Status409Conflict, "Conflicto de negocio", ex.Codigo, ex.Message),
         _ => (StatusCodes.Status422UnprocessableEntity, "Regla de negocio incumplida", ex.Codigo, ex.Message)
     };
@@ -642,5 +763,22 @@ public sealed record ConfigurarCondicionesRequest(
     IReadOnlyList<string>? ReportesExigidos,
     int? DuracionMaxPausaMeses,
     string? DescripcionRenovacion);
+
+public sealed record RegistrarDonanteRequest(
+    string? Nombre,
+    TipoDonante? Tipo,
+    ContactoDonanteDto? Contacto);
+
+public sealed record RegistrarAporteDesdeDonanteRequest(
+    Guid ProgramaId,
+    decimal? Cantidad,
+    string? Moneda,
+    string? CodigoPeriodo);
+
+public sealed record RegistrarAporteProgramaRequest(
+    Guid DonanteId,
+    decimal? Cantidad,
+    string? Moneda,
+    string? CodigoPeriodo);
 
 public partial class Program;
