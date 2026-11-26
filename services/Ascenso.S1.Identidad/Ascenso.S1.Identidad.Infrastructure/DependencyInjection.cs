@@ -1,4 +1,5 @@
 using Ascenso.Messaging.Outbox;
+using Ascenso.Messaging.Outbox.RabbitMq;
 using Ascenso.S1.Identidad.Application.CasosDeUso.Autenticacion;
 using Ascenso.S1.Identidad.Application.CasosDeUso.Otp;
 using Ascenso.S1.Identidad.Application.Puertos;
@@ -74,6 +75,8 @@ public static class DependencyInjection
         services.AddScoped<ICanalEnvioCodigo, CanalEnvioCodigoCompuesto>();
         services.AddSingleton<IGeneradorCodigoSeguro, GeneradorCodigoSeguroCripto>();
         services.AddSingleton<IServicioSesionAutenticada, ServicioSesionAutenticadaJwt>();
+
+        services.AddOutboxRabbitMqDispatcher<IdentidadDbContext>(configuration, "s1-identidad");
 
         return services;
     }

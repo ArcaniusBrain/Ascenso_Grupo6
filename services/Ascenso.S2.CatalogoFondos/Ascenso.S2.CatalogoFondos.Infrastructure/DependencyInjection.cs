@@ -1,4 +1,5 @@
 using Ascenso.Messaging.Outbox;
+using Ascenso.Messaging.Outbox.RabbitMq;
 using Ascenso.S2.CatalogoFondos.Application.CasosDeUso.Calendario;
 using Ascenso.S2.CatalogoFondos.Application.Puertos;
 using Ascenso.S2.CatalogoFondos.Domain.Repositorios;
@@ -59,6 +60,8 @@ public static class DependencyInjection
         services.AddScoped<IUnidadTrabajoCatalogo, UnidadTrabajoCatalogoEfCore>();
         services.AddSingleton<ValidadorScopeInternoFondos>();
         services.AddHttpClient<IConsultorVinculoReservaS4, ConsultorVinculoReservaS4Http>();
+
+        services.AddOutboxRabbitMqDispatcher<CatalogoFondosDbContext>(configuration, "s2-catalogo-fondos");
 
         return services;
     }
