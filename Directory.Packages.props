@@ -24,6 +24,9 @@
     <!-- Mensajería RabbitMQ (ADR-13: cliente oficial Apache 2.0 / MPL 2.0) -->
     <PackageVersion Include="RabbitMQ.Client" Version="7.1.2" />
 
+    <!-- API Gateway YARP (ADR-02: licencia MIT) -->
+    <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
+
     <!-- Pruebas -->
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
